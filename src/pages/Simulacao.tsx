@@ -1,5 +1,4 @@
 import { useCallback, useState } from 'react'
-import { History } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import ParamsCard from '@/components/simulacao/ParamsCard'
 import ResultCard from '@/components/simulacao/ResultCard'
@@ -98,8 +97,7 @@ export default function Simulacao() {
           <p className="text-[13px] text-c-text-2">NX Gold · Análise probabilística de custo de fechamento</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost" onClick={() => setHistoryOpen(true)} className="flex items-center gap-1.5">
-            <History size={14} aria-hidden="true" />
+          <Button variant="ghost" onClick={() => setHistoryOpen(true)}>
             Ver rodadas anteriores
           </Button>
         </div>

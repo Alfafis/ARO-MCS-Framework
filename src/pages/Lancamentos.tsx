@@ -97,7 +97,7 @@ export default function Lancamentos() {
           <p className="text-[13px] text-c-text-2">NX Gold · Fechamento de Mina — base do comparativo expectativa vs. realidade</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="primary" onClick={() => setModalOpen(true)}>+ Novo lançamento</Button>
+          <Button variant="primary" onClick={() => setModalOpen(true)}>Novo lançamento</Button>
         </div>
       </header>
 
