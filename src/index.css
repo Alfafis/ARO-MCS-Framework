@@ -1,0 +1,332 @@
+@import "tailwindcss";
+
+/* ── Design tokens via @theme (Tailwind 4) — ficam disponíveis como utilitários ── */
+@theme {
+  --font-sans: 'Space Grotesk', system-ui, sans-serif;
+
+  --color-c-text:    #14151a;
+  --color-c-text-2:  #6c7280;
+  --color-c-bg:      #f4f3f1;
+  --color-c-card:    #ffffff;
+
+  --color-accent:     #ec3013;
+  --color-accent-700: #ae1800;
+  --color-accent-100: #fff1ee;
+
+  --color-success:    #1a7f4b;
+  --color-success-bg: #eaf7ef;
+}
+
+/* ── Tokens em :root — referenciados via var() no CSS custom ── */
+:root {
+  --c-text:    #14151a;
+  --c-text-2:  #6c7280;
+  --c-bg:      #f4f3f1;
+  --c-card:    #ffffff;
+  --c-line:    rgba(20,21,26,.08);
+
+  --accent:      #ec3013;
+  --accent-700:  #ae1800;
+  --accent-100:  #fff1ee;
+
+  --success:     #1a7f4b;
+  --success-bg:  #eaf7ef;
+
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   26px;
+  --r-pill: 999px;
+
+  --shadow-1: 0 1px 2px rgba(20,21,26,.06);
+  --shadow-2: 0 16px 40px -12px rgba(20,21,26,.18);
+  --dur: 220ms;
+}
+
+/* ── Base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  /* rem base: 1rem = 16px — body do sidebar usa px pequeno por spec de design, mas
+     textos de conteúdo das páginas devem usar rem para respeitar zoom do browser */
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 0.875rem; /* 14px */
+  color: var(--c-text);
+  background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Nunca outline azul padrão — cada componente interativo define o próprio focus ring */
+:focus-visible {
+  outline: none;
+}
+
+/* Focus ring padrão para elementos que não declaram o próprio */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Reduced motion — respeitar preferência do SO */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── App grid ── */
+.appgrid {
+  display: grid;
+  height: 100vh;
+  transition: grid-template-columns var(--dur) ease;
+  overflow: hidden;
+}
+
+/* ── Sidebar ── */
+.bsidebar {
+  position: relative;
+  height: 100vh;
+  padding: 20px 14px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--c-card);
+  /* sem overflow:hidden — botão toggle fica em right:-13px (metade fora) e seria cortado */
+}
+
+.bsidebar-topline {
+  display: flex;
+  align-items: center;
+  flex: none;
+}
+
+.brand-label {
+  font-weight: 700;
+  font-size: 1rem; /* 16px */
+  letter-spacing: -0.02em;
+  color: var(--c-text);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* Botão recolher: círculo 26×26px, absolute top:20px right:-13px (meio para fora da sidebar) */
+.bsidebar-toggle {
+  position: absolute;
+  top: 20px;
+  right: -13px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--c-card);
+  border: 1px solid var(--c-line);
+  box-shadow: var(--shadow-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  transition: box-shadow var(--dur) ease;
+  flex: none;
+}
+
+.bsidebar-toggle:hover {
+  box-shadow: var(--shadow-2);
+}
+
+.bsidebar-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* scroll: flex:1 min-height:0 para crescer e rolar independentemente */
+.bsidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scrollbar-width: none;
+}
+
+.bsidebar-scroll::-webkit-scrollbar { display: none; }
+
+/* ── Item de navegação ──
+   altura ~44px (padding 8px v + chip 28px), padding h 10px, radius 12px, sem borda em nenhum estado */
+.bsidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--c-text-2);
+  font-size: 0.844rem; /* ~13.5px */
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur) ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+/* Foco por teclado: outline 2px accent, offset 2px — nunca azul padrão do browser */
+.bsidebar-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hover inativo: chip escurece, texto vai para --c-text. Linha sem fundo. */
+.bsidebar-link:hover { color: var(--c-text); }
+.bsidebar-link:hover .ico { background: #e7e4e1; }
+
+/* Ativo: só o chip recebe cor (vermelho + ícone branco + shadow). Linha sem fundo. */
+.bsidebar-link.active { color: var(--c-text); }
+.bsidebar-link.active .ico {
+  background: var(--accent);
+  box-shadow: var(--shadow-1);
+  color: #fff;
+}
+
+/* Ativo + hover: sem terceiro estado — chip permanece vermelho */
+.bsidebar-link.active:hover { color: var(--c-text); }
+.bsidebar-link.active:hover .ico {
+  background: var(--accent);
+  box-shadow: var(--shadow-1);
+  color: #fff;
+}
+
+/* Chip .ico: 28×28px, radius 9px */
+.bsidebar-link .ico {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  background: #f0eeec;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  color: var(--c-text-2);
+  transition: background var(--dur) ease, box-shadow var(--dur) ease, color var(--dur) ease;
+}
+
+/* ── Rodapé de perfil ── */
+.bsidebar-foot {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: #f6f5f3;
+  border: none;
+  cursor: pointer;
+  transition: background var(--dur) ease;
+  white-space: nowrap;
+  overflow: hidden;
+  width: 100%;
+  font-family: var(--font-sans);
+}
+
+.bsidebar-foot:hover { background: #efece9; }
+
+.bsidebar-foot:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Avatar 26px circular */
+.bsidebar-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent-100);
+  color: var(--accent-700);
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+
+.bsidebar-foot-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-align: left;
+}
+
+.bsidebar-foot-info .name {
+  font-size: 0.75rem; /* 12px */
+  font-weight: 600;
+  color: var(--c-text);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bsidebar-foot-info .role {
+  font-size: 0.6875rem; /* 11px */
+  color: var(--c-text-2);
+  line-height: 1.2;
+}
+
+/* ── Dropdown de perfil — sempre no DOM, nunca desmontado ── */
+.profile-dropdown {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  min-width: 180px;
+  background: var(--c-card);
+  border-radius: 14px;
+  box-shadow: var(--shadow-2);
+  padding: 6px;
+  z-index: 100;
+}
+
+.profile-dropdown-divider {
+  height: 1px;
+  background: var(--c-line);
+  margin: 4px 0;
+}
+
+.profile-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 0.8125rem; /* 13px */
+  font-weight: 500;
+  color: var(--c-text);
+  cursor: pointer;
+  transition: background var(--dur) ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  text-decoration: none;
+  font-family: var(--font-sans);
+}
+
+.profile-menu-item:hover { background: #f0eeec; }
+.profile-menu-item.danger { color: var(--accent-700); }
+
+.profile-menu-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
