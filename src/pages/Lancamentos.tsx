@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2, Clock, DollarSign, Search } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import LancRow from '@/components/lancamentos/LancRow'
 import LancModal from '@/components/lancamentos/LancModal'
 import type { FilterTab, IconKey, Lancamento, LancStatus } from '@/types/lancamentos'
@@ -37,11 +38,11 @@ const INITIAL: Lancamento[] = [
 ]
 
 export default function Lancamentos() {
-  const [rows,       setRows]       = useState<Lancamento[]>(INITIAL)
-  const [search,     setSearch]     = useState('')
-  const [filter,     setFilter]     = useState<FilterTab>('all')
-  const [openMenu,   setOpenMenu]   = useState<string | null>(null)
-  const [modalOpen,  setModalOpen]  = useState(false)
+  const [rows,      setRows]      = useState<Lancamento[]>(INITIAL)
+  const [search,    setSearch]    = useState('')
+  const [filter,    setFilter]    = useState<FilterTab>('all')
+  const [openMenu,  setOpenMenu]  = useState<string | null>(null)
+  const [modalOpen, setModalOpen] = useState(false)
 
   useEffect(() => {
     function onMouseDown() { setOpenMenu(null) }
@@ -49,8 +50,8 @@ export default function Lancamentos() {
     return () => document.removeEventListener('mousedown', onMouseDown)
   }, [])
 
-  const total     = rows.reduce((s, r) => s + r.valor, 0)
-  const validados = rows.filter(r => r.status === 'validado').length
+  const total      = rows.reduce((s, r) => s + r.valor, 0)
+  const validados  = rows.filter(r => r.status === 'validado').length
   const aguardando = rows.filter(r => r.status === 'pendente').length
 
   const filtered = rows.filter(r =>
@@ -86,45 +87,49 @@ export default function Lancamentos() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
 
-      <header className="topbar">
-        <div className="topbar-left">
-          <div className="topbar-title">
-            <h1>Lançamentos realizados</h1>
+      <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Lançamentos realizados</h1>
           </div>
-          <p className="topbar-sub">NX Gold · Fechamento de Mina — base do comparativo expectativa vs. realidade</p>
+          <p className="text-[13px] text-c-text-2">NX Gold · Fechamento de Mina — base do comparativo expectativa vs. realidade</p>
         </div>
-        <div className="topbar-actions">
-          <button className="btn-primary" onClick={() => setModalOpen(true)}>+ Novo lançamento</button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="primary" onClick={() => setModalOpen(true)}>+ Novo lançamento</Button>
         </div>
       </header>
 
-      <div className="content">
+      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
 
         {/* KPI cards */}
-        <div className="kpi-grid">
-          <div className="content-card">
-            <div className="kpi-badge"><DollarSign size={14} aria-hidden="true" /></div>
-            <div className="cell-title">Realizado em 2026</div>
-            <div className="kpi-value">{formatM(total)}</div>
+        <div className="grid grid-cols-3 gap-4">
+          <div className="card">
+            <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
+              <DollarSign size={14} aria-hidden="true" />
+            </div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Realizado em 2026</div>
+            <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{formatM(total)}</div>
           </div>
-          <div className="content-card">
-            <div className="kpi-badge" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>
+          <div className="card">
+            <div className="w-[26px] h-[26px] rounded-[9px] bg-success-bg text-success flex items-center justify-center mb-3">
               <CheckCircle2 size={14} aria-hidden="true" />
             </div>
-            <div className="cell-title">Validados</div>
-            <div className="kpi-value">{validados}</div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Validados</div>
+            <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{validados}</div>
           </div>
-          <div className="content-card">
-            <div className="kpi-badge"><Clock size={14} aria-hidden="true" /></div>
-            <div className="cell-title">Aguardando evidência</div>
-            <div className="kpi-value">{aguardando}</div>
+          <div className="card">
+            <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
+              <Clock size={14} aria-hidden="true" />
+            </div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Aguardando evidência</div>
+            <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{aguardando}</div>
           </div>
         </div>
 
         {/* Toolbar */}
-        <div className="lnc-toolbar">
+        <div className="flex items-center gap-3">
           <label className="lnc-search-pill">
             <Search size={15} aria-hidden="true" />
             <input
@@ -135,7 +140,7 @@ export default function Lancamentos() {
               aria-label="Buscar lançamentos"
             />
           </label>
-          <div className="filter-chips" role="group" aria-label="Filtrar por status">
+          <div className="flex gap-1" role="group" aria-label="Filtrar por status">
             {FILTER_OPTS.map(opt => (
               <button
                 key={opt.value}
@@ -150,7 +155,7 @@ export default function Lancamentos() {
         </div>
 
         {/* Lista */}
-        <div className="content-card" style={{ padding: 0, overflow: 'hidden', boxShadow: 'none' }}>
+        <div className="card" style={{ padding: 0, overflow: 'clip' }}>
           <div className="plist-head">
             {(['Categoria', 'Período', 'Valor real', 'Status', ''] as const).map(col => (
               <span
@@ -161,7 +166,7 @@ export default function Lancamentos() {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="empty-state">Nenhum lançamento encontrado.</div>
+            <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">Nenhum lançamento encontrado.</div>
           ) : (
             filtered.map(row => (
               <LancRow

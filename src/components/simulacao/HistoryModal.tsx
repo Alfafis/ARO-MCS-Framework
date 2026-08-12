@@ -1,18 +1,14 @@
-import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Dialog } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge'
 import type { HistoryRun, UncertaintyLevel } from '@/types/simulacao'
-
-const UNC_STYLE: Record<UncertaintyLevel, { background: string; color: string }> = {
-  baixo:    { background: 'var(--success-bg)', color: 'var(--success)'    },
-  moderado: { background: '#fff8e1',            color: '#7a5f00'           },
-  alto:     { background: 'var(--accent-100)', color: 'var(--accent-700)' },
-}
 
 const UNC_LABEL: Record<UncertaintyLevel, string> = {
   baixo: 'Baixa', moderado: 'Moderada', alto: 'Alta',
 }
 
-const CLOSE_DURATION = 170
+const UNC_VARIANT: Record<UncertaintyLevel, 'success' | 'warning' | 'accent'> = {
+  baixo: 'success', moderado: 'warning', alto: 'accent',
+}
 
 interface Props {
   history:  HistoryRun[]
@@ -20,65 +16,32 @@ interface Props {
   onClose:  () => void
 }
 
-function stopPropagation(e: React.MouseEvent) { e.stopPropagation() }
-
 export default function HistoryModal({ history, onSelect, onClose }: Props) {
-  const [closing, setClosing] = useState(false)
-
-  function triggerClose(cb: () => void) {
-    if (closing) return
-    setClosing(true)
-    setTimeout(cb, CLOSE_DURATION)
-  }
-
   return (
-    <div
-      className={`modal-backdrop${closing ? ' closing' : ''}`}
-      onClick={() => triggerClose(onClose)}
-      role="presentation"
-    >
-      <div
-        className={`modal-card${closing ? ' closing' : ''}`}
-        onClick={stopPropagation}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Rodadas anteriores"
-      >
-        <div className="modal-head">
-          <span className="modal-title">Rodadas anteriores</span>
-          <button className="icon-btn" onClick={() => triggerClose(onClose)} aria-label="Fechar modal">
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        {history.map(run => (
-          <div
-            key={run.id}
-            className="history-row"
-            role="button"
-            tabIndex={0}
-            onClick={() => triggerClose(() => onSelect(run))}
-            onKeyDown={e => e.key === 'Enter' && triggerClose(() => onSelect(run))}
-          >
-            <div>
-              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--c-text)', marginBottom: 3 }}>
-                {run.date}
+    <Dialog title="Rodadas anteriores" onClose={onClose}>
+      {(close) => (
+        <>
+          {history.map(run => (
+            <div
+              key={run.id}
+              className="flex items-center justify-between px-2.5 py-3 rounded-[10px] cursor-pointer hover:bg-[#f6f5f3] border-b border-[rgba(20,21,26,.08)] last:border-b-0 transition-colors"
+              role="button"
+              tabIndex={0}
+              onClick={() => close(() => onSelect(run))}
+              onKeyDown={e => e.key === 'Enter' && close(() => onSelect(run))}
+            >
+              <div>
+                <div className="text-[0.875rem] font-semibold text-c-text mb-0.5">{run.date}</div>
+                <div className="text-[0.78125rem] text-c-text-2">{run.dist} · {run.iterations} iterações</div>
               </div>
-              <div style={{ fontSize: '0.78125rem', color: 'var(--c-text-2)' }}>
-                {run.dist} · {run.iterations} iterações
+              <div className="flex items-center gap-2.5">
+                <span className="font-mono font-bold text-[0.9375rem] text-c-text">{run.mean}</span>
+                <Badge variant={UNC_VARIANT[run.uncertainty]}>{UNC_LABEL[run.uncertainty]}</Badge>
               </div>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <span style={{ fontFamily: 'ui-monospace, Menlo, monospace', fontWeight: 700, fontSize: '0.9375rem', color: 'var(--c-text)' }}>
-                {run.mean}
-              </span>
-              <span className="tag" style={UNC_STYLE[run.uncertainty]}>
-                {UNC_LABEL[run.uncertainty]}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+          ))}
+        </>
+      )}
+    </Dialog>
   )
 }

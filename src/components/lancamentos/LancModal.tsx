@@ -1,5 +1,8 @@
 import { useState } from 'react'
-import { X } from 'lucide-react'
+import { Dialog } from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface Form { categoria: string; periodo: string; valor: string }
 
@@ -8,88 +11,57 @@ interface Props {
   onCancel:  () => void
 }
 
-const CLOSE_DURATION = 170
-
-function stopPropagation(e: React.MouseEvent) { e.stopPropagation() }
-
 export default function LancModal({ onConfirm, onCancel }: Props) {
-  const [form,    setForm]    = useState<Form>({ categoria: '', periodo: '', valor: '' })
-  const [closing, setClosing] = useState(false)
-
-  const set = (field: keyof Form, value: string) =>
-    setForm(prev => ({ ...prev, [field]: value }))
-
+  const [form, setForm] = useState<Form>({ categoria: '', periodo: '', valor: '' })
   const canSubmit = form.categoria.trim().length > 0
-
-  function triggerClose(cb: () => void) {
-    if (closing) return
-    setClosing(true)
-    setTimeout(cb, CLOSE_DURATION)
-  }
+  const set = (field: keyof Form, value: string) => setForm(prev => ({ ...prev, [field]: value }))
 
   return (
-    <div
-      className={`modal-backdrop${closing ? ' closing' : ''}`}
-      onClick={() => triggerClose(onCancel)}
-    >
-      <div
-        className={`modal-card${closing ? ' closing' : ''}`}
-        onClick={stopPropagation}
-        role="dialog"
-        aria-modal="true"
-        aria-label="Novo lançamento"
-      >
-        <div className="modal-head">
-          <span className="modal-title">Novo lançamento</span>
-          <button className="icon-btn" onClick={() => triggerClose(onCancel)} aria-label="Fechar modal">
-            <X size={16} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div className="field-group">
-            <label className="field-label" htmlFor="lnc-cat">Categoria</label>
-            <input
+    <Dialog title="Novo lançamento" onClose={onCancel}>
+      {(close) => (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="lnc-cat">Categoria</Label>
+            <Input
               id="lnc-cat"
-              className="field-input"
+              variant="filled"
               placeholder="Ex: Barragem"
               value={form.categoria}
               onChange={e => set('categoria', e.target.value)}
             />
           </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="lnc-per">Período</label>
-            <input
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="lnc-per">Período</Label>
+            <Input
               id="lnc-per"
-              className="field-input"
+              variant="filled"
               placeholder="Ex: Jul/2026"
               value={form.periodo}
               onChange={e => set('periodo', e.target.value)}
             />
           </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="lnc-val">Valor real (R$)</label>
-            <input
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="lnc-val">Valor real (R$)</Label>
+            <Input
               id="lnc-val"
-              className="field-input"
+              variant="filled"
               placeholder="Ex: 350.000"
               value={form.valor}
               onChange={e => set('valor', e.target.value)}
             />
           </div>
+          <div className="flex justify-end gap-2 mt-6">
+            <Button variant="ghost" onClick={() => close(onCancel)}>Cancelar</Button>
+            <Button
+              variant="primary"
+              disabled={!canSubmit}
+              onClick={() => canSubmit && close(() => onConfirm(form))}
+            >
+              Adicionar
+            </Button>
+          </div>
         </div>
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 24 }}>
-          <button className="btn-ghost" onClick={() => triggerClose(onCancel)}>Cancelar</button>
-          <button
-            className="btn-primary"
-            onClick={() => canSubmit && triggerClose(() => onConfirm(form))}
-            style={canSubmit ? undefined : { opacity: 0.5, cursor: 'not-allowed' }}
-          >
-            Adicionar
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+    </Dialog>
   )
 }

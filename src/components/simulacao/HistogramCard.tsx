@@ -16,8 +16,8 @@ export default function HistogramCard({ result, iterations }: Props) {
   const maxH = Math.max(...result.bars)
 
   return (
-    <div className="content-card">
-      <div className="card-section-title">
+    <div className="card">
+      <div className="flex items-center gap-1.5 mb-5 text-sm font-semibold text-c-text">
         <Activity size={14} color="var(--accent)" aria-hidden="true" />
         <span>Distribuição de custo total ({iterations} iterações)</span>
       </div>
@@ -38,11 +38,9 @@ export default function HistogramCard({ result, iterations }: Props) {
         <span>{result.max}</span>
       </div>
 
-      <p style={{ marginTop: 14, fontSize: '0.8125rem', color: 'var(--c-text-2)', lineHeight: 1.6 }}>
+      <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
         {UNCERTAINTY_TEXT[result.uncertainty]} —{' '}
-        <strong style={{ color: 'var(--c-text)', fontFamily: 'ui-monospace, Menlo, monospace', fontWeight: 700 }}>
-          {result.range}
-        </strong>{' '}
+        <strong className="text-c-text font-mono font-bold">{result.range}</strong>{' '}
         de variação no intervalo de confiança de 95%.
       </p>
     </div>

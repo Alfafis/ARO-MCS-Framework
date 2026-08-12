@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { History } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import ParamsCard from '@/components/simulacao/ParamsCard'
 import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
@@ -35,19 +36,13 @@ function computeResult(dist: Distribution): SimResult {
   const maxV = p90 + 0.4 + Math.random() * 0.8
   const rangeNum = (sd / mean) * 100
   const uncertainty: UncertaintyLevel = rangeNum < 3 ? 'baixo' : rangeNum < 5 ? 'moderado' : 'alto'
-  const fmt  = (v: number) => `R$ ${v.toFixed(1).replace('.', ',')}M`
-  const rng  = (v: number) => v.toFixed(1).replace('.', ',')
+  const fmt = (v: number) => `R$ ${v.toFixed(1).replace('.', ',')}M`
+  const rng = (v: number) => v.toFixed(1).replace('.', ',')
   return {
-    mean: fmt(mean),
-    stddev: `R$ ${sd.toFixed(1).replace('.', ',')}M`,
-    p10p90: `${rng(p10)}–${rng(p90)}M`,
-    ic95: `${rng(ic95lo)}–${rng(ic95hi)}M`,
-    min: fmt(minV),
-    max: fmt(maxV),
-    uncertainty,
-    range: `±${rangeNum.toFixed(1)}%`,
-    bars,
-    status: 'Concluída agora mesmo',
+    mean: fmt(mean), stddev: `R$ ${sd.toFixed(1).replace('.', ',')}M`,
+    p10p90: `${rng(p10)}–${rng(p90)}M`, ic95: `${rng(ic95lo)}–${rng(ic95hi)}M`,
+    min: fmt(minV), max: fmt(maxV), uncertainty, range: `±${rangeNum.toFixed(1)}%`,
+    bars, status: 'Concluída agora mesmo',
   }
 }
 
@@ -66,11 +61,11 @@ const INITIAL_HISTORY: HistoryRun[] = [
 ]
 
 export default function Simulacao() {
-  const [dist, setDist] = useState<Distribution>('Triangular')
-  const [iterations, setIterations] = useState('10.000')
-  const [running, setRunning] = useState(false)
-  const [result, setResult] = useState<SimResult>(INITIAL_RESULT)
-  const [history, setHistory] = useState<HistoryRun[]>(INITIAL_HISTORY)
+  const [dist,        setDist]        = useState<Distribution>('Triangular')
+  const [iterations,  setIterations]  = useState('10.000')
+  const [running,     setRunning]     = useState(false)
+  const [result,      setResult]      = useState<SimResult>(INITIAL_RESULT)
+  const [history,     setHistory]     = useState<HistoryRun[]>(INITIAL_HISTORY)
   const [historyOpen, setHistoryOpen] = useState(false)
 
   const runSimulation = useCallback(() => {
@@ -92,30 +87,26 @@ export default function Simulacao() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
 
-      <header className="topbar">
-        <div className="topbar-left">
-          <div className="topbar-title">
-            <h1>Simulação Monte Carlo</h1>
-            <span className="rev-tag">Rev0</span>
+      <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Simulação Monte Carlo</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
           </div>
-          <p className="topbar-sub">NX Gold · Análise probabilística de custo de fechamento</p>
+          <p className="text-[13px] text-c-text-2">NX Gold · Análise probabilística de custo de fechamento</p>
         </div>
-        <div className="topbar-actions">
-          <button
-            className="btn-ghost"
-            onClick={() => setHistoryOpen(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: 6 }}
-          >
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="ghost" onClick={() => setHistoryOpen(true)} className="flex items-center gap-1.5">
             <History size={14} aria-hidden="true" />
             Ver rodadas anteriores
-          </button>
+          </Button>
         </div>
       </header>
 
-      <div className="content">
-        <div className="sim-grid">
+      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
+        <div className="grid grid-cols-[1fr_1.6fr] gap-4 items-start">
           <ParamsCard
             dist={dist}
             iterations={iterations}
@@ -124,7 +115,7 @@ export default function Simulacao() {
             onIterationsChange={setIterations}
             onRun={runSimulation}
           />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div className="flex flex-col gap-4">
             <ResultCard result={result} />
             <HistogramCard result={result} iterations={iterations} />
             <UncertaintyCard />

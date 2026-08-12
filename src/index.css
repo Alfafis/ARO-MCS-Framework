@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* ── Design tokens via @theme (Tailwind 4) — ficam disponíveis como utilitários ── */
+/* ── Design tokens via @theme (Tailwind 4) ── */
 @theme {
   --font-sans: 'Space Grotesk', system-ui, sans-serif;
 
@@ -8,6 +8,7 @@
   --color-c-text-2:  #6c7280;
   --color-c-bg:      #f4f3f1;
   --color-c-card:    #ffffff;
+  --color-c-line:    rgba(20,21,26,.08);
 
   --color-accent:     #ec3013;
   --color-accent-700: #ae1800;
@@ -17,7 +18,7 @@
   --color-success-bg: #eaf7ef;
 }
 
-/* ── Tokens em :root — referenciados via var() no CSS custom ── */
+/* ── Tokens em :root — usados via var() em componentes legados ── */
 :root {
   --c-text:    #14151a;
   --c-text-2:  #6c7280;
@@ -43,46 +44,48 @@
 }
 
 /* ── Base ── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  /* rem base: 1rem = 16px — body do sidebar usa px pequeno por spec de design, mas
-     textos de conteúdo das páginas devem usar rem para respeitar zoom do browser */
-  font-size: 16px;
-}
-
-body {
-  font-family: var(--font-sans);
-  font-size: 0.875rem; /* 14px */
-  color: var(--c-text);
-  background: var(--c-bg);
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Nunca outline azul padrão — cada componente interativo define o próprio focus ring */
-:focus-visible {
-  outline: none;
-}
-
-/* Focus ring padrão para elementos que não declaram o próprio */
-button:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Reduced motion — respeitar preferência do SO */
-@media (prefers-reduced-motion: reduce) {
+@layer base {
   *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
+
+  html { font-size: 16px; }
+
+  body {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--c-text);
+    background: var(--c-bg);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :focus-visible { outline: none; }
+
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+/* ── Card ── */
+.card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--shadow-1);
+  border: 1px solid rgba(20,21,26,.06);
 }
 
 /* ── App grid ── */
@@ -102,7 +105,6 @@ a:focus-visible {
   flex-direction: column;
   gap: 4px;
   background: var(--c-card);
-  /* sem overflow:hidden — botão toggle fica em right:-13px (metade fora) e seria cortado */
 }
 
 .bsidebar-topline {
@@ -113,14 +115,13 @@ a:focus-visible {
 
 .brand-label {
   font-weight: 700;
-  font-size: 1rem; /* 16px */
+  font-size: 1rem;
   letter-spacing: -0.02em;
   color: var(--c-text);
   white-space: nowrap;
   line-height: 1;
 }
 
-/* Botão recolher: círculo 26×26px, absolute top:20px right:-13px (meio para fora da sidebar) */
 .bsidebar-toggle {
   position: absolute;
   top: 20px;
@@ -140,16 +141,9 @@ a:focus-visible {
   flex: none;
 }
 
-.bsidebar-toggle:hover {
-  box-shadow: var(--shadow-2);
-}
+.bsidebar-toggle:hover { box-shadow: var(--shadow-2); }
+.bsidebar-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.bsidebar-toggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* scroll: flex:1 min-height:0 para crescer e rolar independentemente */
 .bsidebar-scroll {
   flex: 1;
   min-height: 0;
@@ -162,8 +156,6 @@ a:focus-visible {
 
 .bsidebar-scroll::-webkit-scrollbar { display: none; }
 
-/* ── Item de navegação ──
-   altura ~44px (padding 8px v + chip 28px), padding h 10px, radius 12px, sem borda em nenhum estado */
 .bsidebar-link {
   display: flex;
   align-items: center;
@@ -172,7 +164,7 @@ a:focus-visible {
   border-radius: 12px;
   text-decoration: none;
   color: var(--c-text-2);
-  font-size: 0.844rem; /* ~13.5px */
+  font-size: 0.844rem;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
@@ -183,33 +175,14 @@ a:focus-visible {
   text-align: left;
 }
 
-/* Foco por teclado: outline 2px accent, offset 2px — nunca azul padrão do browser */
-.bsidebar-link:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Hover inativo: chip escurece, texto vai para --c-text. Linha sem fundo. */
+.bsidebar-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .bsidebar-link:hover { color: var(--c-text); }
 .bsidebar-link:hover .ico { background: #e7e4e1; }
-
-/* Ativo: só o chip recebe cor (vermelho + ícone branco + shadow). Linha sem fundo. */
 .bsidebar-link.active { color: var(--c-text); }
-.bsidebar-link.active .ico {
-  background: var(--accent);
-  box-shadow: var(--shadow-1);
-  color: #fff;
-}
-
-/* Ativo + hover: sem terceiro estado — chip permanece vermelho */
+.bsidebar-link.active .ico { background: var(--accent); box-shadow: var(--shadow-1); color: #fff; }
 .bsidebar-link.active:hover { color: var(--c-text); }
-.bsidebar-link.active:hover .ico {
-  background: var(--accent);
-  box-shadow: var(--shadow-1);
-  color: #fff;
-}
+.bsidebar-link.active:hover .ico { background: var(--accent); box-shadow: var(--shadow-1); color: #fff; }
 
-/* Chip .ico: 28×28px, radius 9px */
 .bsidebar-link .ico {
   width: 28px;
   height: 28px;
@@ -223,7 +196,6 @@ a:focus-visible {
   transition: background var(--dur) ease, box-shadow var(--dur) ease, color var(--dur) ease;
 }
 
-/* ── Rodapé de perfil ── */
 .bsidebar-foot {
   display: flex;
   align-items: center;
@@ -241,20 +213,15 @@ a:focus-visible {
 }
 
 .bsidebar-foot:hover { background: #efece9; }
+.bsidebar-foot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-.bsidebar-foot:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Avatar 26px circular */
 .bsidebar-avatar {
   width: 26px;
   height: 26px;
   border-radius: 50%;
   background: var(--accent-100);
   color: var(--accent-700);
-  font-size: 0.6875rem; /* 11px */
+  font-size: 0.6875rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -270,7 +237,7 @@ a:focus-visible {
 }
 
 .bsidebar-foot-info .name {
-  font-size: 0.75rem; /* 12px */
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--c-text);
   line-height: 1.2;
@@ -279,12 +246,11 @@ a:focus-visible {
 }
 
 .bsidebar-foot-info .role {
-  font-size: 0.6875rem; /* 11px */
+  font-size: 0.6875rem;
   color: var(--c-text-2);
   line-height: 1.2;
 }
 
-/* ── Dropdown de perfil — sempre no DOM, nunca desmontado ── */
 .profile-dropdown {
   position: absolute;
   bottom: calc(100% + 8px);
@@ -310,7 +276,7 @@ a:focus-visible {
   gap: 8px;
   padding: 8px 10px;
   border-radius: 8px;
-  font-size: 0.8125rem; /* 13px */
+  font-size: 0.8125rem;
   font-weight: 500;
   color: var(--c-text);
   cursor: pointer;
@@ -325,74 +291,7 @@ a:focus-visible {
 
 .profile-menu-item:hover { background: #f0eeec; }
 .profile-menu-item.danger { color: var(--accent-700); }
-
-.profile-menu-item:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* ── Layout de conteúdo (telas com sidebar, sem bento) ── */
-.content {
-  padding: 0 32px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-/* Card branco padrão das telas de conteúdo */
-.content-card {
-  background: var(--c-card);
-  border-radius: var(--r-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-1);
-}
-
-/* Título de seção dentro de card */
-.card-section-title {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 20px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--c-text);
-}
-
-/* ── Formulário (Dados do projeto) ── */
-.project-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.field-label {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: var(--c-text-2);
-}
-
-.field-input {
-  width: 100%;
-  background: #f6f5f3;
-  border: none;
-  border-radius: 11px;
-  padding: 9px 13px;
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  color: var(--c-text);
-  outline: none;
-  transition: box-shadow var(--dur) ease;
-}
-
-.field-input:focus { box-shadow: 0 0 0 1.5px var(--accent); }
+.profile-menu-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ── Custom select ── */
 .csel-btn {
@@ -457,22 +356,6 @@ a:focus-visible {
 .cat-block.cat-entering { animation: catIn 420ms cubic-bezier(.2,.8,.2,1); }
 .cat-block.cat-highlight { border-color: var(--accent); }
 
-.cat-head {
-  background: #faf9f8;
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.cat-order {
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--c-text-2);
-  flex: none;
-}
-
 /* Input de nome da categoria — inline editável */
 .cat-name-input {
   flex: 1;
@@ -492,13 +375,7 @@ a:focus-visible {
 .cat-name-input:hover { background: #f0eeec; }
 .cat-name-input:focus { box-shadow: 0 0 0 1.5px var(--accent); background: #fff; }
 
-/* Corpo da categoria */
-.cat-body {
-  padding: 0 16px 12px;
-  background: var(--c-card);
-}
-
-/* Linha de item — grid de colunas */
+/* Linhas de item — grid de colunas */
 .item-row {
   display: grid;
   grid-template-columns: 1fr 90px 130px 130px 140px 32px;
@@ -508,9 +385,7 @@ a:focus-visible {
   border-bottom: 1px solid var(--c-line);
 }
 
-.item-header {
-  padding: 10px 0 6px;
-}
+.item-header { padding: 10px 0 6px; }
 
 .col-label {
   font-size: 0.6875rem;
@@ -538,254 +413,7 @@ a:focus-visible {
 .row-input:focus { box-shadow: 0 0 0 1.5px var(--accent); background: #fff; }
 .row-input.mono { font-family: ui-monospace, Menlo, monospace; }
 
-/* Botão de ícone */
-.icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  border-radius: 6px;
-  color: var(--c-text-2);
-  transition: background var(--dur) ease, color var(--dur) ease;
-  flex: none;
-}
-
-.icon-btn:hover { background: #f0eeec; }
-.icon-btn.danger:hover { background: var(--accent-100); color: var(--accent-700); }
-.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* Botão "Adicionar item" dentro da categoria */
-.add-item-btn {
-  background: none;
-  border: none;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--c-text-2);
-  cursor: pointer;
-  padding: 8px 6px;
-  transition: color var(--dur) ease;
-}
-
-.add-item-btn:hover { color: var(--accent); }
-.add-item-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-
-/* Botão "+ Nova categoria" no cabeçalho do card */
-.add-cat-header-btn {
-  background: none;
-  border: none;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--c-text-2);
-  cursor: pointer;
-  padding: 0;
-  transition: color var(--dur) ease;
-}
-
-.add-cat-header-btn:hover { color: var(--accent); }
-.add-cat-header-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px; }
-
-/* Botão "+ Nova categoria de custo" no rodapé */
-.add-cat-footer {
-  width: 100%;
-  padding: 14px;
-  background: #f6f5f3;
-  border-radius: 14px;
-  border: none;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--c-text-2);
-  cursor: pointer;
-  text-align: center;
-  transition: color var(--dur) ease, background var(--dur) ease;
-}
-
-.add-cat-footer:hover { color: var(--accent); background: #efece9; }
-.add-cat-footer:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* ── Dashboard ── */
-
-/* Topbar */
-.topbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 22px 32px;
-  gap: 16px;
-  flex: none;
-}
-
-.topbar-left {}
-
-.topbar-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.topbar-title h1 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--c-text);
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-}
-
-.topbar-sub {
-  font-size: 0.8125rem;
-  color: var(--c-text-2);
-}
-
-.topbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-}
-
-.btn-ghost {
-  padding: 8px 16px;
-  border-radius: var(--r-pill);
-  border: 1px solid var(--c-line);
-  background: var(--c-card);
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--c-text);
-  cursor: pointer;
-  transition: background var(--dur) ease, box-shadow var(--dur) ease;
-  box-shadow: var(--shadow-1);
-  white-space: nowrap;
-}
-
-.btn-ghost:hover { background: #f6f5f3; }
-
-.btn-ghost:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.btn-primary {
-  padding: 8px 18px;
-  border-radius: var(--r-pill);
-  border: none;
-  background: var(--accent);
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  transition: background var(--dur) ease;
-  white-space: nowrap;
-}
-
-.btn-primary:hover { background: var(--accent-700); }
-
-.btn-primary:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-}
-
-/* Tag de revisão no título */
-.rev-tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  background: #f0eeec;
-  color: var(--c-text-2);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: ui-monospace, Menlo, monospace;
-}
-
-/* Bento grid */
-.bento {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 16px;
-  padding: 0 32px 32px;
-}
-
-/* Card base */
-.cell {
-  background: var(--c-card);
-  border-radius: var(--r-lg);
-  padding: 24px;
-  box-shadow: var(--shadow-1);
-}
-
-/* KPI card */
-.kpi-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 9px;
-  background: var(--accent-100);
-  color: var(--accent-700);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-}
-
-.cell-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--c-text-2);
-  margin-bottom: 6px;
-}
-
-.kpi-value {
-  font-size: 1.375rem;
-  font-weight: 700;
-  color: var(--c-text);
-  letter-spacing: -0.02em;
-  font-family: ui-monospace, Menlo, monospace;
-}
-
-.kpi-sub {
-  font-size: 0.78125rem;
-  color: var(--c-text-2);
-  margin-top: 6px;
-}
-
-/* Tags / pills */
-.tag {
-  display: inline-flex;
-  align-items: center;
-  padding: 2px 8px;
-  border-radius: var(--r-pill);
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.tag-line {
-  background: #f0eeec;
-  color: var(--c-text-2);
-}
-
-/* Divisória do card Confiabilidade */
-.conf-divider {
-  height: 1px;
-  background: var(--c-line);
-  margin: 14px 0;
-}
-
 /* ── Simulação Monte Carlo ── */
-
-.sim-grid {
-  display: grid;
-  grid-template-columns: 1fr 1.6fr;
-  gap: 16px;
-  align-items: start;
-}
 
 /* Segmented control */
 .seg {
@@ -818,86 +446,12 @@ a:focus-visible {
   box-shadow: 0 1px 3px rgba(20,21,26,.12);
 }
 
-.seg-opt:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-/* Run button */
-.run-btn {
-  width: 100%;
-  padding: 12px 20px;
-  background: var(--accent);
-  border: none;
-  border-radius: var(--r-pill);
-  font-family: var(--font-sans);
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #fff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  transition: background var(--dur) ease, opacity var(--dur) ease;
-}
-
-.run-btn:hover:not(:disabled) { background: var(--accent-700); }
-.run-btn:disabled { opacity: 0.6; cursor: default; }
-.run-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.seg-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* Spinner animation */
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.spinner {
-  animation: spin 700ms linear infinite;
-}
-
-/* Stat grid (resultado da última rodada) */
-.stat-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.stat-box {
-  background: #f6f5f3;
-  border-radius: 14px;
-  padding: 14px 16px;
-}
-
-.stat-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--c-text-2);
-  margin-bottom: 6px;
-}
-
-.stat-value {
-  font-family: ui-monospace, Menlo, monospace;
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--c-text);
-  letter-spacing: -0.01em;
-}
-
-/* Status pill (verde) */
-.status-pill {
-  display: inline-flex;
-  align-items: center;
-  padding: 3px 10px;
-  border-radius: var(--r-pill);
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--success-bg);
-  color: var(--success);
-  white-space: nowrap;
-  flex: none;
-}
+.spinner { animation: spin 700ms linear infinite; }
 
 /* Histogram */
 .histogram {
@@ -914,9 +468,7 @@ a:focus-visible {
   transition: height 500ms cubic-bezier(.4,0,.2,1);
 }
 
-.hist-bar.in {
-  background: var(--accent);
-}
+.hist-bar.in { background: var(--accent); }
 
 .hist-labels {
   display: flex;
@@ -927,29 +479,11 @@ a:focus-visible {
   color: var(--c-text-2);
 }
 
-/* Uncertainty contribution list */
-.unc-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--c-line);
-}
-
-.unc-row:last-child { border-bottom: none; }
-
-.unc-pct {
-  font-family: ui-monospace, Menlo, monospace;
-  font-weight: 700;
-  font-size: 0.875rem;
-  color: var(--c-text);
-}
-
-/* Modal — keyframes de entrada e saída */
-@keyframes backdropIn  { from { opacity: 0; }                                              to { opacity: 1; }                                            }
-@keyframes backdropOut { from { opacity: 1; }                                              to { opacity: 0; }                                            }
-@keyframes cardIn      { from { opacity: 0; transform: translateY(14px) scale(0.95); }    to { opacity: 1; transform: translateY(0)    scale(1);    }   }
-@keyframes cardOut     { from { opacity: 1; transform: translateY(0)    scale(1);    }    to { opacity: 0; transform: translateY(10px) scale(0.96); }   }
+/* ── Modal — keyframes de entrada e saída ── */
+@keyframes backdropIn  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes backdropOut { from { opacity: 1; } to { opacity: 0; } }
+@keyframes cardIn      { from { opacity: 0; transform: translateY(14px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes cardOut     { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(10px) scale(0.96); } }
 
 .modal-backdrop {
   position: fixed;
@@ -977,53 +511,9 @@ a:focus-visible {
 
 .modal-card.closing { animation: cardOut 170ms ease forwards; }
 
-.modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
-}
-
-.modal-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--c-text);
-}
-
-.history-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background var(--dur) ease;
-  border-bottom: 1px solid var(--c-line);
-}
-
-.history-row:last-child { border-bottom: none; }
-.history-row:hover { background: #f6f5f3; }
-
-.history-row:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
 /* ── Lançamentos ── */
 
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-/* Toolbar de busca + filtros */
-.lnc-toolbar {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+/* Busca */
 .lnc-search-pill {
   flex: 1;
   display: flex;
@@ -1050,11 +540,6 @@ a:focus-visible {
 .lnc-search::placeholder { color: var(--c-text-2); }
 
 /* Filter chips */
-.filter-chips {
-  display: flex;
-  gap: 4px;
-}
-
 .filter-chip {
   padding: 7px 14px;
   border-radius: var(--r-pill);
@@ -1081,7 +566,7 @@ a:focus-visible {
 
 .filter-chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Tabela / lista */
+/* Tabela de lançamentos */
 .plist-head,
 .prow {
   display: grid;
@@ -1119,7 +604,6 @@ a:focus-visible {
 .prow:last-child { border-bottom: none; }
 .prow.highlight { background: var(--accent-100); }
 
-/* Ícone de categoria */
 .row-icon {
   width: 32px;
   height: 32px;
@@ -1145,7 +629,6 @@ a:focus-visible {
   margin-top: 2px;
 }
 
-/* Valor monoespaçado — alinhado à direita dentro da coluna */
 .mono-value {
   display: block;
   font-family: ui-monospace, Menlo, monospace;
@@ -1155,12 +638,12 @@ a:focus-visible {
   text-align: right;
 }
 
-/* Status pills da lista — justify-self: start impede o grid de esticar a pill até 130px */
-.pill-validado { background: var(--success-bg); color: var(--success);  justify-self: start; }
-.pill-revisao  { background: #f0eeec;           color: var(--c-text-2); justify-self: start; }
-.pill-pendente { background: #fff3e0;           color: #b45309;         justify-self: start; white-space: normal; text-align: center; line-height: 1.3; }
+/* Status pills — justify-self: start impede o grid de esticar a pill */
+.pill-validado { background: var(--success-bg); color: var(--success);  justify-self: start; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.pill-revisao  { background: #f0eeec;           color: var(--c-text-2); justify-self: start; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+.pill-pendente { background: #fff3e0;           color: #b45309;         justify-self: start; display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; white-space: normal; text-align: center; line-height: 1.3; }
 
-/* Botão de ações por linha — 26×26px */
+/* Botão de ações por linha */
 .row-action-btn {
   width: 26px;
   height: 26px;
@@ -1179,7 +662,6 @@ a:focus-visible {
 .row-action-btn:hover { background: #f0eeec; }
 .row-action-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* Menu de ações por linha */
 .row-menu-wrap { position: relative; }
 
 .row-menu {
@@ -1192,55 +674,4 @@ a:focus-visible {
   box-shadow: var(--shadow-2);
   padding: 6px;
   min-width: 176px;
-}
-
-.row-menu-item {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: none;
-  background: none;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--c-text);
-  cursor: pointer;
-  text-align: left;
-  transition: background var(--dur) ease, color var(--dur) ease;
-}
-
-.row-menu-item:hover { background: #f0eeec; }
-.row-menu-item.danger { color: var(--accent-700); }
-.row-menu-item.danger:hover { background: var(--accent-100); }
-.row-menu-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-
-/* Estado vazio */
-.empty-state {
-  padding: 48px 24px;
-  text-align: center;
-  color: var(--c-text-2);
-  font-size: 0.875rem;
-}
-
-/* Link "ver todas as categorias" */
-.cat-seeall {
-  background: none;
-  border: none;
-  font-family: var(--font-sans);
-  font-size: 0.8125rem;
-  font-weight: 500;
-  color: var(--c-text-2);
-  cursor: pointer;
-  transition: color var(--dur) ease;
-  padding: 0;
-}
-
-.cat-seeall:hover { color: var(--accent) !important; }
-
-.cat-seeall:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 4px;
 }

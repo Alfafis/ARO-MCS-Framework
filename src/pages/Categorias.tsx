@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react'
 import { FolderOpen } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import ProjectDataCard from '@/components/categorias/ProjectDataCard'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import type { Category, CategoryItem } from '@/types/categorias'
@@ -62,39 +63,40 @@ export default function Categorias() {
   }, [])
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <div className="flex flex-col h-full">
 
-      {/* ── Topbar ── */}
-      <header className="topbar">
-        <div className="topbar-left">
-          <div className="topbar-title">
-            <h1>Fechamento de Mina — ARO</h1>
-            <span className="rev-tag">Rev0</span>
+      <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Fechamento de Mina — ARO</h1>
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
           </div>
-          <p className="topbar-sub">NX Gold · Categorias de custo e itens</p>
+          <p className="text-[13px] text-c-text-2">NX Gold · Categorias de custo e itens</p>
         </div>
-        <div className="topbar-actions">
-          <button className="btn-ghost">Salvar rascunho</button>
-          <button className="btn-primary">Salvar e continuar</button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Button variant="ghost">Salvar rascunho</Button>
+          <Button variant="primary">Salvar e continuar</Button>
         </div>
       </header>
 
-      {/* ── Conteúdo ── */}
-      <div className="content">
+      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
         <ProjectDataCard />
 
-        {/* Card de categorias */}
-        <div className="content-card">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <div className="card-section-title">
+        <div className="card">
+          <div className="flex justify-between items-center mb-5">
+            <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
               <FolderOpen size={14} color="var(--accent)" aria-hidden="true" />
               <span>Categorias de custo</span>
             </div>
-            <button className="add-cat-header-btn" onClick={addCategory}>+ Nova categoria</button>
+            <button
+              className="text-[0.8125rem] font-semibold text-c-text-2 hover:text-accent transition-colors cursor-pointer bg-transparent border-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4 rounded"
+              onClick={addCategory}
+            >
+              + Nova categoria
+            </button>
           </div>
 
-          {/* Lista */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div className="flex flex-col gap-3">
             {categories.map((cat, idx) => (
               <CategoryBlock
                 key={cat.id}
@@ -109,8 +111,10 @@ export default function Categorias() {
             ))}
           </div>
 
-          {/* Rodapé */}
-          <button className="add-cat-footer" style={{ marginTop: 16 }} onClick={addCategory}>
+          <button
+            className="mt-4 w-full py-3.5 bg-[#f6f5f3] rounded-[14px] border-none text-[0.8125rem] font-medium text-c-text-2 hover:text-accent hover:bg-[#efece9] transition-colors cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+            onClick={addCategory}
+          >
             + Nova categoria de custo
           </button>
         </div>

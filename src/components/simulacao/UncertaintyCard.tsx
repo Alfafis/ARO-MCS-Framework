@@ -8,16 +8,16 @@ const CONTRIBUTIONS = [
 
 export default function UncertaintyCard() {
   return (
-    <div className="content-card">
-      <div className="card-section-title">
+    <div className="card">
+      <div className="flex items-center gap-1.5 mb-5 text-sm font-semibold text-c-text">
         <Target size={14} color="var(--accent)" aria-hidden="true" />
         <span>Contribuição de incerteza por categoria</span>
       </div>
 
       {CONTRIBUTIONS.map(({ name, pct }) => (
-        <div key={name} className="unc-row">
-          <span style={{ color: 'var(--c-text)', fontSize: '0.875rem' }}>{name}</span>
-          <span className="unc-pct">{pct}</span>
+        <div key={name} className="flex items-center justify-between py-2.5 border-b border-[rgba(20,21,26,.08)] last:border-b-0">
+          <span className="text-[0.875rem] text-c-text">{name}</span>
+          <span className="font-mono font-bold text-sm text-c-text">{pct}</span>
         </div>
       ))}
     </div>

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { ChevronUp, ChevronDown, Trash2 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
 import type { Category, CategoryItem } from '@/types/categorias'
 
 interface Props {
@@ -30,9 +32,10 @@ export default function CategoryBlock({ category, index, onRemove, onChange, onA
       ref={blockRef}
       className={`cat-block${category.justAdded ? ' cat-entering' : ''}${highlighted ? ' cat-highlight' : ''}`}
     >
-      {/* Cabeçalho */}
-      <div className="cat-head">
-        <span className="cat-order">{String(index + 1).padStart(2, '0')}</span>
+      <div className="bg-[#faf9f8] px-4 py-3 flex items-center gap-2.5">
+        <span className="font-mono text-[0.75rem] font-bold text-c-text-2 shrink-0">
+          {String(index + 1).padStart(2, '0')}
+        </span>
 
         <input
           className="cat-name-input"
@@ -41,40 +44,36 @@ export default function CategoryBlock({ category, index, onRemove, onChange, onA
           aria-label={`Nome da categoria ${index + 1}`}
         />
 
-        <span className="tag" style={{
-          background: isAmbos ? 'var(--accent-100)' : '#f0eeec',
-          color: isAmbos ? 'var(--accent-700)' : 'var(--c-text-2)',
-          flexShrink: 0,
-        }}>
+        <Badge
+          variant={isAmbos ? 'accent' : 'default'}
+          className="shrink-0"
+        >
           Preenche: {category.preenche}
-        </span>
+        </Badge>
 
-        <button
-          className="icon-btn"
+        <Button
+          variant="icon-btn"
           onClick={() => onChange('expanded', !category.expanded)}
           aria-label={category.expanded ? 'Recolher categoria' : 'Expandir categoria'}
         >
           {category.expanded
             ? <ChevronUp size={14} aria-hidden="true" />
             : <ChevronDown size={14} aria-hidden="true" />}
-        </button>
+        </Button>
 
-        <button className="icon-btn danger" onClick={onRemove} aria-label="Excluir categoria">
+        <Button variant="icon-danger" onClick={onRemove} aria-label="Excluir categoria">
           <Trash2 size={14} aria-hidden="true" />
-        </button>
+        </Button>
       </div>
 
-      {/* Corpo — só quando expandido */}
       {category.expanded && (
-        <div className="cat-body">
-          {/* Cabeçalho de colunas */}
+        <div className="px-4 pb-3 bg-white">
           <div className="item-row item-header">
             {['Item', 'Unidade', 'Custo Min', 'Custo Max', 'Fonte', ''].map(col => (
               <span key={col} className="col-label">{col}</span>
             ))}
           </div>
 
-          {/* Linhas de itens */}
           {category.items.map(item => (
             <div key={item.id} className="item-row">
               <input className="row-input" value={item.name}   onChange={e => onUpdateItem(item.id, 'name',   e.target.value)} aria-label="Nome do item" />
@@ -82,14 +81,18 @@ export default function CategoryBlock({ category, index, onRemove, onChange, onA
               <input className="row-input mono" value={item.min}    onChange={e => onUpdateItem(item.id, 'min',    e.target.value)} aria-label="Custo mínimo" />
               <input className="row-input mono" value={item.max}    onChange={e => onUpdateItem(item.id, 'max',    e.target.value)} aria-label="Custo máximo" />
               <input className="row-input" value={item.source} onChange={e => onUpdateItem(item.id, 'source', e.target.value)} aria-label="Fonte" />
-              <button className="icon-btn danger" onClick={() => onRemoveItem(item.id)} aria-label="Excluir item">
+              <Button variant="icon-danger" onClick={() => onRemoveItem(item.id)} aria-label="Excluir item">
                 <Trash2 size={13} aria-hidden="true" />
-              </button>
+              </Button>
             </div>
           ))}
 
-          {/* Adicionar item */}
-          <button className="add-item-btn" onClick={onAddItem}>+ Adicionar item</button>
+          <button
+            className="text-[0.8125rem] font-medium text-c-text-2 hover:text-accent transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded"
+            onClick={onAddItem}
+          >
+            + Adicionar item
+          </button>
         </div>
       )}
     </div>

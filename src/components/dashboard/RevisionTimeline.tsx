@@ -1,4 +1,5 @@
 import { Clock, Check } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 const REVISIONS = [
   {
@@ -29,49 +30,37 @@ const REVISIONS = [
 
 export default function RevisionTimeline() {
   return (
-    <div className="cell" style={{ gridColumn: 'span 5' }}>
-      {/* Cabeçalho */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 20 }}>
+    <div className="card col-span-5">
+      <div className="flex items-center gap-1.5 mb-5">
         <Clock size={14} color="var(--accent)" aria-hidden="true" />
-        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--c-text)' }}>Timeline de revisões</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">Timeline de revisões</span>
       </div>
 
-      {/* Items */}
-      <div style={{ display: 'flex', flexDirection: 'column' }}>
+      <div className="flex flex-col">
         {REVISIONS.map(({ id, title, date, done, tag, desc }, idx) => (
-          <div
-            key={id}
-            style={{ display: 'flex', gap: 12, opacity: done ? 1 : 0.6 }}
-          >
-            {/* Coluna do dot + conector */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: '50%', flexShrink: 0,
-                background: done ? 'var(--accent)' : '#d1cec9',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
+          <div key={id} className="flex gap-3" style={{ opacity: done ? 1 : 0.6 }}>
+            <div className="flex flex-col items-center shrink-0">
+              <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
+                style={{ background: done ? 'var(--accent)' : '#d1cec9' }}>
                 {done
                   ? <Check size={11} color="#fff" strokeWidth={2.5} aria-hidden="true" />
-                  : <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '0.625rem', fontWeight: 700, color: '#fff' }}>{idx + 1}</span>
+                  : <span className="font-mono text-[10px] font-bold text-white">{idx + 1}</span>
                 }
               </div>
               {idx < REVISIONS.length - 1 && (
-                <div style={{ width: 1, flex: 1, minHeight: 16, background: 'var(--c-line)', margin: '4px 0' }} />
+                <div className="w-px flex-1 min-h-4 bg-[rgba(20,21,26,.08)] my-1" />
               )}
             </div>
 
-            {/* Conteúdo */}
-            <div style={{ paddingBottom: idx < REVISIONS.length - 1 ? 20 : 0, flex: 1, minWidth: 0 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-                <span style={{ fontSize: '0.8125rem', fontWeight: 600, color: 'var(--c-text)' }}>{title}</span>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexShrink: 0 }}>
-                  {tag && (
-                    <span className="tag" style={{ background: 'var(--success-bg)', color: 'var(--success)' }}>{tag}</span>
-                  )}
-                  <span style={{ fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '0.6875rem', color: 'var(--c-text-2)' }}>{date}</span>
+            <div className={`flex-1 min-w-0${idx < REVISIONS.length - 1 ? ' pb-5' : ''}`}>
+              <div className="flex justify-between items-start gap-2 mb-1">
+                <span className="text-[0.8125rem] font-semibold text-c-text">{title}</span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {tag && <Badge variant="success">{tag}</Badge>}
+                  <span className="font-mono text-[11px] text-c-text-2">{date}</span>
                 </div>
               </div>
-              <p style={{ fontSize: '0.75rem', color: 'var(--c-text-2)', lineHeight: 1.5 }}>{desc}</p>
+              <p className="text-[0.75rem] text-c-text-2 leading-relaxed">{desc}</p>
             </div>
           </div>
         ))}

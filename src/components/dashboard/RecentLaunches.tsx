@@ -1,35 +1,27 @@
 import { FileText } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
 
 const LAUNCHES = [
-  { sector: 4,  name: 'Barragem',     period: 'Jul/2026', value: 'R$ 612.000', status: 'Validado',   ok: true  },
-  { sector: 8,  name: 'Monitoramento',period: 'Jul/2026', value: 'R$ 218.000', status: 'Em revisão', ok: false },
-  { sector: 2,  name: 'Cavas',        period: 'Jun/2026', value: 'R$ 940.000', status: 'Validado',   ok: true  },
+  { sector: 4,  name: 'Barragem',      period: 'Jul/2026', value: 'R$ 612.000', status: 'Validado',   ok: true  },
+  { sector: 8,  name: 'Monitoramento', period: 'Jul/2026', value: 'R$ 218.000', status: 'Em revisão', ok: false },
+  { sector: 2,  name: 'Cavas',         period: 'Jun/2026', value: 'R$ 940.000', status: 'Validado',   ok: true  },
 ]
 
 export default function RecentLaunches() {
   return (
-    <div className="cell" style={{ gridColumn: 'span 7' }}>
-      {/* Cabeçalho */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 18 }}>
+    <div className="card col-span-7">
+      <div className="flex items-center gap-1.5 mb-[18px]">
         <FileText size={14} color="var(--accent)" aria-hidden="true" />
-        <span style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--c-text)' }}>Lançamentos recentes</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">Lançamentos recentes</span>
       </div>
 
-      {/* Tabela */}
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+      <table className="w-full border-collapse">
         <thead>
           <tr>
             {['Categoria', 'Período', 'Valor real', 'Status'].map(col => (
-              <th key={col} style={{
-                textAlign: col === 'Categoria' ? 'left' : col === 'Status' ? 'right' : 'left',
-                fontSize: '0.6875rem',
-                fontWeight: 600,
-                letterSpacing: '0.06em',
-                textTransform: 'uppercase',
-                color: 'var(--c-text-2)',
-                paddingBottom: 10,
-                borderBottom: '1px solid var(--c-line)',
-              }}>
+              <th key={col} className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 pb-2.5 border-b border-[rgba(20,21,26,.08)]"
+                style={{ textAlign: col === 'Status' ? 'right' : 'left' }}
+              >
                 {col}
               </th>
             ))}
@@ -38,29 +30,22 @@ export default function RecentLaunches() {
         <tbody>
           {LAUNCHES.map(({ sector, name, period, value, status, ok }, i) => (
             <tr key={i}>
-              <td style={{ padding: '12px 0', borderBottom: '1px solid var(--c-line)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{
-                    width: 22, height: 22, borderRadius: 7,
-                    background: '#f0eeec',
-                    display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.6875rem', fontWeight: 700, color: 'var(--c-text-2)',
-                    fontFamily: 'ui-monospace,Menlo,monospace', flexShrink: 0,
-                  }}>{sector}</span>
-                  <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--c-text)' }}>{name}</span>
+              <td className="py-3 border-b border-[rgba(20,21,26,.08)]">
+                <div className="flex items-center gap-2">
+                  <span className="w-[22px] h-[22px] rounded-[7px] bg-[#f0eeec] inline-flex items-center justify-center text-[11px] font-bold text-c-text-2 font-mono shrink-0">
+                    {sector}
+                  </span>
+                  <span className="text-[0.8125rem] font-medium text-c-text">{name}</span>
                 </div>
               </td>
-              <td style={{ padding: '12px 8px', borderBottom: '1px solid var(--c-line)', fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '0.8125rem', color: 'var(--accent-700)' }}>
+              <td className="py-3 px-2 border-b border-[rgba(20,21,26,.08)] font-mono text-[0.8125rem] text-accent-700">
                 {period}
               </td>
-              <td style={{ padding: '12px 8px', borderBottom: '1px solid var(--c-line)', fontFamily: 'ui-monospace,Menlo,monospace', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--c-text)' }}>
+              <td className="py-3 px-2 border-b border-[rgba(20,21,26,.08)] font-mono text-[0.8125rem] font-semibold text-c-text">
                 {value}
               </td>
-              <td style={{ padding: '12px 0', borderBottom: '1px solid var(--c-line)', textAlign: 'right' }}>
-                <span className="tag" style={{
-                  background: ok ? 'var(--success-bg)' : 'var(--accent-100)',
-                  color: ok ? 'var(--success)' : 'var(--accent-700)',
-                }}>{status}</span>
+              <td className="py-3 border-b border-[rgba(20,21,26,.08)] text-right">
+                <Badge variant={ok ? 'validado' : 'revisao'}>{status}</Badge>
               </td>
             </tr>
           ))}

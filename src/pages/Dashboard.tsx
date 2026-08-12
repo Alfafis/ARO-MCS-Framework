@@ -1,4 +1,6 @@
 import { DollarSign, ArrowLeftRight, ArrowUpRight } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import PageHeader from '@/components/layout/PageHeader'
 import KpiCard from '@/components/dashboard/KpiCard'
 import CostByCategory from '@/components/dashboard/CostByCategory'
 import ConfidenceCard from '@/components/dashboard/ConfidenceCard'
@@ -7,46 +9,35 @@ import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
 
 export default function Dashboard() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflowY: 'auto' }}>
+    <div>
+      <PageHeader
+        title="Fechamento de Mina — ARO"
+        badge="Rev0"
+        subtitle="NX Gold · Data-base 2023 · Atualizado há 2 dias"
+        actions={
+          <>
+            <Button variant="ghost">Exportar PDF</Button>
+            <Button variant="primary">Rodar simulação</Button>
+          </>
+        }
+      />
 
-      {/* ── Topbar ── */}
-      <header className="topbar">
-        <div className="topbar-left">
-          <div className="topbar-title">
-            <h1>Fechamento de Mina — ARO</h1>
-            <span className="rev-tag">Rev0</span>
-          </div>
-          <p className="topbar-sub">NX Gold · Data-base 2023 · Atualizado há 2 dias</p>
-        </div>
-        <div className="topbar-actions">
-          <button className="btn-ghost">Exportar PDF</button>
-          <button className="btn-primary">Rodar simulação</button>
-        </div>
-      </header>
+      <div className="px-8 pb-8 flex flex-col gap-4">
 
-      {/* ── Bento grid ── */}
-      <main className="bento">
-
-        {/* Linha 1 — 3 KPI cards (span 4 cada) */}
-        <div style={{ gridColumn: 'span 4' }}>
+        {/* Linha 1 — KPIs */}
+        <div className="grid grid-cols-3 gap-4">
           <KpiCard
             icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
             label="Custo esperado"
             value="R$ 38,5 M"
             sub="Monte Carlo · 10.000 iterações"
           />
-        </div>
-
-        <div style={{ gridColumn: 'span 4' }}>
           <KpiCard
             icon={<ArrowLeftRight size={14} strokeWidth={2} aria-hidden="true" />}
             label="Faixa min–max"
             value="R$ 29,6–35,2 M"
             sub="Soma dos 8 setores"
           />
-        </div>
-
-        <div style={{ gridColumn: 'span 4' }}>
           <KpiCard
             icon={<ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
             label="Valor atualizado 2023"
@@ -57,15 +48,19 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Linha 2 — Custo por categoria (8) + Confiabilidade (4) */}
-        <CostByCategory />
-        <ConfidenceCard />
+        {/* Linha 2 — Custo por categoria + Confiabilidade */}
+        <div className="grid grid-cols-12 gap-4">
+          <CostByCategory />
+          <ConfidenceCard />
+        </div>
 
-        {/* Linha 3 — Lançamentos (7) + Timeline revisões (5) */}
-        <RecentLaunches />
-        <RevisionTimeline />
+        {/* Linha 3 — Lançamentos + Timeline */}
+        <div className="grid grid-cols-12 gap-4">
+          <RecentLaunches />
+          <RevisionTimeline />
+        </div>
 
-      </main>
+      </div>
     </div>
   )
 }

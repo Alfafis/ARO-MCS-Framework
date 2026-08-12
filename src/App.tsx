@@ -15,13 +15,10 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <div
-        className="appgrid"
-        style={{ gridTemplateColumns: `${sidebarWidth} 1fr` }}
-      >
+      <div className="appgrid" style={{ gridTemplateColumns: `${sidebarWidth} 1fr` }}>
         <Sidebar collapsed={collapsed} onToggle={() => setCollapsed(v => !v)} />
 
-        <main style={{ overflow: 'auto', background: 'var(--c-bg)' }}>
+        <main className="overflow-auto bg-c-bg">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/categorias" element={<Categorias />} />
