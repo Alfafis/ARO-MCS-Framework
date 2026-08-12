@@ -1,9 +1,10 @@
+import { useState } from 'react'
 import { X } from 'lucide-react'
 import type { HistoryRun, UncertaintyLevel } from '@/types/simulacao'
 
 const UNC_STYLE: Record<UncertaintyLevel, { background: string; color: string }> = {
-  baixo:    { background: 'var(--success-bg)', color: 'var(--success)' },
-  moderado: { background: '#fff8e1',            color: '#7a5f00' },
+  baixo:    { background: 'var(--success-bg)', color: 'var(--success)'    },
+  moderado: { background: '#fff8e1',            color: '#7a5f00'           },
   alto:     { background: 'var(--accent-100)', color: 'var(--accent-700)' },
 }
 
@@ -11,19 +12,33 @@ const UNC_LABEL: Record<UncertaintyLevel, string> = {
   baixo: 'Baixa', moderado: 'Moderada', alto: 'Alta',
 }
 
+const CLOSE_DURATION = 170
+
 interface Props {
-  history: HistoryRun[]
+  history:  HistoryRun[]
   onSelect: (run: HistoryRun) => void
-  onClose: () => void
+  onClose:  () => void
 }
 
 function stopPropagation(e: React.MouseEvent) { e.stopPropagation() }
 
 export default function HistoryModal({ history, onSelect, onClose }: Props) {
+  const [closing, setClosing] = useState(false)
+
+  function triggerClose(cb: () => void) {
+    if (closing) return
+    setClosing(true)
+    setTimeout(cb, CLOSE_DURATION)
+  }
+
   return (
-    <div className="modal-backdrop" onClick={onClose} role="presentation">
+    <div
+      className={`modal-backdrop${closing ? ' closing' : ''}`}
+      onClick={() => triggerClose(onClose)}
+      role="presentation"
+    >
       <div
-        className="modal-card"
+        className={`modal-card${closing ? ' closing' : ''}`}
         onClick={stopPropagation}
         role="dialog"
         aria-modal="true"
@@ -31,7 +46,7 @@ export default function HistoryModal({ history, onSelect, onClose }: Props) {
       >
         <div className="modal-head">
           <span className="modal-title">Rodadas anteriores</span>
-          <button className="icon-btn" onClick={onClose} aria-label="Fechar modal">
+          <button className="icon-btn" onClick={() => triggerClose(onClose)} aria-label="Fechar modal">
             <X size={16} aria-hidden="true" />
           </button>
         </div>
@@ -42,8 +57,8 @@ export default function HistoryModal({ history, onSelect, onClose }: Props) {
             className="history-row"
             role="button"
             tabIndex={0}
-            onClick={() => onSelect(run)}
-            onKeyDown={e => e.key === 'Enter' && onSelect(run)}
+            onClick={() => triggerClose(() => onSelect(run))}
+            onKeyDown={e => e.key === 'Enter' && triggerClose(() => onSelect(run))}
           >
             <div>
               <div style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--c-text)', marginBottom: 3 }}>
