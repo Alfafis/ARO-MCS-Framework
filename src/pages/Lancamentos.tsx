@@ -1,18 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { CheckCircle2, Clock, DollarSign, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/LangContext'
+import { lancamentosT } from '@/i18n/lancamentos'
 import LancRow from '@/components/lancamentos/LancRow'
 import LancModal from '@/components/lancamentos/LancModal'
 import type { FilterTab, IconKey, Lancamento, LancStatus } from '@/types/lancamentos'
 
 const uid = () => Math.random().toString(36).slice(2)
-
-const FILTER_OPTS: { value: FilterTab; label: string }[] = [
-  { value: 'all',      label: 'Todos' },
-  { value: 'validado', label: 'Validados' },
-  { value: 'revisao',  label: 'Em revisão' },
-  { value: 'pendente', label: 'Pendente evidência' },
-]
 
 const ICON_KEY_MAP: Record<string, IconKey> = {
   barragem: 'barragem', monitoramento: 'monitoramento', cavas: 'cavas',
@@ -38,6 +33,15 @@ const INITIAL: Lancamento[] = [
 ]
 
 export default function Lancamentos() {
+  const t = useT(lancamentosT)
+
+  const FILTER_OPTS: { value: FilterTab; label: string }[] = [
+    { value: 'all',      label: t.filterAll       },
+    { value: 'validado', label: t.filterValidated  },
+    { value: 'revisao',  label: t.filterReview     },
+    { value: 'pendente', label: t.filterPending    },
+  ]
+
   const [rows,      setRows]      = useState<Lancamento[]>(INITIAL)
   const [search,    setSearch]    = useState('')
   const [filter,    setFilter]    = useState<FilterTab>('all')
@@ -72,7 +76,7 @@ export default function Lancamentos() {
     const novo: Lancamento = {
       id:        uid(),
       categoria: form.categoria.trim(),
-      anexo:     'Sem anexo',
+      anexo:     '',
       periodo:   form.periodo.trim() || 'N/D',
       valor:     parseValor(form.valor),
       status:    'pendente',
@@ -92,12 +96,12 @@ export default function Lancamentos() {
       <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Lançamentos realizados</h1>
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
           </div>
-          <p className="text-[13px] text-c-text-2">NX Gold · Fechamento de Mina — base do comparativo expectativa vs. realidade</p>
+          <p className="text-[13px] text-c-text-2">{t.headerSubtitle}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="primary" onClick={() => setModalOpen(true)}>Novo lançamento</Button>
+          <Button variant="primary" onClick={() => setModalOpen(true)}>{t.newEntry}</Button>
         </div>
       </header>
 
@@ -109,21 +113,21 @@ export default function Lancamentos() {
             <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
               <DollarSign size={14} aria-hidden="true" />
             </div>
-            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Realizado em 2026</div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">{t.kpiRealized}</div>
             <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{formatM(total)}</div>
           </div>
           <div className="card">
             <div className="w-[26px] h-[26px] rounded-[9px] bg-success-bg text-success flex items-center justify-center mb-3">
               <CheckCircle2 size={14} aria-hidden="true" />
             </div>
-            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Validados</div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">{t.kpiValidated}</div>
             <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{validados}</div>
           </div>
           <div className="card">
             <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
               <Clock size={14} aria-hidden="true" />
             </div>
-            <div className="text-sm font-semibold text-c-text-2 mb-1.5">Aguardando evidência</div>
+            <div className="text-sm font-semibold text-c-text-2 mb-1.5">{t.kpiPending}</div>
             <div className="text-[22px] font-bold text-c-text tracking-tight font-mono">{aguardando}</div>
           </div>
         </div>
@@ -134,13 +138,13 @@ export default function Lancamentos() {
             <Search size={15} aria-hidden="true" />
             <input
               className="lnc-search"
-              placeholder="Buscar por categoria..."
+              placeholder={t.searchPlaceholder}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              aria-label="Buscar lançamentos"
+              aria-label={t.searchPlaceholder}
             />
           </label>
-          <div className="flex gap-1" role="group" aria-label="Filtrar por status">
+          <div className="flex gap-1" role="group" aria-label={t.searchPlaceholder}>
             {FILTER_OPTS.map(opt => (
               <button
                 key={opt.value}
@@ -157,16 +161,16 @@ export default function Lancamentos() {
         {/* Lista */}
         <div className="card" style={{ padding: 0, overflow: 'clip' }}>
           <div className="plist-head">
-            {(['Categoria', 'Período', 'Valor real', 'Status', ''] as const).map(col => (
+            {[t.colCategory, t.colPeriod, t.colValue, t.colStatus, ''].map((col, i) => (
               <span
-                key={col}
-                className={`plist-col-label${col === 'Valor real' ? ' right' : ''}`}
+                key={i}
+                className={`plist-col-label${i === 2 ? ' right' : ''}`}
               >{col}</span>
             ))}
           </div>
 
           {filtered.length === 0 ? (
-            <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">Nenhum lançamento encontrado.</div>
+            <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">{t.empty}</div>
           ) : (
             filtered.map(row => (
               <LancRow

@@ -1,4 +1,6 @@
 import { Target } from 'lucide-react'
+import { useT } from '@/i18n/LangContext'
+import { simulacaoT } from '@/i18n/simulacao'
 
 const CONTRIBUTIONS = [
   { name: 'Monitoramento', pct: '±20,0%' },
@@ -7,11 +9,13 @@ const CONTRIBUTIONS = [
 ]
 
 export default function UncertaintyCard() {
+  const t = useT(simulacaoT)
+
   return (
     <div className="card">
       <div className="flex items-center gap-1.5 mb-5 text-sm font-semibold text-c-text">
         <Target size={14} color="var(--accent)" aria-hidden="true" />
-        <span>Contribuição de incerteza por categoria</span>
+        <span>{t.uncertaintyTitle}</span>
       </div>
 
       {CONTRIBUTIONS.map(({ name, pct }) => (

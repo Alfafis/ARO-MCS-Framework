@@ -11,20 +11,23 @@ import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RisksCard from '@/components/resumo-executivo/RisksCard'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 export default function ResumoExecutivo() {
   const navigate = useNavigate()
+  const t = useT(resumoT)
 
   return (
     <div>
       <PageHeader
-        title="Resumo Executivo"
+        title={t.headerTitle}
         badge="Rev1"
-        subtitle="NX Gold · Fechamento de Mina — Provisionamento VP rev0"
+        subtitle={t.headerSubtitle}
         actions={
           <>
-            <Button variant="ghost">Exportar PDF</Button>
-            <Button variant="primary" onClick={() => navigate('/simulacao')}>Rodar simulação</Button>
+            <Button variant="ghost">{t.exportPdf}</Button>
+            <Button variant="primary" onClick={() => navigate('/simulacao')}>{t.runSimulation}</Button>
           </>
         }
       />
@@ -35,49 +38,40 @@ export default function ResumoExecutivo() {
         <div className="grid grid-cols-4 gap-4">
           <KpiCard
             icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
-            label="Custo médio"
+            label={t.avgCost}
             value="R$ 32,4 M"
-            sub="Monte Carlo · 10.000 iterações"
+            sub={t.avgCostSub}
           />
           <KpiCard
             icon={<ArrowLeftRight size={14} strokeWidth={2} aria-hidden="true" />}
-            label="Faixa min–max"
+            label={t.minMaxRange}
             value="R$ 29,6–35,2 M"
-            sub="Custo total, 8 categorias"
+            sub={t.minMaxSub}
           />
           <KpiCard
             icon={<ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
-            label="Valor atualizado 2023"
+            label={t.updatedValue}
             value="R$ 36,9 M"
-            sub="Custo total, valor atualizado"
+            sub={t.updatedSub}
           />
           <KpiCard
             icon={<Plus size={14} strokeWidth={2} aria-hidden="true" />}
-            label="Provisão base"
+            label={t.baseProvision}
             value="R$ 40,57 M"
-            sub="Valor presente antes de atualização"
+            sub={t.baseSub}
           />
         </div>
 
-        {/* Linha 2 — Métodos de atualização monetária */}
         <MonetaryMethodsCard />
-
-        {/* Linha 3 — Desembolso projetado por ano */}
         <AnnualDisbursementCard />
-
-        {/* Linha 4 — Fan chart */}
         <FanChartCard />
-
-        {/* Linha 5 — Riscos e pontos de atenção */}
         <RisksCard />
 
-        {/* Linha 6 — Custo por categoria + Métricas de risco */}
         <div className="grid grid-cols-12 gap-4">
           <CostByCategoryTable />
           <RiskMetricsCard />
         </div>
 
-        {/* Linha 7 — Lançamentos recentes + Timeline de revisões */}
         <div className="grid grid-cols-12 gap-4">
           <RecentLaunches />
           <RevisionTimeline />

@@ -1,10 +1,8 @@
 import { Dialog } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import { useT } from '@/i18n/LangContext'
+import { simulacaoT } from '@/i18n/simulacao'
 import type { HistoryRun, UncertaintyLevel } from '@/types/simulacao'
-
-const UNC_LABEL: Record<UncertaintyLevel, string> = {
-  baixo: 'Baixa', moderado: 'Moderada', alto: 'Alta',
-}
 
 const UNC_VARIANT: Record<UncertaintyLevel, 'success' | 'warning' | 'accent'> = {
   baixo: 'success', moderado: 'warning', alto: 'accent',
@@ -17,8 +15,14 @@ interface Props {
 }
 
 export default function HistoryModal({ history, onSelect, onClose }: Props) {
+  const t = useT(simulacaoT)
+
+  const UNC_LABEL: Record<UncertaintyLevel, string> = {
+    baixo: t.unc_low, moderado: t.unc_mod, alto: t.unc_high,
+  }
+
   return (
-    <Dialog title="Rodadas anteriores" onClose={onClose}>
+    <Dialog title={t.historyTitle} onClose={onClose}>
       {(close) => (
         <>
           {history.map(run => (
@@ -32,7 +36,7 @@ export default function HistoryModal({ history, onSelect, onClose }: Props) {
             >
               <div>
                 <div className="text-[0.875rem] font-semibold text-c-text mb-0.5">{run.date}</div>
-                <div className="text-[0.78125rem] text-c-text-2">{run.dist} · {run.iterations} iterações</div>
+                <div className="text-[0.78125rem] text-c-text-2">{run.dist} · {run.iterations} {t.iterSuffix}</div>
               </div>
               <div className="flex items-center gap-2.5">
                 <span className="font-mono font-bold text-[0.9375rem] text-c-text">{run.mean}</span>

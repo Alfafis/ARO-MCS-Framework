@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { LangProvider } from './i18n/LangContext'
 import Sidebar from './components/layout/Sidebar'
 import Login from './pages/Login'
 import ResumoExecutivo from './pages/ResumoExecutivo'
@@ -46,6 +47,7 @@ export default function App() {
   }
 
   return (
+    <LangProvider>
     <BrowserRouter>
       <Routes>
         {/* Rota pública */}
@@ -108,5 +110,6 @@ export default function App() {
         <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
+    </LangProvider>
   )
 }

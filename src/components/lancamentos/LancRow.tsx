@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Activity, Clock, Layers, MoreVertical, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/LangContext'
+import { lancamentosT } from '@/i18n/lancamentos'
 import type { IconKey, LancStatus, Lancamento } from '@/types/lancamentos'
 
 const ICON_MAP: Record<IconKey, React.ElementType> = {
@@ -9,12 +11,6 @@ const ICON_MAP: Record<IconKey, React.ElementType> = {
   monitoramento: Clock,
   cavas:         Activity,
   default:       Users,
-}
-
-const STATUS_META: Record<LancStatus, { label: string; cls: string }> = {
-  validado: { label: 'Validado',           cls: 'pill-validado' },
-  revisao:  { label: 'Em revisão',         cls: 'pill-revisao'  },
-  pendente: { label: 'Pendente evidência', cls: 'pill-pendente' },
 }
 
 interface Props {
@@ -25,6 +21,14 @@ interface Props {
 }
 
 export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Props) {
+  const t = useT(lancamentosT)
+
+  const STATUS_META: Record<LancStatus, { label: string; cls: string }> = {
+    validado: { label: t.statusValidated, cls: 'pill-validado' },
+    revisao:  { label: t.statusReview,    cls: 'pill-revisao'  },
+    pendente: { label: t.statusPending,   cls: 'pill-pendente' },
+  }
+
   const Icon   = ICON_MAP[row.iconKey]
   const status = STATUS_META[row.status]
   const btnRef = useRef<HTMLButtonElement>(null)
@@ -49,7 +53,7 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
         </div>
         <div>
           <div className="row-cat-name">{row.categoria}</div>
-          <div className="row-cat-sub">{row.anexo || 'Sem anexo'}</div>
+          <div className="row-cat-sub">{row.anexo || t.noAttachment}</div>
         </div>
       </div>
 
@@ -67,7 +71,7 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
         <button
           ref={btnRef}
           className="row-action-btn"
-          aria-label="Ações do lançamento"
+          aria-label={t.menuAriaLabel}
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onMouseDown={onMenuToggle}
@@ -91,13 +95,13 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
             }}
           >
             <Button variant="menu" role="menuitem" onClick={() => onAction('validado')}>
-              Marcar como validado
+              {t.actionValidate}
             </Button>
             <Button variant="menu" role="menuitem" onClick={() => onAction('revisao')}>
-              Marcar em revisão
+              {t.actionReview}
             </Button>
             <Button variant="menu-danger" role="menuitem" onClick={() => onAction('delete')}>
-              Excluir lançamento
+              {t.actionDelete}
             </Button>
           </div>,
           document.body

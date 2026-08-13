@@ -2,15 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/LangContext'
+import { clientesT } from '@/i18n/clientes'
 import type { Projeto, ProjStatus } from '@/types/clientes'
 
 const COL = '1fr 160px 90px 110px 140px 32px'
-
-const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
-  andamento:  { label: 'Em andamento',       cls: 'bg-success-bg text-success'     },
-  aguardando: { label: 'Aguardando cliente', cls: 'bg-accent-100 text-accent-700'  },
-  concluido:  { label: 'Concluído',          cls: 'bg-[#f0eeec] text-c-text-2'     },
-}
 
 interface Props {
   row:          Projeto
@@ -20,6 +16,14 @@ interface Props {
 }
 
 export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Props) {
+  const t = useT(clientesT)
+
+  const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
+    andamento:  { label: t.statusActive,  cls: 'bg-success-bg text-success'     },
+    aguardando: { label: t.statusWaiting, cls: 'bg-accent-100 text-accent-700'  },
+    concluido:  { label: t.statusDone,    cls: 'bg-[#f0eeec] text-c-text-2'     },
+  }
+
   const status = STATUS_META[row.status]
   const btnRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
@@ -66,7 +70,7 @@ export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Prop
         <button
           ref={btnRef}
           className="row-action-btn"
-          aria-label="Ações do projeto"
+          aria-label={t.menuAriaLabel}
           aria-expanded={isMenuOpen}
           aria-haspopup="menu"
           onMouseDown={onMenuToggle}
@@ -90,13 +94,13 @@ export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Prop
             }}
           >
             <Button variant="menu" role="menuitem" onClick={() => onAction('categorias')}>
-              Ver categorias de custo
+              {t.actionCategories}
             </Button>
             <Button variant="menu" role="menuitem" onClick={() => onAction('concluir')}>
-              Marcar como concluído
+              {t.actionComplete}
             </Button>
             <Button variant="menu-danger" role="menuitem" onClick={() => onAction('arquivar')}>
-              Arquivar projeto
+              {t.actionArchive}
             </Button>
           </div>,
           document.body

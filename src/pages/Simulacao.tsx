@@ -1,5 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/LangContext'
+import { simulacaoT } from '@/i18n/simulacao'
 import ParamsCard from '@/components/simulacao/ParamsCard'
 import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
@@ -9,11 +11,10 @@ import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/ty
 
 const uid = () => Math.random().toString(36).slice(2)
 
-const MONTHS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez']
-function nowStr(): string {
+function nowStr(months: string[]): string {
   const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(d.getDate())} ${MONTHS[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
+  return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 function shapeFor(dist: Distribution): number[] {
@@ -22,7 +23,7 @@ function shapeFor(dist: Distribution): number[] {
   return [52, 63, 71, 77, 81, 84, 82, 79, 75, 69, 63, 57]
 }
 
-function computeResult(dist: Distribution): SimResult {
+function computeResult(dist: Distribution): Omit<SimResult, 'status'> {
   const shape = shapeFor(dist)
   const bars = shape.map(v => Math.max(4, Math.round(v * (0.85 + Math.random() * 0.32))))
   const mean = 38.5 + (Math.random() - 0.5) * 2.4
@@ -41,7 +42,7 @@ function computeResult(dist: Distribution): SimResult {
     mean: fmt(mean), stddev: `R$ ${sd.toFixed(1).replace('.', ',')}M`,
     p10p90: `${rng(p10)}–${rng(p90)}M`, ic95: `${rng(ic95lo)}–${rng(ic95hi)}M`,
     min: fmt(minV), max: fmt(maxV), uncertainty, range: `±${rangeNum.toFixed(1)}%`,
-    bars, status: 'Concluída agora mesmo',
+    bars,
   }
 }
 
@@ -60,6 +61,7 @@ const INITIAL_HISTORY: HistoryRun[] = [
 ]
 
 export default function Simulacao() {
+  const t = useT(simulacaoT)
   const [dist,        setDist]        = useState<Distribution>('Triangular')
   const [iterations,  setIterations]  = useState('10.000')
   const [running,     setRunning]     = useState(false)
@@ -70,20 +72,20 @@ export default function Simulacao() {
   const runSimulation = useCallback(() => {
     setRunning(true)
     setTimeout(() => {
-      const next = computeResult(dist)
+      const next: SimResult = { ...computeResult(dist), status: t.justFinished }
       setResult(next)
       setHistory(prev => [
-        { id: uid(), date: nowStr(), dist, iterations, mean: next.mean, uncertainty: next.uncertainty },
+        { id: uid(), date: nowStr(t.months), dist, iterations, mean: next.mean, uncertainty: next.uncertainty },
         ...prev.slice(0, 3),
       ])
       setRunning(false)
     }, 1300)
-  }, [dist, iterations])
+  }, [dist, iterations, t])
 
   const loadHistoryRun = useCallback((run: HistoryRun) => {
-    setResult(prev => ({ ...prev, mean: run.mean, status: `Rodada de ${run.date}` }))
+    setResult(prev => ({ ...prev, mean: run.mean, status: `${t.runFrom} ${run.date}` }))
     setHistoryOpen(false)
-  }, [])
+  }, [t])
 
   return (
     <div className="flex flex-col h-full">
@@ -91,14 +93,14 @@ export default function Simulacao() {
       <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Simulação Monte Carlo</h1>
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
           </div>
-          <p className="text-[13px] text-c-text-2">NX Gold · Análise probabilística de custo de fechamento</p>
+          <p className="text-[13px] text-c-text-2">{t.headerSubtitle}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" onClick={() => setHistoryOpen(true)}>
-            Ver rodadas anteriores
+            {t.seeHistory}
           </Button>
         </div>
       </header>

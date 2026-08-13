@@ -1,35 +1,23 @@
 import { AlertTriangle, FolderOpen, AlertCircle, ShieldAlert, FileCheck2 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-
-const RISKS: { Icon: LucideIcon; title: string; desc: string }[] = [
-  {
-    Icon: FolderOpen,
-    title: 'Contingência divergente entre categorias',
-    desc: 'A síntese por setor aplica 0% de contingência, enquanto a síntese por atividade aplica 20% sobre base equivalente — os dois totais não convergem.',
-  },
-  {
-    Icon: AlertCircle,
-    title: '"Investigação e remediação" fora do Total Geral',
-    desc: 'Itens de grande porte (ex.: sistema de tratamento → R$ 15M; desmontagem da planta → R$ 4,5M) não estão somados no total — possível subestimação do passivo.',
-  },
-  {
-    Icon: ShieldAlert,
-    title: 'Nível de incerteza calculado é apertado demais',
-    desc: 'O desvio-padrão vem só do range Min-Max de cada item — resulta em CV de ~5%, quando estimativas classe conceitual costumam ficar entre -30% e +50%.',
-  },
-  {
-    Icon: FileCheck2,
-    title: 'Inversão de Min/Max corrigida na Rev1',
-    desc: 'Item 8.1.1 ("Bloqueio de acessos") tinha Min e Max invertidos na rev0 — já corrigido, listado no changelog da timeline de revisões.',
-  },
-]
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 export default function RisksCard() {
+  const t = useT(resumoT)
+
+  const RISKS: { Icon: LucideIcon; title: string; desc: string }[] = [
+    { Icon: FolderOpen,  title: t.risk1Title, desc: t.risk1Desc },
+    { Icon: AlertCircle, title: t.risk2Title, desc: t.risk2Desc },
+    { Icon: ShieldAlert, title: t.risk3Title, desc: t.risk3Desc },
+    { Icon: FileCheck2,  title: t.risk4Title, desc: t.risk4Desc },
+  ]
+
   return (
     <div className="card">
       <div className="flex items-center gap-1.5 mb-4">
         <AlertTriangle size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">Riscos e pontos de atenção</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.risksTitle}</span>
       </div>
 
       <div className="flex flex-col">

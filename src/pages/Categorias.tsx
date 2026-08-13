@@ -1,6 +1,8 @@
 import { useState, useCallback } from 'react'
 import { FolderOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useT } from '@/i18n/LangContext'
+import { categoriasT } from '@/i18n/categorias'
 import ProjectDataCard from '@/components/categorias/ProjectDataCard'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import type { Category, CategoryItem } from '@/types/categorias'
@@ -20,8 +22,8 @@ const INITIAL: Category[] = [
   {
     id: uid(), name: 'Barragem', preenche: 'Ambos', expanded: true, justAdded: false,
     items: [
-      { id: uid(), name: 'Descomissionamento estrutural', unit: 'm²',   min: 'R$ 2.100.000', max: 'R$ 3.050.000', source: 'SINAPI 2021' },
-      { id: uid(), name: 'Recomposição de talude',       unit: 'm²',   min: 'R$ 1.400.000', max: 'R$ 2.100.000', source: 'Brandt Meio Amb.' },
+      { id: uid(), name: 'Descomissionamento estrutural', unit: 'm²',    min: 'R$ 2.100.000', max: 'R$ 3.050.000', source: 'SINAPI 2021' },
+      { id: uid(), name: 'Recomposição de talude',       unit: 'm²',    min: 'R$ 1.400.000', max: 'R$ 2.100.000', source: 'Brandt Meio Amb.' },
       { id: uid(), name: 'Monitoramento pós-obra',       unit: 'verba', min: 'R$ 900.000',   max: 'R$ 1.350.000', source: 'SINAPI 2021' },
     ],
   },
@@ -29,6 +31,7 @@ const INITIAL: Category[] = [
 ]
 
 export default function Categorias() {
+  const t = useT(categoriasT)
   const [categories, setCategories] = useState<Category[]>(INITIAL)
 
   const addCategory = useCallback(() => {
@@ -68,14 +71,14 @@ export default function Categorias() {
       <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">Fechamento de Mina — ARO</h1>
+            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
           </div>
-          <p className="text-[13px] text-c-text-2">NX Gold · Categorias de custo e itens</p>
+          <p className="text-[13px] text-c-text-2">{t.headerSubtitle}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="ghost">Salvar rascunho</Button>
-          <Button variant="primary">Salvar e continuar</Button>
+          <Button variant="ghost">{t.saveDraft}</Button>
+          <Button variant="primary">{t.saveAndContinue}</Button>
         </div>
       </header>
 
@@ -86,13 +89,13 @@ export default function Categorias() {
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
               <FolderOpen size={14} color="var(--accent)" aria-hidden="true" />
-              <span>Categorias de custo</span>
+              <span>{t.categoriesTitle}</span>
             </div>
             <button
               className="text-[0.8125rem] font-semibold text-c-text-2 hover:text-accent transition-colors cursor-pointer bg-transparent border-none focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-4 rounded"
               onClick={addCategory}
             >
-              + Nova categoria
+              {t.newCategory}
             </button>
           </div>
 
@@ -115,7 +118,7 @@ export default function Categorias() {
             className="mt-4 w-full py-3.5 bg-[#f6f5f3] rounded-[14px] border-none text-[0.8125rem] font-medium text-c-text-2 hover:text-accent hover:bg-[#efece9] transition-colors cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
             onClick={addCategory}
           >
-            + Nova categoria de custo
+            {t.newCategoryBtn}
           </button>
         </div>
       </div>

@@ -1,22 +1,26 @@
 import { Shield } from 'lucide-react'
-
-const METRICS = [
-  { label: 'Média',                       value: 'R$ 32.383.330' },
-  { label: 'Desvio-padrão',               value: 'R$ 1.609.055'  },
-  { label: 'P(x > 80%)',                  value: 'R$ 33.751.817' },
-  { label: 'Prob. de excedência (x>80%)', value: '25,19%'        },
-]
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 export default function RiskMetricsCard() {
+  const t = useT(resumoT)
+
+  const METRICS = [
+    { label: t.metricMean,   value: 'R$ 32.383.330' },
+    { label: t.metricStddev, value: 'R$ 1.609.055'  },
+    { label: 'P(x > 80%)',   value: 'R$ 33.751.817' },
+    { label: 'Prob. de excedência (x>80%)', value: '25,19%' },
+  ]
+
   return (
     <div className="card col-span-5">
       <div className="flex items-center gap-1.5 mb-4">
         <Shield size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">Métricas de risco</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.riskMetricsTitle}</span>
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-[22px] font-bold text-success">Baixo</span>
+        <span className="text-[22px] font-bold text-success">{t.riskLow}</span>
         <span className="text-[12px] text-c-text-2">CV = 4,97%</span>
       </div>
 
@@ -44,7 +48,7 @@ export default function RiskMetricsCard() {
       <div className="h-px bg-c-line my-3" />
 
       <div className="flex justify-between items-baseline">
-        <span className="text-[0.75rem] text-c-text-2">Contingência aplicada</span>
+        <span className="text-[0.75rem] text-c-text-2">{t.contingencyLabel}</span>
         <span className="font-mono text-[0.8125rem] font-semibold text-c-text">0%</span>
       </div>
     </div>

@@ -1,39 +1,22 @@
 import { Clock, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-
-const REVISIONS = [
-  {
-    id: 'Rev0',
-    title: 'Rev0 — Versão inicial',
-    date: 'Jan/2026',
-    done: true,
-    tag: null,
-    desc: 'Levantamento bottom-up dos 8 setores e primeira rodada de simulação Monte Carlo (10.000 iterações).',
-  },
-  {
-    id: 'Rev1',
-    title: 'Rev1 — Atual',
-    date: 'Abr/2026',
-    done: true,
-    tag: 'Vigente',
-    desc: 'Incorporou "Investigação e remediação" (+R$ 19,5 M) ao total geral e corrigiu a inversão Min/Max do item 8.1.1.',
-  },
-  {
-    id: 'Rev2',
-    title: 'Rev2 — Planejada',
-    date: 'A definir',
-    done: false,
-    tag: null,
-    desc: 'Unificar o método de atualização monetária e fixar a contingência como campo único por projeto.',
-  },
-]
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 export default function RevisionTimeline() {
+  const t = useT(resumoT)
+
+  const REVISIONS = [
+    { id: 'Rev0', title: t.rev0Title, date: t.rev0Date, done: true,  tag: null,         desc: t.rev0Desc },
+    { id: 'Rev1', title: t.rev1Title, date: t.rev1Date, done: true,  tag: t.revCurrent, desc: t.rev1Desc },
+    { id: 'Rev2', title: t.rev2Title, date: t.rev2Date, done: false, tag: null,         desc: t.rev2Desc },
+  ]
+
   return (
     <div className="card col-span-5">
       <div className="flex items-center gap-1.5 mb-5">
         <Clock size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">Timeline de revisões</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.revTimeline}</span>
       </div>
 
       <div className="flex flex-col">

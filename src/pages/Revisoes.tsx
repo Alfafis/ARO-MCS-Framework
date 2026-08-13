@@ -1,7 +1,9 @@
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Check, Lock } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
+import { useT } from '@/i18n/LangContext'
+import { revisoesT } from '@/i18n/revisoes'
 
 const uid = () => Math.random().toString(36).slice(2)
 
@@ -19,41 +21,31 @@ interface Revisao {
   entering:  boolean
 }
 
-const MONTHS = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
+const INITIAL_IDS = { r2: 'init-r2', r1: 'init-r1', r0: 'init-r0' }
 
-const INITIAL: Revisao[] = [
-  {
-    id: uid(), code: 'R2', title: 'Rev2 — Planejada', subtitle: 'A definir',
-    status: 'rascunho', highlight: false, entering: false,
-    items: [
-      'Unificar o método de atualização monetária (substitui os 4 métodos conflitantes)',
-      'Fixar a contingência como campo único versionado por projeto',
-    ],
-  },
-  {
-    id: uid(), code: 'R1', title: 'Rev1 — Vigente', subtitle: 'Publicada em Abr/2026',
-    status: 'vigente', highlight: false, entering: false,
-    items: [
-      'Incorporou "Investigação e remediação" (+R$ 19,5 M) ao total geral',
-      'Corrigiu a Inversão Min/Max do item 8.1.1 (Bloqueio de acessos)',
-      'Ajustou rótulos dos itens 8.4.1 e 8.5.1 (antes duplicados como 8.3.1)',
-    ],
-    hash: '0x8f2a...c194',
-  },
-  {
-    id: uid(), code: 'R0', title: 'Rev0 — Versão inicial', subtitle: 'Publicada em Jan/2026',
-    status: 'substituida', highlight: false, entering: false,
-    items: [
-      'Levantamento bottom-up dos 8 setores e primeira rodada Monte Carlo (10.000 iterações)',
-    ],
-    hash: '0x1c7d...a02f',
-  },
-]
-
-const STATUS_META: Record<RevStatus, { label: string; cls: string }> = {
-  rascunho:    { label: 'Rascunho',    cls: 'bg-[#f0eeec] text-c-text-2' },
-  vigente:     { label: 'Vigente',     cls: 'bg-success-bg text-success'  },
-  substituida: { label: 'Substituída', cls: 'bg-[#f0eeec] text-c-text-2' },
+function buildInitial(t: typeof revisoesT['pt-BR']): Revisao[] {
+  return [
+    {
+      id: INITIAL_IDS.r2, code: 'R2',
+      title: `Rev2 ${t.plannedSuffix}`, subtitle: t.toDefine,
+      status: 'rascunho', highlight: false, entering: false,
+      items: t.r2Items,
+    },
+    {
+      id: INITIAL_IDS.r1, code: 'R1',
+      title: `Rev1 ${t.currentSuffix}`, subtitle: `${t.publishedIn} ${t.months[3]}/2026`,
+      status: 'vigente', highlight: false, entering: false,
+      items: t.r1Items,
+      hash: '0x8f2a...c194',
+    },
+    {
+      id: INITIAL_IDS.r0, code: 'R0',
+      title: `Rev0 ${t.initialSuffix}`, subtitle: `${t.publishedIn} ${t.months[0]}/2026`,
+      status: 'substituida', highlight: false, entering: false,
+      items: t.r0Items,
+      hash: '0x1c7d...a02f',
+    },
+  ]
 }
 
 function fakeHash() {
@@ -67,15 +59,35 @@ function nextCode(list: Revisao[]) {
 }
 
 export default function Revisoes() {
-  const [revisoes,  setRevisoes]  = useState<Revisao[]>(INITIAL)
+  const t = useT(revisoesT)
+
+  const STATUS_META: Record<RevStatus, { label: string; cls: string }> = {
+    rascunho:    { label: t.statusDraft,    cls: 'bg-[#f0eeec] text-c-text-2' },
+    vigente:     { label: t.statusCurrent,  cls: 'bg-success-bg text-success'  },
+    substituida: { label: t.statusReplaced, cls: 'bg-[#f0eeec] text-c-text-2' },
+  }
+
+  const initialRef = useRef(t)
+  const [revisoes,  setRevisoes]  = useState<Revisao[]>(() => buildInitial(t))
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editText,  setEditText]  = useState('')
+
+  useEffect(() => {
+    if (initialRef.current === t) return
+    initialRef.current = t
+    const initialIds = new Set(Object.values(INITIAL_IDS))
+    const updated = buildInitial(t)
+    setRevisoes(prev => prev.map(r => {
+      if (!initialIds.has(r.id)) return r
+      return updated.find(u => u.id === r.id) ?? r
+    }))
+  }, [t])
 
   function handleNovaRevisao() {
     const code = nextCode(revisoes)
     const num  = code.slice(1)
     const nova: Revisao = {
-      id: uid(), code, title: `Rev${num} — Planejada`, subtitle: 'A definir',
+      id: uid(), code, title: `Rev${num} ${t.plannedSuffix}`, subtitle: t.toDefine,
       status: 'rascunho', items: [], highlight: true, entering: true,
     }
     setRevisoes(prev => [nova, ...prev])
@@ -105,7 +117,7 @@ export default function Revisoes() {
 
   function handlePublicar(id: string) {
     const now      = new Date()
-    const subtitle = `Publicada em ${MONTHS[now.getMonth()]}/${now.getFullYear()}`
+    const subtitle = `${t.publishedIn} ${t.months[now.getMonth()]}/${now.getFullYear()}`
     const items    = editText.split('\n').map(s => s.trim()).filter(Boolean)
     const hash     = fakeHash()
     setRevisoes(prev => prev.map(r => {
@@ -119,9 +131,9 @@ export default function Revisoes() {
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Revisões do relatório"
-        subtitle="NX Gold · Fechamento de Mina — histórico auditável, com hash de registro"
-        actions={<Button variant="primary" onClick={handleNovaRevisao}>+ Gerar nova revisão</Button>}
+        title={t.headerTitle}
+        subtitle={t.headerSubtitle}
+        actions={<Button variant="primary" onClick={handleNovaRevisao}>{t.newRevision}</Button>}
       />
 
       <div className="px-8 pb-8 flex-1 overflow-y-auto">
@@ -171,7 +183,7 @@ export default function Revisoes() {
                         {meta.label}
                       </span>
                       {rev.hash && (
-                        <Button variant="ghost">Ver PDF</Button>
+                        <Button variant="ghost">{t.viewPdf}</Button>
                       )}
                     </div>
                   </div>
@@ -196,7 +208,7 @@ export default function Revisoes() {
                     <div className="mt-3">
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#f6f5f3] rounded-[8px] font-mono text-[11.5px] text-c-text-2">
                         <Lock size={11} aria-hidden="true" />
-                        {rev.hash} · ancorado via OpenTimestamps
+                        {rev.hash} · {t.anchoredVia}
                       </span>
                     </div>
                   )}
@@ -208,21 +220,21 @@ export default function Revisoes() {
                         className="text-[13.5px] font-semibold text-c-text bg-transparent border-0 p-0 cursor-pointer transition-colors duration-[220ms] hover:text-accent focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
                         onClick={() => toggleEditor(rev)}
                       >
-                        {isEditing ? 'Fechar edição' : 'Continuar edição'}
+                        {isEditing ? t.closeEditor : t.continueEditing}
                       </button>
 
                       {isEditing && (
                         <div className="mt-3 flex flex-col gap-2">
                           <textarea
                             className="w-full bg-[#f6f5f3] border-0 outline-none rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text leading-relaxed resize-y font-sans"
-                            placeholder="Descreva as mudanças desta revisão (uma por linha)..."
+                            placeholder={t.editorPlaceholder}
                             value={editText}
                             rows={3}
                             onChange={e => setEditText(e.target.value)}
                           />
                           <div className="flex gap-2">
-                            <Button variant="ghost"   onClick={() => handleSalvar(rev.id)}>Salvar mudanças</Button>
-                            <Button variant="primary" onClick={() => handlePublicar(rev.id)}>Publicar revisão</Button>
+                            <Button variant="ghost"   onClick={() => handleSalvar(rev.id)}>{t.saveChanges}</Button>
+                            <Button variant="primary" onClick={() => handlePublicar(rev.id)}>{t.publishRevision}</Button>
                           </div>
                         </div>
                       )}

@@ -1,25 +1,29 @@
 import { BarChart2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { useT } from '@/i18n/LangContext'
+import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult } from '@/types/simulacao'
-
-const STATS = [
-  { key: 'mean',   label: 'Média' },
-  { key: 'stddev', label: 'Desvio-padrão' },
-  { key: 'p10p90', label: 'P10–P90' },
-  { key: 'ic95',   label: 'IC 95%' },
-] as const
 
 interface Props {
   result: SimResult
 }
 
 export default function ResultCard({ result }: Props) {
+  const t = useT(simulacaoT)
+
+  const STATS = [
+    { key: 'mean',   label: t.statMean   },
+    { key: 'stddev', label: t.statStddev },
+    { key: 'p10p90', label: 'P10–P90'   },
+    { key: 'ic95',   label: 'IC 95%'    },
+  ] as const
+
   return (
     <div className="card">
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
           <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
-          <span>Resultado da última rodada</span>
+          <span>{t.lastResult}</span>
         </div>
         <Badge variant="status">{result.status}</Badge>
       </div>

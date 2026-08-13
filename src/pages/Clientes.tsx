@@ -3,6 +3,8 @@ import { Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
+import { useT } from '@/i18n/LangContext'
+import { clientesT } from '@/i18n/clientes'
 import CltRow from '@/components/clientes/CltRow'
 import ClienteModal from '@/components/clientes/ClienteModal'
 import type { FilterTab, Projeto } from '@/types/clientes'
@@ -20,13 +22,6 @@ function initials(name: string): string {
     .join('')
 }
 
-const FILTER_OPTS: { value: FilterTab; label: string }[] = [
-  { value: 'all',       label: 'Todos'              },
-  { value: 'andamento', label: 'Em andamento'        },
-  { value: 'aguardando', label: 'Aguardando cliente' },
-  { value: 'concluido', label: 'Concluídos'          },
-]
-
 const INITIAL: Projeto[] = [
   { id: uid(), initials: 'NX', projeto: 'Fechamento de Mina — ARO',           cliente: 'NX Gold',         status: 'andamento',  rev: 'Rev0', esperado: 'R$ 38,5 M', atualizado: 'há 2 dias',    highlight: false },
   { id: uid(), initials: 'FL', projeto: 'Encerramento de Lavra — Cava Norte',  cliente: 'Ferro Linhares',  status: 'aguardando', rev: 'Rev1', esperado: 'R$ 22,1 M', atualizado: 'há 6 dias',    highlight: false },
@@ -37,6 +32,15 @@ const INITIAL: Projeto[] = [
 
 export default function Clientes() {
   const navigate = useNavigate()
+  const t = useT(clientesT)
+
+  const FILTER_OPTS: { value: FilterTab; label: string }[] = [
+    { value: 'all',        label: t.filterAll     },
+    { value: 'andamento',  label: t.filterActive  },
+    { value: 'aguardando', label: t.filterWaiting },
+    { value: 'concluido',  label: t.filterDone    },
+  ]
+
   const [rows,      setRows]      = useState<Projeto[]>(INITIAL)
   const [search,    setSearch]    = useState('')
   const [filter,    setFilter]    = useState<FilterTab>('all')
@@ -77,7 +81,7 @@ export default function Clientes() {
       status:     'andamento',
       rev:        'Rev0',
       esperado:   form.esperado.trim() ? `R$ ${form.esperado.trim()} M` : '—',
-      atualizado: 'agora mesmo',
+      atualizado: t.justNow,
       highlight:  true,
     }
     setRows(prev => [novo, ...prev])
@@ -85,15 +89,15 @@ export default function Clientes() {
     setTimeout(() => {
       setRows(prev => prev.map(r => r.id === novo.id ? { ...r, highlight: false } : r))
     }, 900)
-  }, [])
+  }, [t])
 
   return (
     <div className="flex flex-col h-full">
       <PageHeader
-        title="Clientes e projetos"
-        badge={`${ativos} ativos`}
-        subtitle="Todos os projetos de provisionamento de ARO em andamento"
-        actions={<Button variant="primary" onClick={() => setModalOpen(true)}>+ Novo projeto</Button>}
+        title={t.headerTitle}
+        badge={t.activesBadge(ativos)}
+        subtitle={t.headerSubtitle}
+        actions={<Button variant="primary" onClick={() => setModalOpen(true)}>{t.newProject}</Button>}
       />
 
       <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
@@ -104,13 +108,13 @@ export default function Clientes() {
             <Search size={15} aria-hidden="true" />
             <input
               className="lnc-search"
-              placeholder="Buscar por cliente ou projeto..."
+              placeholder={t.searchPlaceholder}
               value={search}
               onChange={e => setSearch(e.target.value)}
-              aria-label="Buscar projetos"
+              aria-label={t.searchPlaceholder}
             />
           </label>
-          <div className="flex gap-1" role="group" aria-label="Filtrar por status">
+          <div className="flex gap-1" role="group" aria-label={t.searchPlaceholder}>
             {FILTER_OPTS.map(opt => (
               <button
                 key={opt.value}
@@ -131,10 +135,10 @@ export default function Clientes() {
             className="grid items-center gap-4 px-6 pt-[14px] pb-3 border-b border-[rgba(20,21,26,.08)]"
             style={{ gridTemplateColumns: COL }}
           >
-            {(['CLIENTE / PROJETO', 'STATUS', 'REV. ATUAL', 'ESPERADO', 'ÚLTIMA ATUALIZAÇÃO', ''] as const).map(col => (
+            {[t.colProject, t.colStatus, t.colRev, t.colExpected, t.colUpdated, ''].map((col, i) => (
               <span
-                key={col}
-                className={`text-[11px] font-semibold tracking-[0.06em] uppercase text-c-text-2${col === 'ESPERADO' ? ' text-right' : ''}`}
+                key={i}
+                className={`text-[11px] font-semibold tracking-[0.06em] uppercase text-c-text-2${i === 3 ? ' text-right' : ''}`}
               >
                 {col}
               </span>
@@ -144,7 +148,7 @@ export default function Clientes() {
           {/* Rows */}
           {filtered.length === 0 ? (
             <div className="py-12 text-center text-[0.875rem] text-c-text-2">
-              Nenhum projeto encontrado.
+              {t.empty}
             </div>
           ) : (
             filtered.map(row => (

@@ -1,20 +1,22 @@
 import { BarChart2 } from 'lucide-react'
-
-const METHODS = [
-  { label: 'Juros simples — 10,75%/ano',              value: 'R$ 84.172.705'  },
-  { label: 'Juros compostos — 10,75%/ano',            value: 'R$ 112.613.519' },
-  { label: 'Inflação constante — 3,4%/ano',           value: 'R$ 56.670.699'  },
-  { label: 'Escalonamento — IPCA variável 2024-2033', value: 'R$ 55.175.062'  },
-]
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 export default function MonetaryMethodsCard() {
+  const t = useT(resumoT)
+
+  const METHODS = [
+    { label: t.method1, value: 'R$ 84.172.705'  },
+    { label: t.method2, value: 'R$ 112.613.519' },
+    { label: t.method3, value: 'R$ 56.670.699'  },
+    { label: t.method4, value: 'R$ 55.175.062'  },
+  ]
+
   return (
     <div className="card">
       <div className="flex items-center gap-1.5 mb-4">
         <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">
-          Métodos de atualização monetária (10 anos, sobre R$ 40,57 M)
-        </span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.monetaryTitle}</span>
       </div>
 
       <div className="flex flex-col">

@@ -1,11 +1,7 @@
 import { Activity } from 'lucide-react'
+import { useT } from '@/i18n/LangContext'
+import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult, UncertaintyLevel } from '@/types/simulacao'
-
-const UNCERTAINTY_TEXT: Record<UncertaintyLevel, string> = {
-  baixo:    'Incerteza baixa',
-  moderado: 'Incerteza moderada',
-  alto:     'Incerteza alta',
-}
 
 interface Props {
   result: SimResult
@@ -13,13 +9,20 @@ interface Props {
 }
 
 export default function HistogramCard({ result, iterations }: Props) {
+  const t = useT(simulacaoT)
   const maxH = Math.max(...result.bars)
+
+  const UNCERTAINTY_TEXT: Record<UncertaintyLevel, string> = {
+    baixo:    t.uncertainty_low,
+    moderado: t.uncertainty_mod,
+    alto:     t.uncertainty_high,
+  }
 
   return (
     <div className="card">
       <div className="flex items-center gap-1.5 mb-5 text-sm font-semibold text-c-text">
         <Activity size={14} color="var(--accent)" aria-hidden="true" />
-        <span>Distribuição de custo total ({iterations} iterações)</span>
+        <span>{t.histTitle(iterations)}</span>
       </div>
 
       <div className="histogram" aria-hidden="true">
@@ -41,7 +44,7 @@ export default function HistogramCard({ result, iterations }: Props) {
       <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
         {UNCERTAINTY_TEXT[result.uncertainty]} —{' '}
         <strong className="text-c-text font-mono font-bold">{result.range}</strong>{' '}
-        de variação no intervalo de confiança de 95%.
+        {t.variationSuffix}
       </p>
     </div>
   )
