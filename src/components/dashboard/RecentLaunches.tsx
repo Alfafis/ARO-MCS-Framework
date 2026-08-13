@@ -38,7 +38,7 @@ export default function RecentLaunches() {
                   <span className="text-[0.8125rem] font-medium text-c-text">{name}</span>
                 </div>
               </td>
-              <td className="py-3 px-2 border-b border-[rgba(20,21,26,.08)] font-mono text-[0.8125rem] text-accent-700">
+              <td className="py-3 px-2 border-b border-[rgba(20,21,26,.08)] font-mono text-[0.8125rem] text-c-text-2">
                 {period}
               </td>
               <td className="py-3 px-2 border-b border-[rgba(20,21,26,.08)] font-mono text-[0.8125rem] font-semibold text-c-text">

@@ -1,17 +1,19 @@
 import { TrendingUp } from 'lucide-react'
 
 const FAN_DATA = [
-  { label: 'Ano 1',  low: 0,  high: 5,  dot: 2  },
-  { label: 'Ano 2',  low: 0,  high: 12, dot: 5  },
-  { label: 'Ano 3',  low: 0,  high: 18, dot: 10 },
-  { label: 'Ano 4',  low: 2,  high: 25, dot: 13 },
-  { label: 'Ano 5',  low: 5,  high: 35, dot: 22 },
-  { label: 'Ano 6',  low: 10, high: 48, dot: 32 },
-  { label: 'Ano 7',  low: 18, high: 58, dot: 44 },
-  { label: 'Ano 8',  low: 25, high: 66, dot: 52 },
-  { label: 'Ano 9',  low: 32, high: 74, dot: 58 },
-  { label: 'Ano 10', low: 40, high: 82, dot: 65 },
+  { label: 'Ano 1',  low: 0,  band: 3  },
+  { label: 'Ano 2',  low: 0,  band: 6  },
+  { label: 'Ano 3',  low: 1,  band: 10 },
+  { label: 'Ano 4',  low: 2,  band: 16 },
+  { label: 'Ano 5',  low: 4,  band: 25 },
+  { label: 'Ano 6',  low: 8,  band: 38 },
+  { label: 'Ano 7',  low: 15, band: 52 },
+  { label: 'Ano 8',  low: 22, band: 65 },
+  { label: 'Ano 9',  low: 30, band: 75 },
+  { label: 'Ano 10', low: 38, band: 82 },
 ]
+
+const CHART_H = 150
 
 export default function FanChartCard() {
   return (
@@ -23,26 +25,60 @@ export default function FanChartCard() {
         </span>
       </div>
 
-      <div className="grid grid-cols-10 gap-3">
-        {FAN_DATA.map(({ label, low, high, dot }) => (
-          <div key={label} className="flex flex-col items-center gap-2">
-            <div className="relative w-4 rounded-full bg-[#f0eeec]" style={{ height: 150 }}>
-              <div
-                className="absolute left-0 right-0 rounded-full bg-accent-100"
-                style={{ bottom: `${low}%`, height: `${high - low}%` }}
-              />
-              <div
-                className="absolute left-1/2 -translate-x-1/2 w-[9px] h-[9px] rounded-full bg-accent border-2 border-white"
-                style={{ bottom: `calc(${dot}% - 4.5px)` }}
-              />
+      {/* Colunas do gráfico */}
+      <div className="grid grid-cols-10 gap-2.5">
+        {FAN_DATA.map(({ label, low, band }) => {
+          const dotCenter = low + band / 2
+          return (
+            <div key={label} className="flex flex-col items-center">
+
+              {/* Container da coluna */}
+              <div className="relative w-4" style={{ height: CHART_H }}>
+
+                {/* Trilha de fundo */}
+                <div
+                  className="absolute"
+                  style={{
+                    width: 16,
+                    top: 0,
+                    bottom: 0,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#ece9e6',
+                    borderRadius: 8,
+                  }}
+                />
+
+                {/* Banda de incerteza */}
+                <div
+                  className="absolute"
+                  style={{
+                    width: 16,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    bottom: `${low}%`,
+                    height: `${band}%`,
+                    background: 'var(--accent-100)',
+                    borderRadius: 8,
+                  }}
+                />
+
+                {/* Ponto central */}
+                <div
+                  className="absolute left-1/2 -translate-x-1/2 w-[14px] h-[14px] rounded-full bg-accent border-2 border-white"
+                  style={{ bottom: `calc(${dotCenter}% - 7px)` }}
+                />
+              </div>
+
+              {/* Rótulo do ano */}
+              <span className="text-[10px] text-c-text-2 mt-2 whitespace-nowrap">{label}</span>
             </div>
-            <span className="text-[11px] text-c-text-2 whitespace-nowrap">{label}</span>
-          </div>
-        ))}
+          )
+        })}
       </div>
 
       <p className="text-[11px] text-c-text-2 mt-3 leading-relaxed">
-        Faixa estimada a partir do coeficiente de variação da simulação (4,97%) aplicado ao desembolso acumulado por ano.
+        Faixa estimada a partir do coeficiente de variação da simulação de Monte Carlo (4,97%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.
       </p>
     </div>
   )
