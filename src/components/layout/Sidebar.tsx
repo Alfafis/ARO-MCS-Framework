@@ -7,7 +7,7 @@ import {
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 
 const NAV_ITEMS = [
-  { to: '/',            label: 'Visão geral',        Icon: LayoutDashboard },
+  { to: '/resumo-executivo', label: 'Visão geral',   Icon: LayoutDashboard },
   { to: '/categorias',  label: 'Categorias de custo', Icon: Tag             },
   { to: '/simulacao',   label: 'Simulação',           Icon: Activity        },
   { to: '/lancamentos', label: 'Lançamentos',         Icon: FileText        },
@@ -74,14 +74,14 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* ── Navegação principal ── */}
       <nav className="bsidebar-scroll" aria-label="Menu principal">
         {NAV_ITEMS.map(({ to, label, Icon }) => {
-          const isActive = to === '/' ? location.pathname === '/' : location.pathname.startsWith(to)
+          const isActive = location.pathname === to || (to !== '/resumo-executivo' && location.pathname.startsWith(to + '/'))
           return (
             <NavLink
               key={to}
               to={to}
               className={`bsidebar-link${isActive ? ' active' : ''}`}
               title={collapsed ? label : undefined}
-              end={to === '/'}
+              end
               style={{ justifyContent: collapsed ? 'center' : undefined }}
               aria-current={isActive ? 'page' : undefined}
             >

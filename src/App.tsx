@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import Sidebar from './components/layout/Sidebar'
 import Dashboard from './pages/Dashboard'
+import ResumoExecutivo from './pages/ResumoExecutivo'
 import Categorias from './pages/Categorias'
 import Simulacao from './pages/Simulacao'
 import Lancamentos from './pages/Lancamentos'
@@ -21,6 +22,7 @@ export default function App() {
         <main className="overflow-auto bg-c-bg">
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/resumo-executivo" element={<ResumoExecutivo />} />
             <Route path="/categorias" element={<Categorias />} />
             <Route path="/simulacao" element={<Simulacao />} />
             <Route path="/lancamentos" element={<Lancamentos />} />
