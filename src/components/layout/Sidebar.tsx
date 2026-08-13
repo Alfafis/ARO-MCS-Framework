@@ -7,20 +7,21 @@ import {
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 
 const NAV_ITEMS = [
-  { to: '/resumo-executivo', label: 'Visão geral',   Icon: LayoutDashboard },
-  { to: '/categorias',  label: 'Categorias de custo', Icon: Tag             },
-  { to: '/simulacao',   label: 'Simulação',           Icon: Activity        },
-  { to: '/lancamentos', label: 'Lançamentos',         Icon: FileText        },
-  { to: '/revisoes',    label: 'Revisões',            Icon: History         },
-  { to: '/clientes',    label: 'Clientes',            Icon: Users           },
+  { to: '/dashboard',    label: 'Visão geral',         Icon: LayoutDashboard },
+  { to: '/categorias',   label: 'Categorias de custo', Icon: Tag             },
+  { to: '/simulacao',    label: 'Simulação',            Icon: Activity        },
+  { to: '/lancamentos',  label: 'Lançamentos',          Icon: FileText        },
+  { to: '/revisoes',     label: 'Revisões',             Icon: History         },
+  { to: '/clientes',     label: 'Clientes',             Icon: Users           },
 ]
 
 interface SidebarProps {
   collapsed: boolean
   onToggle: () => void
+  onLogout: () => void
 }
 
-export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
   const [profileOpen, setProfileOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
   const location = useLocation()
@@ -74,7 +75,7 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
       {/* ── Navegação principal ── */}
       <nav className="bsidebar-scroll" aria-label="Menu principal">
         {NAV_ITEMS.map(({ to, label, Icon }) => {
-          const isActive = location.pathname === to || (to !== '/resumo-executivo' && location.pathname.startsWith(to + '/'))
+          const isActive = location.pathname === to || location.pathname.startsWith(to + '/')
           return (
             <NavLink
               key={to}
@@ -125,13 +126,17 @@ export default function Sidebar({ collapsed, onToggle }: SidebarProps) {
             Configurações
           </NavLink>
           <div className="profile-dropdown-divider" role="separator" />
-          <button className="profile-menu-item danger" role="menuitem">
+          <button
+            className="profile-menu-item danger"
+            role="menuitem"
+            onClick={() => { setProfileOpen(false); onLogout() }}
+          >
             <LogOut size={14} strokeWidth={2} aria-hidden="true" />
             Sair
           </button>
         </div>
 
-        {/* Cartão de perfil — button para acessibilidade */}
+        {/* Cartão de perfil */}
         <button
           className="bsidebar-foot"
           onClick={() => setProfileOpen(v => !v)}
