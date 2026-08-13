@@ -32,7 +32,7 @@ export default function AnnualDisbursementCard() {
         ))}
       </div>
 
-      <p className="text-[11px] text-c-text-2 mt-3 leading-relaxed">
+      <p className="text-[12.5px] text-c-text-2 mt-3 leading-relaxed">
         Apenas Estudos, Áreas de Apoio, Demolição e Monitoramento têm valores lançados por ano; as demais categorias não têm essa quebra.
       </p>
     </div>
