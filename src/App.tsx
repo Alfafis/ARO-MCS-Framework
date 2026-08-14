@@ -9,6 +9,7 @@ import Simulacao from './pages/Simulacao'
 import Lancamentos from './pages/Lancamentos'
 import Revisoes from './pages/Revisoes'
 import Clientes from './pages/Clientes'
+import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
 import './index.css'
 
 function ProtectedLayout({
@@ -105,6 +106,9 @@ export default function App() {
             </ProtectedLayout>
           }
         />
+
+        {/* Portal standalone — sem sidebar */}
+        <Route path="/portal-cliente" element={<PortalClienteRelatorio />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />

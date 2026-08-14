@@ -61,9 +61,11 @@ export default function Clientes() {
     (filter === 'all' || r.status === filter)
   )
 
-  const handleAction = useCallback((id: string, action: 'concluir' | 'arquivar' | 'categorias') => {
+  const handleAction = useCallback((id: string, action: 'concluir' | 'arquivar' | 'categorias' | 'relatorio') => {
     setOpenMenu(null)
-    if (action === 'categorias') {
+    if (action === 'relatorio') {
+      navigate('/portal-cliente')
+    } else if (action === 'categorias') {
       navigate('/categorias')
     } else if (action === 'arquivar') {
       setRows(prev => prev.filter(r => r.id !== id))

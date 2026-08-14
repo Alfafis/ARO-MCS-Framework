@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
+import ClientSelector, { type ClientOption } from '@/components/layout/ClientSelector'
 import KpiCard from '@/components/dashboard/KpiCard'
 import RecentLaunches from '@/components/dashboard/RecentLaunches'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
@@ -14,16 +16,29 @@ import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 
+const CLIENTS: ClientOption[] = [
+  { id: '1', name: 'NX Gold · Fechamento de Mina' },
+  { id: '2', name: 'ARO · Plano de Fechamento 2024' },
+  { id: '3', name: 'Mineração Horizonte · Fase 2' },
+]
+
 export default function ResumoExecutivo() {
   const navigate = useNavigate()
   const t = useT(resumoT)
+  const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
 
   return (
     <div>
       <PageHeader
         title={t.headerTitle}
         badge="Rev1"
-        subtitle={t.headerSubtitle}
+        clientSelector={
+          <ClientSelector
+            options={CLIENTS}
+            value={selectedClient}
+            onChange={setSelectedClient}
+          />
+        }
         actions={
           <>
             <Button variant="ghost">{t.exportPdf}</Button>

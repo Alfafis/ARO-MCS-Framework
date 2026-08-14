@@ -3,11 +3,12 @@ import type { ReactNode } from 'react'
 interface Props {
   title: string
   badge?: string
-  subtitle: string
+  subtitle?: string
+  clientSelector?: ReactNode
   actions?: ReactNode
 }
 
-export default function PageHeader({ title, badge, subtitle, actions }: Props) {
+export default function PageHeader({ title, badge, subtitle, clientSelector, actions }: Props) {
   return (
     <header className="flex items-start justify-between px-8 py-5 gap-6 shrink-0">
       <div>
@@ -21,7 +22,10 @@ export default function PageHeader({ title, badge, subtitle, actions }: Props) {
             </span>
           )}
         </div>
-        <p className="text-[13px] text-c-text-2">{subtitle}</p>
+        {subtitle && <p className="text-[13px] text-c-text-2">{subtitle}</p>}
+        {clientSelector && (
+          <div className="mt-1.5">{clientSelector}</div>
+        )}
       </div>
       {actions && (
         <div className="flex items-center gap-[10px] shrink-0">{actions}</div>

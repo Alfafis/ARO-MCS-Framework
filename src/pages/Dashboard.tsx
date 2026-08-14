@@ -1,19 +1,36 @@
+import { useState } from 'react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
+import ClientSelector, { type ClientOption } from '@/components/layout/ClientSelector'
 import KpiCard from '@/components/dashboard/KpiCard'
 import CostByCategory from '@/components/dashboard/CostByCategory'
 import ConfidenceCard from '@/components/dashboard/ConfidenceCard'
 import RecentLaunches from '@/components/dashboard/RecentLaunches'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
 
+const CLIENTS: ClientOption[] = [
+  { id: '1', name: 'NX Gold · Fechamento de Mina' },
+  { id: '2', name: 'ARO · Plano de Fechamento 2024' },
+  { id: '3', name: 'Mineração Horizonte · Fase 2' },
+]
+
 export default function Dashboard() {
+  const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
+
   return (
     <div>
       <PageHeader
         title="Fechamento de Mina — ARO"
         badge="Rev0"
-        subtitle="NX Gold · Data-base 2023 · Atualizado há 2 dias"
+        subtitle="Data-base 2023 · Atualizado há 2 dias"
+        clientSelector={
+          <ClientSelector
+            options={CLIENTS}
+            value={selectedClient}
+            onChange={setSelectedClient}
+          />
+        }
         actions={
           <>
             <Button variant="ghost">Exportar PDF</Button>

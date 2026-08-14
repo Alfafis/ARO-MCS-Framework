@@ -12,7 +12,7 @@ interface Props {
   row:          Projeto
   isMenuOpen:   boolean
   onMenuToggle: (e: React.MouseEvent) => void
-  onAction:     (action: 'concluir' | 'arquivar' | 'categorias') => void
+  onAction:     (action: 'concluir' | 'arquivar' | 'categorias' | 'relatorio') => void
 }
 
 export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Props) {
@@ -82,6 +82,7 @@ export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Prop
           <div
             className="row-menu"
             role="menu"
+            onMouseDown={e => e.stopPropagation()}
             style={{
               position:      'fixed',
               top:           menuPos.top,
@@ -93,6 +94,9 @@ export default function CltRow({ row, isMenuOpen, onMenuToggle, onAction }: Prop
               transition:    'opacity 140ms ease, transform 140ms ease',
             }}
           >
+            <Button variant="menu" role="menuitem" onClick={() => onAction('relatorio')}>
+              {t.actionReport}
+            </Button>
             <Button variant="menu" role="menuitem" onClick={() => onAction('categorias')}>
               {t.actionCategories}
             </Button>

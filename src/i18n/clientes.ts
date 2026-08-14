@@ -19,6 +19,7 @@ export const clientesT: Record<Lang, {
   statusActive:      string
   statusWaiting:     string
   statusDone:        string
+  actionReport:      string
   actionCategories:  string
   actionComplete:    string
   actionArchive:     string
@@ -54,6 +55,7 @@ export const clientesT: Record<Lang, {
     statusActive:      'Em andamento',
     statusWaiting:     'Aguardando cliente',
     statusDone:        'Concluído',
+    actionReport:      'Ver relatório do cliente',
     actionCategories:  'Ver categorias de custo',
     actionComplete:    'Marcar como concluído',
     actionArchive:     'Arquivar projeto',
@@ -88,6 +90,7 @@ export const clientesT: Record<Lang, {
     statusActive:      'In progress',
     statusWaiting:     'Awaiting client',
     statusDone:        'Completed',
+    actionReport:      'View client report',
     actionCategories:  'View cost categories',
     actionComplete:    'Mark as completed',
     actionArchive:     'Archive project',
@@ -122,6 +125,7 @@ export const clientesT: Record<Lang, {
     statusActive:      'En curso',
     statusWaiting:     'En espera del cliente',
     statusDone:        'Completado',
+    actionReport:      'Ver informe del cliente',
     actionCategories:  'Ver categorías de costo',
     actionComplete:    'Marcar como completado',
     actionArchive:     'Archivar proyecto',
