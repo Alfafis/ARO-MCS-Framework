@@ -1,10 +1,13 @@
 import { Calendar } from 'lucide-react'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
+import type { DisbursementYear } from '@/types/relatorio'
 
-const VALUES = ['R$ 0', '471,7k', '314,5k', '1,52M', '4,42M', '14,91M', '3,15M', '3,15M', '3,15M', '3,15M']
+interface Props {
+  years: DisbursementYear[]
+}
 
-export default function AnnualDisbursementCard() {
+export default function AnnualDisbursementCard({ years }: Props) {
   const t = useT(resumoT)
 
   return (
@@ -14,13 +17,28 @@ export default function AnnualDisbursementCard() {
         <span className="font-semibold text-[0.875rem] text-c-text">{t.disbursementTitle}</span>
       </div>
 
-      <div className="grid grid-cols-10 gap-2">
-        {VALUES.map((value, i) => (
-          <div key={i} className="bg-[#f6f5f3] rounded-[8px] p-2 text-center">
+      {/* Linha 1: Anos 1–5 */}
+      <div className="grid grid-cols-5 gap-2">
+        {years.slice(0, 5).map((year) => (
+          <div key={year.label} className="bg-[#f6f5f3] rounded-[8px] p-2 text-center">
             <p className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-1">
-              {t.yearPrefix} {i + 1}
+              {year.label}
             </p>
-            <p className="font-mono text-[0.75rem] font-bold text-c-text">{value}</p>
+            <p className="font-mono text-[0.75rem] font-bold text-c-text">{year.value}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="h-px bg-[rgba(20,21,26,.08)] my-2" />
+
+      {/* Linha 2: Anos 6–10 */}
+      <div className="grid grid-cols-5 gap-2">
+        {years.slice(5).map((year) => (
+          <div key={year.label} className="bg-[#f6f5f3] rounded-[8px] p-2 text-center">
+            <p className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-1">
+              {year.label}
+            </p>
+            <p className="font-mono text-[0.75rem] font-bold text-c-text">{year.value}</p>
           </div>
         ))}
       </div>

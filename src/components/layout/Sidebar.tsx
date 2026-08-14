@@ -20,9 +20,11 @@ interface SidebarProps {
   collapsed: boolean
   onToggle:  () => void
   onLogout:  () => void
+  hideToggle?:    boolean
+  onMobileClose?: () => void
 }
 
-export default function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps) {
+export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onMobileClose }: SidebarProps) {
   const { lang, setLang } = useLang()
   const t = useT(sidebarT)
 
@@ -85,7 +87,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps)
       </div>
 
       {/* ── Botão de recolher ── */}
-      <button
+      {!hideToggle && <button
         className="bsidebar-toggle"
         onClick={onToggle}
         aria-label={collapsed ? t.expand : t.collapse}
@@ -100,7 +102,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps)
             transition: 'transform 200ms ease',
           }}
         />
-      </button>
+      </button>}
 
       {/* ── Navegação principal ── */}
       <nav className="bsidebar-scroll" aria-label="Menu principal">
@@ -115,6 +117,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout }: SidebarProps)
               end
               style={{ justifyContent: collapsed ? 'center' : undefined }}
               aria-current={isActive ? 'page' : undefined}
+              onClick={() => onMobileClose?.()}
             >
               <span className="ico" aria-hidden="true">
                 <Icon size={14} strokeWidth={2} />

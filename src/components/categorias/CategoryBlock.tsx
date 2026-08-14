@@ -67,7 +67,8 @@ export default function CategoryBlock({ category, index, onRemove, onChange, onA
       </div>
 
       {category.expanded && (
-        <div className="px-4 pb-3 bg-white">
+        <div className="overflow-x-auto bg-white">
+          <div className="px-4 pb-3 min-w-[640px]">
           <div className="item-row item-header">
             {[t.colItem, t.colUnit, t.colCostMin, t.colCostMax, t.colSource, ''].map(col => (
               <span key={col} className="col-label">{col}</span>
@@ -93,6 +94,7 @@ export default function CategoryBlock({ category, index, onRemove, onChange, onA
           >
             {t.addItem}
           </button>
+          </div>
         </div>
       )}
     </div>

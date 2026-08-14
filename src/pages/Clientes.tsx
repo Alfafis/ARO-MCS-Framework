@@ -102,11 +102,11 @@ export default function Clientes() {
         actions={<Button variant="primary" onClick={() => setModalOpen(true)}>{t.newProject}</Button>}
       />
 
-      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
+      <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
 
         {/* Toolbar */}
-        <div className="flex items-center gap-3">
-          <label className="lnc-search-pill">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="lnc-search-pill flex-1 min-w-[180px]">
             <Search size={15} aria-hidden="true" />
             <input
               className="lnc-search"
@@ -116,7 +116,7 @@ export default function Clientes() {
               aria-label={t.searchPlaceholder}
             />
           </label>
-          <div className="flex gap-1" role="group" aria-label={t.searchPlaceholder}>
+          <div className="flex flex-wrap gap-1" role="group" aria-label={t.searchPlaceholder}>
             {FILTER_OPTS.map(opt => (
               <button
                 key={opt.value}
@@ -131,41 +131,43 @@ export default function Clientes() {
         </div>
 
         {/* Table */}
-        <div className="card" style={{ padding: 0, overflow: 'clip' }}>
-          {/* Header */}
-          <div
-            className="grid items-center gap-4 px-6 pt-[14px] pb-3 border-b border-[rgba(20,21,26,.08)]"
-            style={{ gridTemplateColumns: COL }}
-          >
-            {[t.colProject, t.colStatus, t.colRev, t.colExpected, t.colUpdated, ''].map((col, i) => (
-              <span
-                key={i}
-                className={`text-[11px] font-semibold tracking-[0.06em] uppercase text-c-text-2${i === 3 ? ' text-right' : ''}`}
-              >
-                {col}
-              </span>
-            ))}
-          </div>
-
-          {/* Rows */}
-          {filtered.length === 0 ? (
-            <div className="py-12 text-center text-[0.875rem] text-c-text-2">
-              {t.empty}
+        <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
+          <div className="min-w-[660px]">
+            {/* Header */}
+            <div
+              className="grid items-center gap-4 px-6 pt-[14px] pb-3 border-b border-[rgba(20,21,26,.08)]"
+              style={{ gridTemplateColumns: COL }}
+            >
+              {[t.colProject, t.colStatus, t.colRev, t.colExpected, t.colUpdated, ''].map((col, i) => (
+                <span
+                  key={i}
+                  className={`text-[11px] font-semibold tracking-[0.06em] uppercase text-c-text-2${i === 3 ? ' text-right' : ''}`}
+                >
+                  {col}
+                </span>
+              ))}
             </div>
-          ) : (
-            filtered.map(row => (
-              <CltRow
-                key={row.id}
-                row={row}
-                isMenuOpen={openMenu === row.id}
-                onMenuToggle={e => {
-                  e.stopPropagation()
-                  setOpenMenu(prev => prev === row.id ? null : row.id)
-                }}
-                onAction={action => handleAction(row.id, action)}
-              />
-            ))
-          )}
+
+            {/* Rows */}
+            {filtered.length === 0 ? (
+              <div className="py-12 text-center text-[0.875rem] text-c-text-2">
+                {t.empty}
+              </div>
+            ) : (
+              filtered.map(row => (
+                <CltRow
+                  key={row.id}
+                  row={row}
+                  isMenuOpen={openMenu === row.id}
+                  onMenuToggle={e => {
+                    e.stopPropagation()
+                    setOpenMenu(prev => prev === row.id ? null : row.id)
+                  }}
+                  onAction={action => handleAction(row.id, action)}
+                />
+              ))
+            )}
+          </div>
         </div>
 
       </div>

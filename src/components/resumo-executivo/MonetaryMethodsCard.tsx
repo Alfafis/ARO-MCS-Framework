@@ -1,16 +1,14 @@
 import { BarChart2 } from 'lucide-react'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
+import type { MonetaryMethod } from '@/types/relatorio'
 
-export default function MonetaryMethodsCard() {
+interface Props {
+  methods: MonetaryMethod[]
+}
+
+export default function MonetaryMethodsCard({ methods }: Props) {
   const t = useT(resumoT)
-
-  const METHODS = [
-    { label: t.method1, value: 'R$ 84.172.705'  },
-    { label: t.method2, value: 'R$ 112.613.519' },
-    { label: t.method3, value: 'R$ 56.670.699'  },
-    { label: t.method4, value: 'R$ 55.175.062'  },
-  ]
 
   return (
     <div className="card">
@@ -20,7 +18,7 @@ export default function MonetaryMethodsCard() {
       </div>
 
       <div className="flex flex-col">
-        {METHODS.map(({ label, value }) => (
+        {methods.map(({ label, value }) => (
           <div
             key={label}
             className="flex justify-between items-baseline py-3 border-b border-c-line last:border-b-0"

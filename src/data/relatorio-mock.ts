@@ -1,0 +1,49 @@
+import type { CostCategory, CostTotals, FanPoint } from '@/types/relatorio'
+
+export const MOCK_CATEGORIES: CostCategory[] = [
+  { rank: '01', name: 'Estudos',               min: '6,55M',  max: '9,10M',  updated: '9,54M'  },
+  { rank: '02', name: 'Cavas',                 min: '2,27M',  max: '2,42M',  updated: '2,53M'  },
+  { rank: '03', name: 'Pilhas',                min: '1,72M',  max: '1,80M',  updated: '1,89M'  },
+  { rank: '04', name: 'Barragens',             min: '0,41M',  max: '0,43M',  updated: '0,45M'  },
+  { rank: '05', name: 'Planta Industrial',     min: '0,84M',  max: '0,88M',  updated: '0,92M'  },
+  { rank: '06', name: 'Áreas de Apoio',        min: '3,79M',  max: '3,99M',  updated: '4,18M'  },
+  { rank: '07', name: 'Demolição Estr. Civis', min: '4,44M',  max: '4,57M',  updated: '4,80M'  },
+  { rank: '08', name: 'Monitoramento',         min: '9,59M',  max: '12,01M', updated: '12,59M' },
+]
+
+export const MOCK_TOTALS: CostTotals = {
+  min: '29,61M',
+  max: '35,20M',
+  updated: '36,90M',
+}
+
+export const MOCK_DISBURSEMENT_VALUES = [
+  'R$ 0', '471,7k', '314,5k', '1,52M', '4,42M',
+  '14,91M', '3,15M', '3,15M', '3,15M', '3,15M',
+]
+
+export const MOCK_METHOD_VALUES = [
+  'R$ 84.172.705',
+  'R$ 112.613.519',
+  'R$ 56.670.699',
+  'R$ 55.175.062',
+]
+
+export const MOCK_RISK_METRIC_VALUES = [
+  'R$ 32.383.330',
+  'R$ 1.609.055',
+  'R$ 33.751.817',
+  '25,19%',
+]
+
+const FAN_CV  = 0.0497
+const FAN_MAX = 34.236
+const FAN_CUM = [0, 0.4717, 0.7862, 2.3062, 6.726, 21.636, 24.786, 27.936, 31.086, 34.236]
+
+export function buildFanData(labels: string[]): FanPoint[] {
+  return FAN_CUM.map((cum, i) => ({
+    label: labels[i],
+    low:   Math.max(0, (cum * (1 - FAN_CV) / FAN_MAX) * 100),
+    band:  Math.max(cum > 0 ? 1 : 0, (cum * FAN_CV * 2 / FAN_MAX) * 100),
+  }))
+}

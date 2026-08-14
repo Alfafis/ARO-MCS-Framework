@@ -10,7 +10,7 @@ interface Props {
 
 export default function PageHeader({ title, badge, subtitle, clientSelector, actions }: Props) {
   return (
-    <header className="flex items-start justify-between px-8 py-5 gap-6 shrink-0">
+    <header className="flex flex-wrap items-start justify-between px-4 sm:px-8 py-4 sm:py-5 gap-4 shrink-0">
       <div>
         <div className="flex items-center gap-2.5 mb-1">
           <h1 className="text-[26px] font-bold text-c-text tracking-tight leading-none">

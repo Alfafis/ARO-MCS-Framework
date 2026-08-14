@@ -98,7 +98,7 @@ export default function Simulacao() {
   return (
     <div className="flex flex-col h-full">
 
-      <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
+      <header className="flex items-start justify-between px-4 sm:px-8 py-4 sm:py-[22px] gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
@@ -113,8 +113,8 @@ export default function Simulacao() {
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
-        <div className="grid grid-cols-[1fr_1.6fr] gap-4 items-start">
+      <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4 items-start">
           <ParamsCard
             dist={dist}
             iterations={iterations}

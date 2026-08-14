@@ -93,7 +93,7 @@ export default function Lancamentos() {
   return (
     <div className="flex flex-col h-full">
 
-      <header className="flex items-start justify-between px-8 py-[22px] gap-4 shrink-0">
+      <header className="flex items-start justify-between px-4 sm:px-8 py-4 sm:py-[22px] gap-4 shrink-0">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
@@ -105,10 +105,10 @@ export default function Lancamentos() {
         </div>
       </header>
 
-      <div className="flex flex-col gap-4 px-8 pb-8 overflow-y-auto flex-1">
+      <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
 
         {/* KPI cards */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="card">
             <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
               <DollarSign size={14} aria-hidden="true" />
@@ -133,8 +133,8 @@ export default function Lancamentos() {
         </div>
 
         {/* Toolbar */}
-        <div className="flex items-center gap-3">
-          <label className="lnc-search-pill">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="lnc-search-pill flex-1 min-w-[180px]">
             <Search size={15} aria-hidden="true" />
             <input
               className="lnc-search"
@@ -144,7 +144,7 @@ export default function Lancamentos() {
               aria-label={t.searchPlaceholder}
             />
           </label>
-          <div className="flex gap-1" role="group" aria-label={t.searchPlaceholder}>
+          <div className="flex flex-wrap gap-1" role="group" aria-label={t.searchPlaceholder}>
             {FILTER_OPTS.map(opt => (
               <button
                 key={opt.value}
@@ -159,32 +159,34 @@ export default function Lancamentos() {
         </div>
 
         {/* Lista */}
-        <div className="card" style={{ padding: 0, overflow: 'clip' }}>
-          <div className="plist-head">
-            {[t.colCategory, t.colPeriod, t.colValue, t.colStatus, ''].map((col, i) => (
-              <span
-                key={i}
-                className={`plist-col-label${i === 2 ? ' right' : ''}`}
-              >{col}</span>
-            ))}
-          </div>
+        <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
+          <div className="min-w-[540px]">
+            <div className="plist-head">
+              {[t.colCategory, t.colPeriod, t.colValue, t.colStatus, ''].map((col, i) => (
+                <span
+                  key={i}
+                  className={`plist-col-label${i === 2 ? ' right' : ''}`}
+                >{col}</span>
+              ))}
+            </div>
 
-          {filtered.length === 0 ? (
-            <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">{t.empty}</div>
-          ) : (
-            filtered.map(row => (
-              <LancRow
-                key={row.id}
-                row={row}
-                isMenuOpen={openMenu === row.id}
-                onMenuToggle={e => {
-                  e.stopPropagation()
-                  setOpenMenu(prev => prev === row.id ? null : row.id)
-                }}
-                onAction={action => handleAction(row.id, action)}
-              />
-            ))
-          )}
+            {filtered.length === 0 ? (
+              <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">{t.empty}</div>
+            ) : (
+              filtered.map(row => (
+                <LancRow
+                  key={row.id}
+                  row={row}
+                  isMenuOpen={openMenu === row.id}
+                  onMenuToggle={e => {
+                    e.stopPropagation()
+                    setOpenMenu(prev => prev === row.id ? null : row.id)
+                  }}
+                  onAction={action => handleAction(row.id, action)}
+                />
+              ))
+            )}
+          </div>
         </div>
 
       </div>

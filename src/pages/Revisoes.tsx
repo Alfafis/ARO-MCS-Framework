@@ -136,7 +136,7 @@ export default function Revisoes() {
         actions={<Button variant="primary" onClick={handleNovaRevisao}>{t.newRevision}</Button>}
       />
 
-      <div className="px-8 pb-8 flex-1 overflow-y-auto">
+      <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex-1 overflow-y-auto">
         <div className="card">
           {revisoes.map((rev, i) => {
             const meta      = STATUS_META[rev.status]

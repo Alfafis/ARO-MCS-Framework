@@ -1,19 +1,22 @@
 import { Shield } from 'lucide-react'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
+import type { RiskMetric } from '@/types/relatorio'
 
-export default function RiskMetricsCard() {
+interface Props {
+  metrics: RiskMetric[]
+  cvLabel: string
+  icLo: string
+  icHi: string
+  contingency: string
+  className?: string
+}
+
+export default function RiskMetricsCard({ metrics, cvLabel, icLo, icHi, contingency, className = '' }: Props) {
   const t = useT(resumoT)
 
-  const METRICS = [
-    { label: t.metricMean,   value: 'R$ 32.383.330' },
-    { label: t.metricStddev, value: 'R$ 1.609.055'  },
-    { label: 'P(x > 80%)',   value: 'R$ 33.751.817' },
-    { label: 'Prob. de excedência (x>80%)', value: '25,19%' },
-  ]
-
   return (
-    <div className="card col-span-5">
+    <div className={`card ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-4">
         <Shield size={14} color="var(--accent)" aria-hidden="true" />
         <span className="font-semibold text-[0.875rem] text-c-text">{t.riskMetricsTitle}</span>
@@ -21,7 +24,7 @@ export default function RiskMetricsCard() {
 
       <div className="flex items-baseline gap-2 mb-3">
         <span className="text-[22px] font-bold text-success">{t.riskLow}</span>
-        <span className="text-[12px] text-c-text-2">CV = 4,97%</span>
+        <span className="text-[12px] text-c-text-2">{cvLabel}</span>
       </div>
 
       <div className="mb-1.5">
@@ -29,15 +32,15 @@ export default function RiskMetricsCard() {
           <div className="absolute h-full rounded bg-accent" style={{ left: '20%', right: '20%' }} />
         </div>
         <div className="flex justify-between">
-          <span className="font-mono text-[11px] text-c-text-2">IC 95%: R$ 32,35 M</span>
-          <span className="font-mono text-[11px] text-c-text-2">R$ 32,41 M</span>
+          <span className="font-mono text-[11px] text-c-text-2">{icLo}</span>
+          <span className="font-mono text-[11px] text-c-text-2">{icHi}</span>
         </div>
       </div>
 
       <div className="h-px bg-c-line my-3" />
 
       <div className="flex flex-col gap-2">
-        {METRICS.map(({ label, value }) => (
+        {metrics.map(({ label, value }) => (
           <div key={label} className="flex justify-between items-baseline gap-2">
             <span className="text-[0.75rem] text-c-text-2">{label}</span>
             <span className="font-mono text-[0.8125rem] font-semibold text-c-text whitespace-nowrap">{value}</span>
@@ -49,7 +52,7 @@ export default function RiskMetricsCard() {
 
       <div className="flex justify-between items-baseline">
         <span className="text-[0.75rem] text-c-text-2">{t.contingencyLabel}</span>
-        <span className="font-mono text-[0.8125rem] font-semibold text-c-text">0%</span>
+        <span className="font-mono text-[0.8125rem] font-semibold text-c-text">{contingency}</span>
       </div>
     </div>
   )
