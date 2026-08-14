@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus } from 'lucide-react'
+import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus, Copy, Check } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
@@ -20,6 +20,7 @@ import {
   MOCK_DISBURSEMENT_VALUES, MOCK_METHOD_VALUES,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
+import { getCodeByClientId } from '@/data/invite-codes'
 import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
 
 const CLIENTS: ClientOption[] = [
@@ -32,6 +33,20 @@ export default function ResumoExecutivo() {
   const navigate = useNavigate()
   const t = useT(resumoT)
   const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  async function handleGerarLink() {
+    const invite = getCodeByClientId(selectedClient)
+    if (!invite) return
+    const url = `${window.location.origin}/portal-cliente?code=${invite.code}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      prompt('Copie o link de acesso do cliente:', url)
+    }
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
+  }
 
   const methods: MonetaryMethod[] = [
     { label: t.method1, value: MOCK_METHOD_VALUES[0] },
@@ -72,6 +87,11 @@ export default function ResumoExecutivo() {
         }
         actions={
           <>
+            <Button variant="ghost" onClick={handleGerarLink}>
+              {linkCopied
+                ? <><Check size={13} /> Link copiado!</>
+                : <><Copy size={13} /> Gerar link do cliente</>}
+            </Button>
             <Button variant="ghost">{t.exportPdf}</Button>
             <Button variant="primary" onClick={() => navigate('/simulacao')}>{t.runSimulation}</Button>
           </>

@@ -1,5 +1,7 @@
-import { useState } from 'react'
-import { Download, DollarSign, ArrowLeftRight, ArrowUpRight, Shield } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { Download } from 'lucide-react'
+import { DollarSign, ArrowLeftRight, ArrowUpRight, Shield } from 'lucide-react'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
@@ -11,6 +13,7 @@ import {
   MOCK_DISBURSEMENT_VALUES, MOCK_METHOD_VALUES,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
+import { validateCode } from '@/data/invite-codes'
 import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
 
 const METHODS: MonetaryMethod[] = [
@@ -36,8 +39,50 @@ const RISK_METRICS: RiskMetric[] = [
   { label: 'Prob. de excedência (x>80%)',    value: MOCK_RISK_METRIC_VALUES[3] },
 ]
 
+function isAdminSession() {
+  return localStorage.getItem('aro_auth') === '1'
+}
+
+function checkStoredCode(): boolean {
+  const stored = sessionStorage.getItem('aro_portal_code')
+  return !!stored && !!validateCode(stored)
+}
+
 export default function PortalClienteRelatorio() {
+  const [searchParams] = useSearchParams()
+
+  const [accessGranted, setAccessGranted] = useState<boolean>(() => {
+    if (isAdminSession()) return true
+    if (checkStoredCode())  return true
+    const urlCode = new URLSearchParams(window.location.search).get('code')
+    if (urlCode && validateCode(urlCode)) {
+      sessionStorage.setItem('aro_portal_code', urlCode)
+      return true
+    }
+    return false
+  })
+
+  const [codeInput, setCodeInput] = useState('')
+  const [codeError, setCodeError] = useState(false)
   const [toast, setToast] = useState(false)
+
+  useEffect(() => {
+    if (accessGranted) return
+    const urlCode = searchParams.get('code')
+    if (urlCode && !validateCode(urlCode)) setCodeError(true)
+  }, [])
+
+  function handleCodeSubmit(e: FormEvent) {
+    e.preventDefault()
+    const invite = validateCode(codeInput)
+    if (invite) {
+      sessionStorage.setItem('aro_portal_code', codeInput)
+      setAccessGranted(true)
+      setCodeError(false)
+    } else {
+      setCodeError(true)
+    }
+  }
 
   function handleDownload() {
     setToast(true)
@@ -57,98 +102,164 @@ export default function PortalClienteRelatorio() {
           <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-[#f0eeec] text-c-text-2 text-[12px] font-medium">
             NX Gold — Portal do cliente
           </span>
-          <button
-            onClick={handleDownload}
-            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
-          >
-            <Download size={13} strokeWidth={2} />
-            Baixar PDF
-          </button>
+          {accessGranted && (
+            <button
+              onClick={handleDownload}
+              className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+            >
+              <Download size={13} strokeWidth={2} />
+              Baixar PDF
+            </button>
+          )}
         </div>
       </header>
 
-      {/* ── Conteúdo ── */}
-      <div className="pt-[56px] sm:pt-[76px]">
-        <div className="max-w-[1040px] mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-5">
+      {!accessGranted ? (
 
-          {/* Cabeçalho do relatório */}
-          <div>
-            <div className="flex items-center gap-3 mb-1.5">
-              <h1 className="text-[22px] font-bold text-c-text">Relatório — Fechamento de Mina</h1>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold">
-                Rev1 · Vigente
-              </span>
+        /* ── Gate ── */
+        <div className="pt-[56px] sm:pt-[76px] min-h-screen flex items-center justify-center px-4 py-10">
+          <div className="w-full max-w-[400px] flex flex-col items-center">
+
+            <div className="flex items-center gap-2 mb-7">
+              <OctahedronIcon />
+              <span className="text-[17px] font-bold text-c-text">ARO-MCS</span>
             </div>
-            <p className="text-[13px] text-c-text-2">
-              Provisionamento financeiro NX Gold · Simulação Monte Carlo, 10.000 iterações
-            </p>
-          </div>
 
-          {/* KPI cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {[
-              {
-                icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Custo médio',
-                value: 'R$ 32,4 M',
-                sub: 'Monte Carlo · 10.000 iterações',
-                valueClass: 'text-c-text',
-              },
-              {
-                icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Faixa min–max',
-                value: 'R$ 29,6–35,2 M',
-                sub: 'Custo total, 8 categorias',
-                valueClass: 'text-c-text',
-              },
-              {
-                icon: <ArrowUpRight size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Valor atualizado 2023',
-                value: 'R$ 36,9 M',
-                sub: 'Custo total, valor atualizado',
-                valueClass: 'text-c-text',
-              },
-              {
-                icon: <Shield size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Nível de incerteza',
-                value: 'Baixo',
-                sub: 'CV = 4,97%',
-                valueClass: 'text-success',
-              },
-            ].map(kpi => (
-              <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
-                <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center shrink-0">
-                  {kpi.icon}
-                </div>
+            <div className="card w-full">
+              <h2 className="text-[17px] font-bold text-c-text mb-1">Acesse seu relatório</h2>
+              <p className="text-[13px] text-c-text-2 mb-5 leading-relaxed">
+                Insira o código de acesso enviado pela equipe ARO-MCS.
+              </p>
+
+              <form onSubmit={handleCodeSubmit} className="flex flex-col gap-3">
                 <div>
-                  <p className="text-[14px] font-semibold text-c-text-2 mb-1">{kpi.label}</p>
-                  <p className={`text-[20px] font-bold leading-none mb-1 ${kpi.valueClass}`}>{kpi.value}</p>
-                  <p className="text-[12px] text-c-text-2">{kpi.sub}</p>
+                  <label className="block text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
+                    Código de acesso
+                  </label>
+                  <input
+                    type="text"
+                    value={codeInput}
+                    onChange={e => { setCodeInput(e.target.value); setCodeError(false) }}
+                    placeholder="Ex: NXGOLD-2024"
+                    autoFocus
+                    autoComplete="off"
+                    autoCapitalize="characters"
+                    className={[
+                      'w-full bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text font-mono tracking-wider outline-none border transition-colors duration-150',
+                      codeError
+                        ? 'border-[#f44] focus:border-[#f44]'
+                        : 'border-transparent focus:border-accent',
+                    ].join(' ')}
+                  />
+                  {codeError && (
+                    <p className="text-[12px] text-[#e33] mt-1.5">
+                      Código inválido ou expirado. Verifique e tente novamente.
+                    </p>
+                  )}
                 </div>
-              </div>
-            ))}
+
+                <button
+                  type="submit"
+                  className="w-full py-2.5 rounded-[11px] bg-accent text-white font-semibold text-[0.875rem] cursor-pointer border-0 hover:opacity-90 transition-opacity duration-150"
+                >
+                  Acessar relatório
+                </button>
+              </form>
+            </div>
+
+            <p className="text-[12px] text-c-text-2 mt-4 text-center leading-relaxed">
+              O código está no e-mail de convite<br />enviado pela equipe ARO-MCS.
+            </p>
+
           </div>
-
-          {/* Custo por categoria + Métricas de risco */}
-          <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
-            <CostByCategoryTable categories={MOCK_CATEGORIES} totals={MOCK_TOTALS} />
-            <RiskMetricsCard
-              metrics={RISK_METRICS}
-              cvLabel="CV = 4,97%"
-              icLo="IC 95%: R$ 32,35 M"
-              icHi="R$ 32,41 M"
-              contingency="0%"
-            />
-          </div>
-
-          <MonetaryMethodsCard methods={METHODS} />
-          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} />
-          <FanChartCard data={FAN_DATA} />
-
         </div>
-      </div>
 
-      {/* Toast */}
+      ) : (
+
+        /* ── Relatório ── */
+        <div className="pt-[56px] sm:pt-[76px]">
+          <div className="max-w-[1040px] mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-5">
+
+            {/* Cabeçalho do relatório */}
+            <div>
+              <div className="flex items-center gap-3 mb-1.5">
+                <h1 className="text-[22px] font-bold text-c-text">Relatório — Fechamento de Mina</h1>
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold">
+                  Rev1 · Vigente
+                </span>
+              </div>
+              <p className="text-[13px] text-c-text-2">
+                Provisionamento financeiro NX Gold · Simulação Monte Carlo, 10.000 iterações
+              </p>
+            </div>
+
+            {/* KPI cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
+                  label: 'Custo médio',
+                  value: 'R$ 32,4 M',
+                  sub: 'Monte Carlo · 10.000 iterações',
+                  valueClass: 'text-c-text',
+                },
+                {
+                  icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
+                  label: 'Faixa min–max',
+                  value: 'R$ 29,6–35,2 M',
+                  sub: 'Custo total, 8 categorias',
+                  valueClass: 'text-c-text',
+                },
+                {
+                  icon: <ArrowUpRight size={14} strokeWidth={2} className="text-accent-700" />,
+                  label: 'Valor atualizado 2023',
+                  value: 'R$ 36,9 M',
+                  sub: 'Custo total, valor atualizado',
+                  valueClass: 'text-c-text',
+                },
+                {
+                  icon: <Shield size={14} strokeWidth={2} className="text-accent-700" />,
+                  label: 'Nível de incerteza',
+                  value: 'Baixo',
+                  sub: 'CV = 4,97%',
+                  valueClass: 'text-success',
+                },
+              ].map(kpi => (
+                <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
+                  <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center shrink-0">
+                    {kpi.icon}
+                  </div>
+                  <div>
+                    <p className="text-[14px] font-semibold text-c-text-2 mb-1">{kpi.label}</p>
+                    <p className={`text-[20px] font-bold leading-none mb-1 ${kpi.valueClass}`}>{kpi.value}</p>
+                    <p className="text-[12px] text-c-text-2">{kpi.sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Custo por categoria + Métricas de risco */}
+            <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
+              <CostByCategoryTable categories={MOCK_CATEGORIES} totals={MOCK_TOTALS} />
+              <RiskMetricsCard
+                metrics={RISK_METRICS}
+                cvLabel="CV = 4,97%"
+                icLo="IC 95%: R$ 32,35 M"
+                icHi="R$ 32,41 M"
+                contingency="0%"
+              />
+            </div>
+
+            <MonetaryMethodsCard methods={METHODS} />
+            <AnnualDisbursementCard years={DISBURSEMENT_YEARS} />
+            <FanChartCard data={FAN_DATA} />
+
+          </div>
+        </div>
+
+      )}
+
+      {/* Toast PDF */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center px-5 py-3 rounded-full bg-[#14151a] text-white text-[13px] font-semibold shadow-[0_16px_40px_-12px_rgba(20,21,26,.5)]">
           Gerando PDF…
