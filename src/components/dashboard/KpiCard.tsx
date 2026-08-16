@@ -8,11 +8,12 @@ interface KpiCardProps {
   sub: string
   delta?: string
   deltaPositive?: boolean
+  highlight?: boolean
 }
 
-export default function KpiCard({ icon, label, value, sub, delta, deltaPositive }: KpiCardProps) {
+export default function KpiCard({ icon, label, value, sub, delta, deltaPositive, highlight }: KpiCardProps) {
   return (
-    <div className="card">
+    <div className={`card transition-[box-shadow,border-color] duration-500${highlight ? ' ring-2 ring-accent/30' : ''}`}>
       <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
         {icon}
       </div>

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus, Copy, Check } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import ClientSelector, { type ClientOption } from '@/components/layout/ClientSelector'
@@ -13,6 +12,7 @@ import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RisksCard from '@/components/resumo-executivo/RisksCard'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import SimulacaoDrawer from '@/components/simulacao/SimulacaoDrawer'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 import {
@@ -20,8 +20,8 @@ import {
   MOCK_DISBURSEMENT_VALUES, MOCK_METHOD_VALUES,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
-import { getCodeByClientId } from '@/data/invite-codes'
 import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
+import type { SimResult } from '@/types/simulacao'
 
 const CLIENTS: ClientOption[] = [
   { id: '1', name: 'NX Gold · Fechamento de Mina' },
@@ -30,19 +30,18 @@ const CLIENTS: ClientOption[] = [
 ]
 
 export default function ResumoExecutivo() {
-  const navigate = useNavigate()
   const t = useT(resumoT)
   const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
-  const [linkCopied, setLinkCopied] = useState(false)
+  const [linkCopied,     setLinkCopied]     = useState(false)
+  const [drawerOpen,     setDrawerOpen]     = useState(false)
+  const [simResult,      setSimResult]      = useState<SimResult | null>(null)
 
   async function handleGerarLink() {
-    const invite = getCodeByClientId(selectedClient)
-    if (!invite) return
-    const url = `${window.location.origin}/portal-cliente?code=${invite.code}`
+    const url = `${window.location.origin}/relatorio/${selectedClient}`
     try {
       await navigator.clipboard.writeText(url)
     } catch {
-      prompt('Copie o link de acesso do cliente:', url)
+      prompt('Copie o link do relatório:', url)
     }
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
@@ -74,7 +73,7 @@ export default function ResumoExecutivo() {
   ]
 
   return (
-    <div>
+    <>
       <PageHeader
         title={t.headerTitle}
         badge="Rev1"
@@ -93,7 +92,7 @@ export default function ResumoExecutivo() {
                 : <><Copy size={13} /> Gerar link do cliente</>}
             </Button>
             <Button variant="ghost">{t.exportPdf}</Button>
-            <Button variant="primary" onClick={() => navigate('/simulacao')}>{t.runSimulation}</Button>
+            <Button variant="primary" onClick={() => setDrawerOpen(true)}>{t.runSimulation}</Button>
           </>
         }
       />
@@ -105,14 +104,16 @@ export default function ResumoExecutivo() {
           <KpiCard
             icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
             label={t.avgCost}
-            value="R$ 32,4 M"
-            sub={t.avgCostSub}
+            value={simResult?.mean ?? 'R$ 32,4 M'}
+            sub={simResult ? `Monte Carlo · ${simResult.status}` : t.avgCostSub}
+            highlight={!!simResult}
           />
           <KpiCard
             icon={<ArrowLeftRight size={14} strokeWidth={2} aria-hidden="true" />}
             label={t.minMaxRange}
-            value="R$ 29,6–35,2 M"
-            sub={t.minMaxSub}
+            value={simResult?.p10p90 ?? 'R$ 29,6–35,2 M'}
+            sub={simResult ? `IC 95%: ${simResult.ic95}` : t.minMaxSub}
+            highlight={!!simResult}
           />
           <KpiCard
             icon={<ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
@@ -155,6 +156,11 @@ export default function ResumoExecutivo() {
         </div>
 
       </div>
-    </div>
-  )
+
+    <SimulacaoDrawer
+      open={drawerOpen}
+      onClose={() => setDrawerOpen(false)}
+      onResult={setSimResult}
+    />
+  </>)
 }
