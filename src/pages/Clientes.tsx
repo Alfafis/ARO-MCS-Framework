@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Search } from 'lucide-react'
+import { Check, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
@@ -7,6 +7,7 @@ import { useT } from '@/i18n/LangContext'
 import { clientesT } from '@/i18n/clientes'
 import CltRow from '@/components/clientes/CltRow'
 import ClienteModal from '@/components/clientes/ClienteModal'
+import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import type { FilterTab, Projeto } from '@/types/clientes'
 
 const uid = () => Math.random().toString(36).slice(2)
@@ -41,11 +42,13 @@ export default function Clientes() {
     { value: 'concluido',  label: t.filterDone    },
   ]
 
-  const [rows,      setRows]      = useState<Projeto[]>(INITIAL)
-  const [search,    setSearch]    = useState('')
-  const [filter,    setFilter]    = useState<FilterTab>('all')
-  const [openMenu,  setOpenMenu]  = useState<string | null>(null)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [rows,        setRows]        = useState<Projeto[]>(INITIAL)
+  const [search,      setSearch]      = useState('')
+  const [filter,      setFilter]      = useState<FilterTab>('all')
+  const [openMenu,    setOpenMenu]    = useState<string | null>(null)
+  const [modalOpen,   setModalOpen]   = useState(false)
+  const [codeModalFor, setCodeModalFor] = useState<Projeto | null>(null)
+  const [linkCopied,  setLinkCopied]  = useState(false)
 
   useEffect(() => {
     function onMouseDown() { setOpenMenu(null) }
@@ -61,10 +64,18 @@ export default function Clientes() {
     (filter === 'all' || r.status === filter)
   )
 
-  const handleAction = useCallback((id: string, action: 'concluir' | 'arquivar' | 'categorias' | 'relatorio') => {
+  const handleAction = useCallback((id: string, action: 'concluir' | 'arquivar' | 'categorias' | 'relatorio' | 'gerar-link' | 'gerar-codigo') => {
     setOpenMenu(null)
-    if (action === 'relatorio') {
-      navigate('/portal-cliente')
+    if (action === 'gerar-link') {
+      const url = `${window.location.origin}/relatorio/${id}`
+      navigator.clipboard.writeText(url).catch(() => prompt('Copie o link do relatório:', url))
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2500)
+    } else if (action === 'gerar-codigo') {
+      const row = rows.find(r => r.id === id)
+      if (row) setCodeModalFor(row)
+    } else if (action === 'relatorio') {
+      navigate(`/relatorio/${id}`)
     } else if (action === 'categorias') {
       navigate('/categorias')
     } else if (action === 'arquivar') {
@@ -72,7 +83,7 @@ export default function Clientes() {
     } else {
       setRows(prev => prev.map(r => r.id === id ? { ...r, status: 'concluido' } : r))
     }
-  }, [navigate])
+  }, [navigate, rows])
 
   const confirmAdd = useCallback((form: { cliente: string; projeto: string; esperado: string }) => {
     const novo: Projeto = {
@@ -173,6 +184,39 @@ export default function Clientes() {
       </div>
 
       {modalOpen && <ClienteModal onConfirm={confirmAdd} onCancel={() => setModalOpen(false)} />}
+
+      {codeModalFor && (
+        <CodigoAcessoModal
+          reportId={codeModalFor.id}
+          clientName={codeModalFor.cliente}
+          projectName={codeModalFor.projeto}
+          onClose={() => setCodeModalFor(null)}
+        />
+      )}
+
+      <div
+        style={{
+          position:   'fixed',
+          bottom:     24,
+          right:      24,
+          display:    'flex',
+          alignItems: 'center',
+          gap:        6,
+          background: '#14151a',
+          color:      '#fff',
+          fontSize:   13,
+          fontWeight: 500,
+          padding:    '8px 14px',
+          borderRadius: 10,
+          opacity:    linkCopied ? 1 : 0,
+          transform:  linkCopied ? 'translateY(0)' : 'translateY(6px)',
+          transition: 'opacity 180ms ease, transform 180ms ease',
+          pointerEvents: 'none',
+        }}
+      >
+        <Check size={13} />
+        {t.linkCopied}
+      </div>
     </div>
   )
 }

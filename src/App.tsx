@@ -177,7 +177,7 @@ export default function App() {
         />
 
         {/* Portal standalone — sem sidebar */}
-        <Route path="/portal-cliente" element={<PortalClienteRelatorio />} />
+        <Route path="/relatorio/:id" element={<PortalClienteRelatorio />} />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
