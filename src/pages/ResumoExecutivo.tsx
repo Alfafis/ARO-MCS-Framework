@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
@@ -10,19 +11,16 @@ import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
 import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RisksCard from '@/components/resumo-executivo/RisksCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
-import SimulacaoDrawer from '@/components/simulacao/SimulacaoDrawer'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 import { MOCK_RISK_METRIC_VALUES, buildFanData } from '@/data/relatorio-mock'
 import type { RiskMetric } from '@/types/relatorio'
-import type { SimResult } from '@/types/simulacao'
 
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
+  const navigate = useNavigate()
   const { clients, selectedClient, setSelectedClient } = useClient()
   const [linkCopied, setLinkCopied] = useState(false)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [simResult,  setSimResult]  = useState<SimResult | null>(null)
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${selectedClient}`
@@ -38,22 +36,14 @@ export default function ResumoExecutivo() {
   const fanLabels = Array.from({ length: 10 }, (_, i) =>
     `${t.yearPrefix[0]}${t.yearPrefix.slice(1).toLowerCase()} ${i + 1}`
   )
-  const fanData = buildFanData(fanLabels, simResult?.cv)
+  const fanData = buildFanData(fanLabels)
 
   const riskMetrics: RiskMetric[] = [
-    { label: t.metricMean,   value: simResult?.mean   ?? MOCK_RISK_METRIC_VALUES[0] },
-    { label: t.metricStddev, value: simResult?.stddev  ?? MOCK_RISK_METRIC_VALUES[1] },
+    { label: t.metricMean,   value: MOCK_RISK_METRIC_VALUES[0] },
+    { label: t.metricStddev, value: MOCK_RISK_METRIC_VALUES[1] },
     { label: 'P(x > 80%)',   value: MOCK_RISK_METRIC_VALUES[2] },
     { label: 'Prob. de excedência (x>80%)', value: MOCK_RISK_METRIC_VALUES[3] },
   ]
-
-  const cvLabel = simResult
-    ? `CV = ${(simResult.cv * 100).toFixed(2)}%`
-    : 'CV = 4,97%'
-
-  const [icLo, icHi] = simResult
-    ? [`IC 95%: R$ ${simResult.ic95.split('–')[0]} M`, `R$ ${simResult.ic95.split('–')[1]} M`]
-    : ['IC 95%: R$ 32,35 M', 'R$ 32,41 M']
 
   return (
     <>
@@ -75,7 +65,7 @@ export default function ResumoExecutivo() {
                 : <><Copy size={13} /> Gerar link do cliente</>}
             </Button>
             <Button variant="ghost">{t.exportPdf}</Button>
-            <Button variant="primary" onClick={() => setDrawerOpen(true)}>{t.runSimulation}</Button>
+            <Button variant="primary" onClick={() => navigate('/simulacao')}>{t.runSimulation}</Button>
           </>
         }
       />
@@ -87,16 +77,14 @@ export default function ResumoExecutivo() {
           <KpiCard
             icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
             label={t.avgCost}
-            value={simResult?.mean ?? 'R$ 32,4 M'}
-            sub={simResult ? `Monte Carlo · ${simResult.status}` : t.avgCostSub}
-            highlight={!!simResult}
+            value="R$ 32,4 M"
+            sub={t.avgCostSub}
           />
           <KpiCard
             icon={<ArrowLeftRight size={14} strokeWidth={2} aria-hidden="true" />}
             label={t.minMaxRange}
-            value={simResult?.p10p90 ?? 'R$ 29,6–35,2 M'}
-            sub={simResult ? `IC 95%: ${simResult.ic95}` : t.minMaxSub}
-            highlight={!!simResult}
+            value="R$ 29,6–35,2 M"
+            sub={t.minMaxSub}
           />
           <KpiCard
             icon={<ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
@@ -118,11 +106,10 @@ export default function ResumoExecutivo() {
           <div className="lg:col-span-5">
             <RiskMetricsCard
               metrics={riskMetrics}
-              cvLabel={cvLabel}
-              icLo={icLo}
-              icHi={icHi}
+              cvLabel="CV = 4,97%"
+              icLo="IC 95%: R$ 32,35 M"
+              icHi="R$ 32,41 M"
               contingency="0%"
-              uncertainty={simResult?.uncertainty}
             />
           </div>
           <div className="lg:col-span-7">
@@ -136,12 +123,6 @@ export default function ResumoExecutivo() {
         </div>
 
       </div>
-
-      <SimulacaoDrawer
-        open={drawerOpen}
-        onClose={() => setDrawerOpen(false)}
-        onResult={setSimResult}
-      />
     </>
   )
 }

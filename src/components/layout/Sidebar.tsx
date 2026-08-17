@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Tag, FileText, History,
+  LayoutDashboard, Tag, Activity, FileText, History,
   Users, ChevronsLeft, MoreHorizontal, User, Settings, LogOut,
   Globe, ChevronDown,
 } from 'lucide-react'
@@ -40,6 +40,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
   const NAV_ITEMS = [
     { to: '/dashboard',   label: t.overview,       Icon: LayoutDashboard },
     { to: '/categorias',  label: t.costCategories, Icon: Tag             },
+    { to: '/simulacao',   label: t.simulation,     Icon: Activity        },
     { to: '/lancamentos', label: t.launches,        Icon: FileText        },
     { to: '/revisoes',    label: t.revisions,      Icon: History         },
     { to: '/clientes',    label: t.clients,        Icon: Users           },
