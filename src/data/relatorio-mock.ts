@@ -1,4 +1,4 @@
-import type { CostCategory, CostTotals, FanPoint } from '@/types/relatorio'
+import type { CostCategory, CostTotals, FanPoint, DisbursementCategory } from '@/types/relatorio'
 
 export const MOCK_CATEGORIES: CostCategory[] = [
   { rank: '01', name: 'Estudos',               min: '6,55M',  max: '9,10M',  updated: '9,54M'  },
@@ -20,6 +20,17 @@ export const MOCK_TOTALS: CostTotals = {
 export const MOCK_DISBURSEMENT_VALUES = [
   'R$ 0', '471,7k', '314,5k', '1,52M', '4,42M',
   '14,91M', '3,15M', '3,15M', '3,15M', '3,15M',
+]
+
+export const MOCK_DISBURSEMENT_BY_CATEGORY: DisbursementCategory[] = [
+  { name: 'Estudos',               values: [null, '471,7k', '314,5k', '1,52M',  '1,57M',  '2,99M',  null,    null,    null,    null   ] },
+  { name: 'Cavas',                 values: [null, null,     null,     null,      null,      '2,53M',  null,    null,    null,    null   ] },
+  { name: 'Pilhas de Estéril',     values: [null, null,     null,     null,      null,      '1,89M',  null,    null,    null,    null   ] },
+  { name: 'Barragens',             values: [null, null,     null,     null,      null,      '451k',   null,    null,    null,    null   ] },
+  { name: 'Planta Industrial',     values: [null, null,     null,     null,      null,      '921,2k', null,    null,    null,    null   ] },
+  { name: 'Áreas de Apoio',        values: [null, null,     null,     null,      '1,65M',   '2,53M',  null,    null,    null,    null   ] },
+  { name: 'Demolição Estr. Civis', values: [null, null,     null,     null,      '1,20M',   '3,60M',  null,    null,    null,    null   ] },
+  { name: 'Monitoramento',         values: [null, null,     null,     null,      null,      null,     '3,15M', '3,15M', '3,15M', '3,15M'] },
 ]
 
 export const MOCK_METHOD_VALUES = [

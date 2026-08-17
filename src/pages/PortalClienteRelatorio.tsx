@@ -10,7 +10,7 @@ import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import {
   MOCK_CATEGORIES, MOCK_TOTALS,
-  MOCK_DISBURSEMENT_VALUES, MOCK_METHOD_VALUES,
+  MOCK_DISBURSEMENT_VALUES, MOCK_DISBURSEMENT_BY_CATEGORY, MOCK_METHOD_VALUES,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
 import { validateCodeForReport } from '@/data/invite-codes'
@@ -176,7 +176,7 @@ export default function PortalClienteRelatorio() {
           </div>
 
           <MonetaryMethodsCard methods={METHODS} />
-          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} />
+          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} categories={MOCK_DISBURSEMENT_BY_CATEGORY} />
           <FanChartCard data={FAN_DATA} />
 
         </div>

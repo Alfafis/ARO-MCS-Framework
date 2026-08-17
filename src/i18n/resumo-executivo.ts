@@ -24,7 +24,6 @@ export const resumoT: Record<Lang, {
   // AnnualDisbursementCard
   disbursementTitle: string
   yearPrefix:     string
-  disbursementDesc:  string
   // FanChartCard
   fanTitle:       string
   fanDesc:        string
@@ -92,7 +91,6 @@ export const resumoT: Record<Lang, {
     method4:        'Escalonamento — IPCA variável 2024-2033',
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
     yearPrefix:     'ANO',
-    disbursementDesc:  'Apenas Estudos, Áreas de Apoio, Demolição e Monitoramento têm valores lançados por ano; as demais categorias não têm essa quebra.',
     fanTitle:       'Leque de confiança (fan chart) — desembolso acumulado por ano',
     fanDesc:        'Faixa estimada a partir do coeficiente de variação da simulação de Monte Carlo (4,97%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.',
     risksTitle:     'Riscos e pontos de atenção',
@@ -154,7 +152,6 @@ export const resumoT: Record<Lang, {
     method4:        'Escalation — variable IPCA 2024-2033',
     disbursementTitle: 'Projected disbursement by year — Grand Total',
     yearPrefix:     'YEAR',
-    disbursementDesc:  'Only Studies, Support Areas, Demolition and Monitoring have values broken down by year; other categories do not have this breakdown.',
     fanTitle:       'Confidence fan chart — cumulative disbursement by year',
     fanDesc:        'Range estimated from the Monte Carlo simulation coefficient of variation (4.97%) applied to cumulative disbursement by year — not an independent percentile (P10/P90) calculation per year.',
     risksTitle:     'Risks and points of attention',
@@ -216,7 +213,6 @@ export const resumoT: Record<Lang, {
     method4:        'Escalonamiento — IPCA variable 2024-2033',
     disbursementTitle: 'Desembolso proyectado por año — Total General',
     yearPrefix:     'AÑO',
-    disbursementDesc:  'Solo Estudios, Áreas de Apoyo, Demolición y Monitoreo tienen valores desglosados por año; las demás categorías no tienen ese desglose.',
     fanTitle:       'Abanico de confianza (fan chart) — desembolso acumulado por año',
     fanDesc:        'Rango estimado a partir del coeficiente de variación de la simulación de Monte Carlo (4,97%) aplicado al desembolso acumulado por año — no es un cálculo de percentil (P10/P90) ejecutado independientemente para cada año.',
     risksTitle:     'Riesgos y puntos de atención',

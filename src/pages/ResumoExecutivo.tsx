@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
-import ClientSelector, { type ClientOption } from '@/components/layout/ClientSelector'
+import ClientSelector from '@/components/layout/ClientSelector'
+import { useClient } from '@/context/ClientContext'
 import KpiCard from '@/components/dashboard/KpiCard'
 import RecentLaunches from '@/components/dashboard/RecentLaunches'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
@@ -17,21 +18,15 @@ import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 import {
   MOCK_CATEGORIES, MOCK_TOTALS,
-  MOCK_DISBURSEMENT_VALUES, MOCK_METHOD_VALUES,
+  MOCK_DISBURSEMENT_VALUES, MOCK_DISBURSEMENT_BY_CATEGORY, MOCK_METHOD_VALUES,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
 import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 
-const CLIENTS: ClientOption[] = [
-  { id: '1', name: 'NX Gold · Fechamento de Mina' },
-  { id: '2', name: 'ARO · Plano de Fechamento 2024' },
-  { id: '3', name: 'Mineração Horizonte · Fase 2' },
-]
-
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
-  const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
+  const { clients, selectedClient, setSelectedClient } = useClient()
   const [linkCopied,     setLinkCopied]     = useState(false)
   const [drawerOpen,     setDrawerOpen]     = useState(false)
   const [simResult,      setSimResult]      = useState<SimResult | null>(null)
@@ -79,7 +74,7 @@ export default function ResumoExecutivo() {
         badge="Rev1"
         clientSelector={
           <ClientSelector
-            options={CLIENTS}
+            options={clients}
             value={selectedClient}
             onChange={setSelectedClient}
           />
@@ -130,7 +125,7 @@ export default function ResumoExecutivo() {
         </div>
 
         <MonetaryMethodsCard methods={methods} />
-        <AnnualDisbursementCard years={disbursementYears} />
+        <AnnualDisbursementCard years={disbursementYears} categories={MOCK_DISBURSEMENT_BY_CATEGORY} />
         <FanChartCard data={fanData} />
         <RisksCard />
 

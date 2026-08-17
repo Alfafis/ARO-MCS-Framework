@@ -22,6 +22,11 @@ export interface DisbursementYear {
   value: string
 }
 
+export interface DisbursementCategory {
+  name: string
+  values: (string | null)[]
+}
+
 export interface FanPoint {
   label: string
   low: number    // posição inferior em % (0–100)
