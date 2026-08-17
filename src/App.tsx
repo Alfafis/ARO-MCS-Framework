@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { LangProvider } from './i18n/LangContext'
+import { ClientProvider } from './context/ClientContext'
 import Sidebar from './components/layout/Sidebar'
 import OctahedronIcon from './components/icons/OctahedronIcon'
 import Login from './pages/Login'
@@ -118,6 +119,7 @@ export default function App() {
 
   return (
     <LangProvider>
+    <ClientProvider>
     <BrowserRouter>
       <Routes>
         {/* Rota pública */}
@@ -183,6 +185,7 @@ export default function App() {
         <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
+    </ClientProvider>
     </LangProvider>
   )
 }

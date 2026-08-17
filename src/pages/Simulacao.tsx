@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
-import ClientSelector, { type ClientOption } from '@/components/layout/ClientSelector'
+import ClientSelector from '@/components/layout/ClientSelector'
+import { useClient } from '@/context/ClientContext'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
@@ -61,15 +62,9 @@ const INITIAL_HISTORY: HistoryRun[] = [
   { id: uid(), date: '10 jul 2026, 11:03', dist: 'Triangular', iterations: '20.000', mean: 'R$ 38,1M', uncertainty: 'baixo'    },
 ]
 
-const CLIENTS: ClientOption[] = [
-  { id: '1', name: 'NX Gold · Fechamento de Mina' },
-  { id: '2', name: 'ARO · Plano de Fechamento 2024' },
-  { id: '3', name: 'Mineração Horizonte · Fase 2' },
-]
-
 export default function Simulacao() {
   const t = useT(simulacaoT)
-  const [selectedClient, setSelectedClient] = useState(CLIENTS[0].id)
+  const { clients, selectedClient, setSelectedClient } = useClient()
   const [dist,        setDist]        = useState<Distribution>('Triangular')
   const [iterations,  setIterations]  = useState('10.000')
   const [running,     setRunning]     = useState(false)
@@ -104,7 +99,7 @@ export default function Simulacao() {
             <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
           </div>
-          <ClientSelector options={CLIENTS} value={selectedClient} onChange={setSelectedClient} />
+          <ClientSelector options={clients} value={selectedClient} onChange={setSelectedClient} />
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" onClick={() => setHistoryOpen(true)}>
