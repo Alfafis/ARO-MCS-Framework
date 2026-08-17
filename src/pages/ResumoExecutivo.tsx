@@ -7,29 +7,22 @@ import { useClient } from '@/context/ClientContext'
 import KpiCard from '@/components/dashboard/KpiCard'
 import RecentLaunches from '@/components/dashboard/RecentLaunches'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
-import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
-import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RisksCard from '@/components/resumo-executivo/RisksCard'
-import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import SimulacaoDrawer from '@/components/simulacao/SimulacaoDrawer'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
-import {
-  MOCK_CATEGORIES, MOCK_TOTALS,
-  MOCK_DISBURSEMENT_VALUES, MOCK_DISBURSEMENT_BY_CATEGORY, MOCK_METHOD_VALUES,
-  MOCK_RISK_METRIC_VALUES, buildFanData,
-} from '@/data/relatorio-mock'
-import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
+import { MOCK_RISK_METRIC_VALUES, buildFanData } from '@/data/relatorio-mock'
+import type { RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
   const { clients, selectedClient, setSelectedClient } = useClient()
-  const [linkCopied,     setLinkCopied]     = useState(false)
-  const [drawerOpen,     setDrawerOpen]     = useState(false)
-  const [simResult,      setSimResult]      = useState<SimResult | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [simResult,  setSimResult]  = useState<SimResult | null>(null)
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${selectedClient}`
@@ -42,30 +35,25 @@ export default function ResumoExecutivo() {
     setTimeout(() => setLinkCopied(false), 2500)
   }
 
-  const methods: MonetaryMethod[] = [
-    { label: t.method1, value: MOCK_METHOD_VALUES[0] },
-    { label: t.method2, value: MOCK_METHOD_VALUES[1] },
-    { label: t.method3, value: MOCK_METHOD_VALUES[2] },
-    { label: t.method4, value: MOCK_METHOD_VALUES[3] },
-  ]
-
-  const disbursementYears: DisbursementYear[] = MOCK_DISBURSEMENT_VALUES.map((value, i) => ({
-    label: `${t.yearPrefix} ${i + 1}`,
-    value,
-  }))
-
-  const fanData = buildFanData(
-    MOCK_DISBURSEMENT_VALUES.map((_, i) =>
-      `${t.yearPrefix[0]}${t.yearPrefix.slice(1).toLowerCase()} ${i + 1}`
-    )
+  const fanLabels = Array.from({ length: 10 }, (_, i) =>
+    `${t.yearPrefix[0]}${t.yearPrefix.slice(1).toLowerCase()} ${i + 1}`
   )
+  const fanData = buildFanData(fanLabels, simResult?.cv)
 
   const riskMetrics: RiskMetric[] = [
-    { label: t.metricMean,   value: MOCK_RISK_METRIC_VALUES[0] },
-    { label: t.metricStddev, value: MOCK_RISK_METRIC_VALUES[1] },
+    { label: t.metricMean,   value: simResult?.mean   ?? MOCK_RISK_METRIC_VALUES[0] },
+    { label: t.metricStddev, value: simResult?.stddev  ?? MOCK_RISK_METRIC_VALUES[1] },
     { label: 'P(x > 80%)',   value: MOCK_RISK_METRIC_VALUES[2] },
     { label: 'Prob. de excedência (x>80%)', value: MOCK_RISK_METRIC_VALUES[3] },
   ]
+
+  const cvLabel = simResult
+    ? `CV = ${(simResult.cv * 100).toFixed(2)}%`
+    : 'CV = 4,97%'
+
+  const [icLo, icHi] = simResult
+    ? [`IC 95%: R$ ${simResult.ic95.split('–')[0]} M`, `R$ ${simResult.ic95.split('–')[1]} M`]
+    : ['IC 95%: R$ 32,35 M', 'R$ 32,41 M']
 
   return (
     <>
@@ -94,7 +82,7 @@ export default function ResumoExecutivo() {
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col gap-4">
 
-        {/* Linha 1 — 4 KPI cards */}
+        {/* 4 KPI cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <KpiCard
             icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
@@ -124,25 +112,22 @@ export default function ResumoExecutivo() {
           />
         </div>
 
-        <MonetaryMethodsCard methods={methods} />
-        <AnnualDisbursementCard years={disbursementYears} categories={MOCK_DISBURSEMENT_BY_CATEGORY} />
         <FanChartCard data={fanData} />
-        <RisksCard />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <CostByCategoryTable
-            categories={MOCK_CATEGORIES}
-            totals={MOCK_TOTALS}
-            className="col-span-7"
-          />
-          <RiskMetricsCard
-            metrics={riskMetrics}
-            cvLabel="CV = 4,97%"
-            icLo="IC 95%: R$ 32,35 M"
-            icHi="R$ 32,41 M"
-            contingency="0%"
-            className="col-span-5"
-          />
+          <div className="lg:col-span-5">
+            <RiskMetricsCard
+              metrics={riskMetrics}
+              cvLabel={cvLabel}
+              icLo={icLo}
+              icHi={icHi}
+              contingency="0%"
+              uncertainty={simResult?.uncertainty}
+            />
+          </div>
+          <div className="lg:col-span-7">
+            <RisksCard />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -152,10 +137,11 @@ export default function ResumoExecutivo() {
 
       </div>
 
-    <SimulacaoDrawer
-      open={drawerOpen}
-      onClose={() => setDrawerOpen(false)}
-      onResult={setSimResult}
-    />
-  </>)
+      <SimulacaoDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        onResult={setSimResult}
+      />
+    </>
+  )
 }

@@ -48,6 +48,8 @@ export const resumoT: Record<Lang, {
   // RiskMetricsCard
   riskMetricsTitle: string
   riskLow:          string
+  riskModerate:     string
+  riskHigh:         string
   contingencyLabel: string
   metricMean:       string
   metricStddev:     string
@@ -111,6 +113,8 @@ export const resumoT: Record<Lang, {
     totalLabel:     'Total geral',
     riskMetricsTitle: 'Métricas de risco',
     riskLow:          'Baixo',
+    riskModerate:     'Moderado',
+    riskHigh:         'Alto',
     contingencyLabel: 'Contingência aplicada',
     metricMean:       'Média',
     metricStddev:     'Desvio-padrão',
@@ -172,6 +176,8 @@ export const resumoT: Record<Lang, {
     totalLabel:     'Grand total',
     riskMetricsTitle: 'Risk metrics',
     riskLow:          'Low',
+    riskModerate:     'Moderate',
+    riskHigh:         'High',
     contingencyLabel: 'Applied contingency',
     metricMean:       'Mean',
     metricStddev:     'Std. deviation',
@@ -233,6 +239,8 @@ export const resumoT: Record<Lang, {
     totalLabel:     'Total general',
     riskMetricsTitle: 'Métricas de riesgo',
     riskLow:          'Bajo',
+    riskModerate:     'Moderado',
+    riskHigh:         'Alto',
     contingencyLabel: 'Contingencia aplicada',
     metricMean:       'Media',
     metricStddev:     'Desviación estándar',

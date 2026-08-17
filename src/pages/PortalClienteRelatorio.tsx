@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useMemo, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
 import { Download } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Shield } from 'lucide-react'
@@ -15,6 +15,7 @@ import {
 } from '@/data/relatorio-mock'
 import { validateCodeForReport } from '@/data/invite-codes'
 import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
+import type { SimResult } from '@/types/simulacao'
 
 const METHODS: MonetaryMethod[] = [
   { label: 'Juros simples — 10,75%/ano',              value: MOCK_METHOD_VALUES[0] },
@@ -28,16 +29,17 @@ const DISBURSEMENT_YEARS: DisbursementYear[] = MOCK_DISBURSEMENT_VALUES.map((val
   value,
 }))
 
-const FAN_DATA = buildFanData(
-  Array.from({ length: 10 }, (_, i) => `Ano ${i + 1}`)
-)
+const FAN_LABELS = Array.from({ length: 10 }, (_, i) => `Ano ${i + 1}`)
 
-const RISK_METRICS: RiskMetric[] = [
-  { label: 'Média',                          value: MOCK_RISK_METRIC_VALUES[0] },
-  { label: 'Desvio-padrão',                  value: MOCK_RISK_METRIC_VALUES[1] },
-  { label: 'P(x = 80%)',                     value: MOCK_RISK_METRIC_VALUES[2] },
-  { label: 'Prob. de excedência (x>80%)',    value: MOCK_RISK_METRIC_VALUES[3] },
-]
+function loadSimResult(): SimResult | null {
+  try {
+    const s = localStorage.getItem('aro_sim_result')
+    return s ? JSON.parse(s) as SimResult : null
+  } catch { return null }
+}
+
+const UNCERTAINTY_COLOR = { baixo: 'text-success', moderado: 'text-yellow-600', alto: 'text-accent' }
+const UNCERTAINTY_LABEL = { baixo: 'Baixo',        moderado: 'Moderado',        alto: 'Alto'        }
 
 function isAdminSession() {
   return localStorage.getItem('aro_auth') === '1'
@@ -49,6 +51,25 @@ function sessionKey(id: string) {
 
 export default function PortalClienteRelatorio() {
   const { id = '' } = useParams<{ id: string }>()
+
+  const simResult = useMemo(loadSimResult, [])
+
+  const fanData = useMemo(
+    () => buildFanData(FAN_LABELS, simResult?.cv),
+    [simResult]
+  )
+
+  const riskMetrics: RiskMetric[] = [
+    { label: 'Média',                          value: simResult?.mean   ?? MOCK_RISK_METRIC_VALUES[0] },
+    { label: 'Desvio-padrão',                  value: simResult?.stddev  ?? MOCK_RISK_METRIC_VALUES[1] },
+    { label: 'P(x > 80%)',                     value: MOCK_RISK_METRIC_VALUES[2] },
+    { label: 'Prob. de excedência (x>80%)',    value: MOCK_RISK_METRIC_VALUES[3] },
+  ]
+
+  const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : 'CV = 4,97%'
+  const [icLo, icHi] = simResult
+    ? [`IC 95%: R$ ${simResult.ic95.split('–')[0]} M`, `R$ ${simResult.ic95.split('–')[1]} M`]
+    : ['IC 95%: R$ 32,35 M', 'R$ 32,41 M']
 
   const [accessGranted, setAccessGranted] = useState<boolean>(() => {
     if (isAdminSession()) return true
@@ -75,6 +96,8 @@ export default function PortalClienteRelatorio() {
     setToast(true)
     setTimeout(() => { setToast(false); window.print() }, 900)
   }
+
+  const uncertaintyKey = simResult?.uncertainty ?? 'baixo'
 
   return (
     <div className="min-h-screen bg-c-bg print:bg-white">
@@ -124,15 +147,15 @@ export default function PortalClienteRelatorio() {
               {
                 icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
                 label: 'Custo médio',
-                value: 'R$ 32,4 M',
-                sub: 'Monte Carlo · 10.000 iterações',
+                value: simResult?.mean ?? 'R$ 32,4 M',
+                sub: simResult ? `Monte Carlo · ${simResult.status}` : 'Monte Carlo · 10.000 iterações',
                 valueClass: 'text-c-text',
               },
               {
                 icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
                 label: 'Faixa min–max',
-                value: 'R$ 29,6–35,2 M',
-                sub: 'Custo total, 8 categorias',
+                value: simResult?.p10p90 ?? 'R$ 29,6–35,2 M',
+                sub: simResult ? `IC 95%: ${simResult.ic95}` : 'Custo total, 8 categorias',
                 valueClass: 'text-c-text',
               },
               {
@@ -145,9 +168,9 @@ export default function PortalClienteRelatorio() {
               {
                 icon: <Shield size={14} strokeWidth={2} className="text-accent-700" />,
                 label: 'Nível de incerteza',
-                value: 'Baixo',
-                sub: 'CV = 4,97%',
-                valueClass: 'text-success',
+                value: UNCERTAINTY_LABEL[uncertaintyKey],
+                sub: cvLabel,
+                valueClass: UNCERTAINTY_COLOR[uncertaintyKey],
               },
             ].map(kpi => (
               <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
@@ -167,17 +190,18 @@ export default function PortalClienteRelatorio() {
           <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
             <CostByCategoryTable categories={MOCK_CATEGORIES} totals={MOCK_TOTALS} />
             <RiskMetricsCard
-              metrics={RISK_METRICS}
-              cvLabel="CV = 4,97%"
-              icLo="IC 95%: R$ 32,35 M"
-              icHi="R$ 32,41 M"
+              metrics={riskMetrics}
+              cvLabel={cvLabel}
+              icLo={icLo}
+              icHi={icHi}
               contingency="0%"
+              uncertainty={simResult?.uncertainty}
             />
           </div>
 
           <MonetaryMethodsCard methods={METHODS} />
           <AnnualDisbursementCard years={DISBURSEMENT_YEARS} categories={MOCK_DISBURSEMENT_BY_CATEGORY} />
-          <FanChartCard data={FAN_DATA} />
+          <FanChartCard data={fanData} />
 
         </div>
       </div>
@@ -230,7 +254,6 @@ export default function PortalClienteRelatorio() {
                 Acessar relatório
               </button>
             </form>
-
 
           </div>
         </div>

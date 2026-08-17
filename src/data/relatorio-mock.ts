@@ -51,10 +51,10 @@ const FAN_CV  = 0.0497
 const FAN_MAX = 34.236
 const FAN_CUM = [0, 0.4717, 0.7862, 2.3062, 6.726, 21.636, 24.786, 27.936, 31.086, 34.236]
 
-export function buildFanData(labels: string[]): FanPoint[] {
+export function buildFanData(labels: string[], cv = FAN_CV): FanPoint[] {
   return FAN_CUM.map((cum, i) => ({
     label: labels[i],
-    low:   Math.max(0, (cum * (1 - FAN_CV) / FAN_MAX) * 100),
-    band:  Math.max(cum > 0 ? 1 : 0, (cum * FAN_CV * 2 / FAN_MAX) * 100),
+    low:   Math.max(0, (cum * (1 - cv) / FAN_MAX) * 100),
+    band:  Math.max(cum > 0 ? 1 : 0, (cum * cv * 2 / FAN_MAX) * 100),
   }))
 }

@@ -37,7 +37,8 @@ function computeResult(dist: Distribution): SimResult {
   const ic95hi = mean + 1.96 * sd * 0.5
   const minV = p10 - 0.4 - Math.random() * 0.8
   const maxV = p90 + 0.4 + Math.random() * 0.8
-  const rangeNum = (sd / mean) * 100
+  const cv = sd / mean
+  const rangeNum = cv * 100
   const uncertainty: UncertaintyLevel = rangeNum < 3 ? 'baixo' : rangeNum < 5 ? 'moderado' : 'alto'
   const fmt = (v: number) => `R$ ${v.toFixed(1).replace('.', ',')} M`
   const rng = (v: number) => v.toFixed(1).replace('.', ',')
@@ -52,6 +53,7 @@ function computeResult(dist: Distribution): SimResult {
     range:     `±${rangeNum.toFixed(1)}%`,
     bars,
     status:    'Agora mesmo',
+    cv,
   }
 }
 
@@ -84,6 +86,7 @@ export default function SimulacaoDrawer({ open, onClose, onResult }: Props) {
     setRunning(true)
     setTimeout(() => {
       const next = computeResult(dist)
+      try { localStorage.setItem('aro_sim_result', JSON.stringify(next)) } catch {}
       setResult(next)
       onResult(next)
       setRunning(false)

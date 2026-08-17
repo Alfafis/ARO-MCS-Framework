@@ -12,6 +12,7 @@ export interface SimResult {
   range: string
   bars: number[]
   status: string
+  cv: number
 }
 
 export interface HistoryRun {

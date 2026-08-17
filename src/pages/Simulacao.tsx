@@ -36,7 +36,8 @@ function computeResult(dist: Distribution): Omit<SimResult, 'status'> {
   const ic95hi = mean + 1.96 * sd * 0.5
   const minV = p10 - 0.4 - Math.random() * 0.8
   const maxV = p90 + 0.4 + Math.random() * 0.8
-  const rangeNum = (sd / mean) * 100
+  const cv = sd / mean
+  const rangeNum = cv * 100
   const uncertainty: UncertaintyLevel = rangeNum < 3 ? 'baixo' : rangeNum < 5 ? 'moderado' : 'alto'
   const fmt = (v: number) => `R$ ${v.toFixed(1).replace('.', ',')}M`
   const rng = (v: number) => v.toFixed(1).replace('.', ',')
@@ -44,7 +45,7 @@ function computeResult(dist: Distribution): Omit<SimResult, 'status'> {
     mean: fmt(mean), stddev: `R$ ${sd.toFixed(1).replace('.', ',')}M`,
     p10p90: `${rng(p10)}–${rng(p90)}M`, ic95: `${rng(ic95lo)}–${rng(ic95hi)}M`,
     min: fmt(minV), max: fmt(maxV), uncertainty, range: `±${rangeNum.toFixed(1)}%`,
-    bars,
+    bars, cv,
   }
 }
 
@@ -53,6 +54,7 @@ const INITIAL_RESULT: SimResult = {
   min: 'R$ 35,6M', max: 'R$ 41,2M',
   uncertainty: 'moderado', range: '±3,6%', status: 'Concluída há 2 dias',
   bars: [12, 28, 50, 72, 90, 100, 84, 63, 40, 21, 10, 4],
+  cv: 0.036,
 }
 
 const INITIAL_HISTORY: HistoryRun[] = [

@@ -2,6 +2,7 @@ import { Shield } from 'lucide-react'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 import type { RiskMetric } from '@/types/relatorio'
+import type { UncertaintyLevel } from '@/types/simulacao'
 
 interface Props {
   metrics: RiskMetric[]
@@ -9,21 +10,34 @@ interface Props {
   icLo: string
   icHi: string
   contingency: string
+  uncertainty?: UncertaintyLevel
   className?: string
 }
 
-export default function RiskMetricsCard({ metrics, cvLabel, icLo, icHi, contingency, className = '' }: Props) {
+const UNCERTAINTY_COLOR: Record<UncertaintyLevel, string> = {
+  baixo:    'text-success',
+  moderado: 'text-yellow-600',
+  alto:     'text-accent',
+}
+
+export default function RiskMetricsCard({ metrics, cvLabel, icLo, icHi, contingency, uncertainty, className = '' }: Props) {
   const t = useT(resumoT)
 
+  const riskLabel = uncertainty === 'moderado' ? t.riskModerate
+    : uncertainty === 'alto'    ? t.riskHigh
+    : t.riskLow
+
+  const riskColor = uncertainty ? UNCERTAINTY_COLOR[uncertainty] : 'text-success'
+
   return (
-    <div className={`card ${className}`.trimEnd()}>
+    <div className={`card h-full ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-4">
         <Shield size={14} color="var(--accent)" aria-hidden="true" />
         <span className="font-semibold text-[0.875rem] text-c-text">{t.riskMetricsTitle}</span>
       </div>
 
       <div className="flex items-baseline gap-2 mb-3">
-        <span className="text-[22px] font-bold text-success">{t.riskLow}</span>
+        <span className={`text-[22px] font-bold ${riskColor}`}>{riskLabel}</span>
         <span className="text-[12px] text-c-text-2">{cvLabel}</span>
       </div>
 
