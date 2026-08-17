@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { FileText } from 'lucide-react'
 import ClientSelector from '@/components/layout/ClientSelector'
 import { useClient } from '@/context/ClientContext'
 import { Button } from '@/components/ui/button'
@@ -66,6 +68,7 @@ const INITIAL_HISTORY: HistoryRun[] = [
 
 export default function Simulacao() {
   const t = useT(simulacaoT)
+  const navigate = useNavigate()
   const { clients, selectedClient, setSelectedClient } = useClient()
   const [dist,        setDist]        = useState<Distribution>('Triangular')
   const [iterations,  setIterations]  = useState('10.000')
@@ -73,16 +76,19 @@ export default function Simulacao() {
   const [result,      setResult]      = useState<SimResult>(INITIAL_RESULT)
   const [history,     setHistory]     = useState<HistoryRun[]>(INITIAL_HISTORY)
   const [historyOpen, setHistoryOpen] = useState(false)
+  const [hasRun,      setHasRun]      = useState(false)
 
   const runSimulation = useCallback(() => {
     setRunning(true)
     setTimeout(() => {
       const next: SimResult = { ...computeResult(dist), status: t.justFinished }
+      try { localStorage.setItem('aro_sim_result', JSON.stringify(next)) } catch {}
       setResult(next)
       setHistory(prev => [
         { id: uid(), date: nowStr(t.months), dist, iterations, mean: next.mean, uncertainty: next.uncertainty },
         ...prev.slice(0, 3),
       ])
+      setHasRun(true)
       setRunning(false)
     }, 1300)
   }, [dist, iterations, t])
@@ -124,6 +130,22 @@ export default function Simulacao() {
             <ResultCard result={result} />
             <HistogramCard result={result} iterations={iterations} />
             <UncertaintyCard />
+            {hasRun && (
+              <div className="card flex items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-[34px] h-[34px] rounded-[10px] bg-accent-100 flex items-center justify-center shrink-0">
+                    <FileText size={15} color="var(--accent)" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="text-[13px] font-semibold text-c-text leading-tight">Simulação aplicada ao relatório</p>
+                    <p className="text-[12px] text-c-text-2 mt-0.5">Visualize o resultado do ponto de vista do cliente.</p>
+                  </div>
+                </div>
+                <Button variant="primary" onClick={() => navigate(`/relatorio/${selectedClient}`)}>
+                  Ver relatório
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </div>
