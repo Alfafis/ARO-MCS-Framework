@@ -4,13 +4,12 @@ import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 interface Props {
-  result: SimResult
+  result:     SimResult | null
   iterations: string
 }
 
 export default function HistogramCard({ result, iterations }: Props) {
   const t = useT(simulacaoT)
-  const maxH = Math.max(...result.bars)
 
   const UNCERTAINTY_TEXT: Record<UncertaintyLevel, string> = {
     baixo:    t.uncertainty_low,
@@ -25,27 +24,36 @@ export default function HistogramCard({ result, iterations }: Props) {
         <span>{t.histTitle(iterations)}</span>
       </div>
 
-      <div className="histogram" aria-hidden="true">
-        {result.bars.map((h, i) => (
-          <div
-            key={i}
-            className={`hist-bar${h / maxH >= 0.45 ? ' in' : ''}`}
-            style={{ height: `${Math.round((h / maxH) * 100)}px` }}
-          />
-        ))}
-      </div>
+      {result ? (
+        <>
+          <div className="histogram" aria-hidden="true">
+            {result.bars.map((h, i) => {
+              const maxH = Math.max(...result.bars)
+              return (
+                <div
+                  key={i}
+                  className={`hist-bar${h / maxH >= 0.45 ? ' in' : ''}`}
+                  style={{ height: `${Math.round((h / maxH) * 100)}px` }}
+                />
+              )
+            })}
+          </div>
 
-      <div className="hist-labels">
-        <span>{result.min}</span>
-        <span>{result.mean}</span>
-        <span>{result.max}</span>
-      </div>
+          <div className="hist-labels">
+            <span>{result.min}</span>
+            <span>{result.mean}</span>
+            <span>{result.max}</span>
+          </div>
 
-      <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
-        {UNCERTAINTY_TEXT[result.uncertainty]} —{' '}
-        <strong className="text-c-text font-mono font-bold">{result.range}</strong>{' '}
-        {t.variationSuffix}
-      </p>
+          <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
+            {UNCERTAINTY_TEXT[result.uncertainty]} —{' '}
+            <strong className="text-c-text font-mono font-bold">{result.range}</strong>{' '}
+            {t.variationSuffix}
+          </p>
+        </>
+      ) : (
+        <p className="text-[0.8125rem] text-c-text-2 leading-relaxed">{t.noResultYet}</p>
+      )}
     </div>
   )
 }

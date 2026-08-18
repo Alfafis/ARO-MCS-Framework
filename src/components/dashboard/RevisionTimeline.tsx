@@ -3,7 +3,11 @@ import { Badge } from '@/components/ui/badge'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 
-export default function RevisionTimeline() {
+interface Props {
+  className?: string
+}
+
+export default function RevisionTimeline({ className = '' }: Props = {}) {
   const t = useT(resumoT)
 
   const REVISIONS = [
@@ -13,7 +17,7 @@ export default function RevisionTimeline() {
   ]
 
   return (
-    <div className="card col-span-5">
+    <div className={`card ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-5">
         <Clock size={14} color="var(--accent)" aria-hidden="true" />
         <span className="font-semibold text-[0.875rem] text-c-text">{t.revTimeline}</span>

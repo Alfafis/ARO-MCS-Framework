@@ -1,28 +1,24 @@
 import { useState, useMemo, type FormEvent } from 'react'
 import { useParams } from 'react-router-dom'
-import { Download } from 'lucide-react'
-import { DollarSign, ArrowLeftRight, ArrowUpRight, Shield } from 'lucide-react'
+import { Download, Copy, Check, KeyRound } from 'lucide-react'
+import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus } from 'lucide-react'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
+import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import FanChartCard from '@/components/resumo-executivo/FanChartCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import PhaseBreakdown from '@/components/dashboard/PhaseBreakdown'
 import {
-  MOCK_CATEGORIES, MOCK_TOTALS,
-  MOCK_DISBURSEMENT_VALUES, MOCK_DISBURSEMENT_BY_CATEGORY, MOCK_METHOD_VALUES,
+  MOCK_CATEGORIES,
+  MOCK_DISBURSEMENT_VALUES, MOCK_DISBURSEMENT_BY_CATEGORY,
   MOCK_RISK_METRIC_VALUES, buildFanData,
 } from '@/data/relatorio-mock'
 import { validateCodeForReport } from '@/data/invite-codes'
-import type { MonetaryMethod, DisbursementYear, RiskMetric } from '@/types/relatorio'
-import type { SimResult } from '@/types/simulacao'
-
-const METHODS: MonetaryMethod[] = [
-  { label: 'Juros simples — 10,75%/ano',              value: MOCK_METHOD_VALUES[0] },
-  { label: 'Juros compostos — 10,75%/ano',            value: MOCK_METHOD_VALUES[1] },
-  { label: 'Inflação constante — 3,4%/ano',           value: MOCK_METHOD_VALUES[2] },
-  { label: 'Escalonamento — IPCA variável 2024–2033', value: MOCK_METHOD_VALUES[3] },
-]
+import { useSimulation } from '@/context/SimulationContext'
+import { computeMonetaryMethods, BASE_TOTAL_WITH_PROVISION, TOTAL_UPDATED_2023 } from '@/lib/financeiro'
+import type { DisbursementYear, RiskMetric } from '@/types/relatorio'
 
 const DISBURSEMENT_YEARS: DisbursementYear[] = MOCK_DISBURSEMENT_VALUES.map((value, i) => ({
   label: `ANO ${i + 1}`,
@@ -31,15 +27,9 @@ const DISBURSEMENT_YEARS: DisbursementYear[] = MOCK_DISBURSEMENT_VALUES.map((val
 
 const FAN_LABELS = Array.from({ length: 10 }, (_, i) => `Ano ${i + 1}`)
 
-function loadSimResult(): SimResult | null {
-  try {
-    const s = localStorage.getItem('aro_sim_result')
-    return s ? JSON.parse(s) as SimResult : null
-  } catch { return null }
+function fmtM(v: number) {
+  return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} M`
 }
-
-const UNCERTAINTY_COLOR = { baixo: 'text-success', moderado: 'text-yellow-600', alto: 'text-accent' }
-const UNCERTAINTY_LABEL = { baixo: 'Baixo',        moderado: 'Moderado',        alto: 'Alto'        }
 
 function isAdminSession() {
   return localStorage.getItem('aro_auth') === '1'
@@ -51,25 +41,58 @@ function sessionKey(id: string) {
 
 export default function PortalClienteRelatorio() {
   const { id = '' } = useParams<{ id: string }>()
-
-  const simResult = useMemo(loadSimResult, [])
+  const { simResult, activeCategories } = useSimulation()
 
   const fanData = useMemo(
     () => buildFanData(FAN_LABELS, simResult?.cv),
     [simResult]
   )
 
+  const activeCatSet = useMemo(() => new Set(activeCategories), [activeCategories])
+
+  const filteredCategories    = useMemo(
+    () => MOCK_CATEGORIES.filter(c => activeCatSet.has(c.name)),
+    [activeCatSet]
+  )
+  const filteredDisbursement  = useMemo(
+    () => MOCK_DISBURSEMENT_BY_CATEGORY.filter(c => activeCatSet.has(c.name)),
+    [activeCatSet]
+  )
+  const filteredBase = useMemo(() => {
+    const parseM = (s: string) =>
+      parseFloat(s.replace(',', '.').replace('M', '').replace('k', '')) *
+      (s.includes('k') ? 1_000 : 1_000_000)
+    const filteredUpdated = filteredCategories.reduce((acc, c) => acc + parseM(c.updated), 0)
+    return BASE_TOTAL_WITH_PROVISION * (filteredUpdated / TOTAL_UPDATED_2023)
+  }, [filteredCategories])
+
+  const monetaryMethods = useMemo(() => computeMonetaryMethods(filteredBase), [filteredBase])
+
+  const filteredTotals = useMemo(() => {
+    const parseM = (s: string) => parseFloat(s.replace(',', '.').replace('M', '').replace('k', '')) *
+      (s.includes('k') ? 0.001 : 1) || 0
+    const fmtM   = (v: number) => `${v.toFixed(2).replace('.', ',')}M`
+    return {
+      min:     fmtM(filteredCategories.reduce((acc, c) => acc + parseM(c.min),     0)),
+      max:     fmtM(filteredCategories.reduce((acc, c) => acc + parseM(c.max),     0)),
+      updated: fmtM(filteredCategories.reduce((acc, c) => acc + parseM(c.updated), 0)),
+    }
+  }, [filteredCategories])
+
   const riskMetrics: RiskMetric[] = [
-    { label: 'Média',                          value: simResult?.mean   ?? MOCK_RISK_METRIC_VALUES[0] },
-    { label: 'Desvio-padrão',                  value: simResult?.stddev  ?? MOCK_RISK_METRIC_VALUES[1] },
-    { label: 'P(x > 80%)',                     value: MOCK_RISK_METRIC_VALUES[2] },
-    { label: 'Prob. de excedência (x>80%)',    value: MOCK_RISK_METRIC_VALUES[3] },
+    { label: 'Média',                          value: simResult?.mean      ?? MOCK_RISK_METRIC_VALUES[0] },
+    { label: 'Desvio-padrão',                  value: simResult?.stddev    ?? MOCK_RISK_METRIC_VALUES[1] },
+    { label: 'P80 (valor a 80%)',              value: simResult?.p80       ?? MOCK_RISK_METRIC_VALUES[2] },
+    { label: 'Prob. de excedência',            value: simResult?.exceedProb ?? MOCK_RISK_METRIC_VALUES[3] },
   ]
 
-  const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : 'CV = 4,97%'
+  const cvLabel   = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : 'CV = 4,97%'
+  const confLevel = simResult?.confidenceLevel ?? 95
   const [icLo, icHi] = simResult
-    ? [`IC 95%: R$ ${simResult.ic95.split('–')[0]} M`, `R$ ${simResult.ic95.split('–')[1]} M`]
-    : ['IC 95%: R$ 32,35 M', 'R$ 32,41 M']
+    ? simResult.ic95.replace('M', '').split('–')
+    : ['32,35', '32,41']
+  const icLoLabel = `IC ${confLevel}%: R$ ${icLo} M`
+  const icHiLabel = `R$ ${icHi} M`
 
   const [accessGranted, setAccessGranted] = useState<boolean>(() => {
     if (isAdminSession()) return true
@@ -80,6 +103,20 @@ export default function PortalClienteRelatorio() {
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
   const [toast, setToast] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+  const [codeModalOpen, setCodeModalOpen] = useState(false)
+  const isAdmin = isAdminSession()
+
+  async function handleGerarLink() {
+    const url = `${window.location.origin}/relatorio/${id}`
+    try {
+      await navigator.clipboard.writeText(url)
+    } catch {
+      prompt('Copie o link do relatório:', url)
+    }
+    setLinkCopied(true)
+    setTimeout(() => setLinkCopied(false), 2500)
+  }
 
   function handleCodeSubmit(e: FormEvent) {
     e.preventDefault()
@@ -97,8 +134,6 @@ export default function PortalClienteRelatorio() {
     setTimeout(() => { setToast(false); window.print() }, 900)
   }
 
-  const uncertaintyKey = simResult?.uncertainty ?? 'baixo'
-
   return (
     <div className="min-h-screen bg-c-bg print:bg-white">
 
@@ -113,13 +148,32 @@ export default function PortalClienteRelatorio() {
             NX Gold — Portal do cliente
           </span>
           {accessGranted && (
-            <button
-              onClick={handleDownload}
-              className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
-            >
-              <Download size={13} strokeWidth={2} />
-              Baixar PDF
-            </button>
+            <>
+              {isAdmin && (
+                <button
+                  onClick={() => setCodeModalOpen(true)}
+                  className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+                >
+                  <KeyRound size={13} strokeWidth={2} />
+                  Código de acesso
+                </button>
+              )}
+              <button
+                onClick={handleGerarLink}
+                className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+              >
+                {linkCopied
+                  ? <><Check size={13} strokeWidth={2} /> Link copiado!</>
+                  : <><Copy size={13} strokeWidth={2} /> Copiar link</>}
+              </button>
+              <button
+                onClick={handleDownload}
+                className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+              >
+                <Download size={13} strokeWidth={2} />
+                Baixar PDF
+              </button>
+            </>
           )}
         </div>
       </header>
@@ -137,7 +191,8 @@ export default function PortalClienteRelatorio() {
               </span>
             </div>
             <p className="text-[13px] text-c-text-2">
-              Provisionamento financeiro NX Gold · Simulação Monte Carlo, 10.000 iterações
+              Provisionamento financeiro NX Gold
+              {simResult && ` · Simulação Monte Carlo, ${simResult.iterations} iterações · Distribuição ${simResult.distribution}`}
             </p>
           </div>
 
@@ -155,22 +210,22 @@ export default function PortalClienteRelatorio() {
                 icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
                 label: 'Faixa min–max',
                 value: simResult?.p10p90 ?? 'R$ 29,6–35,2 M',
-                sub: simResult ? `IC 95%: ${simResult.ic95}` : 'Custo total, 8 categorias',
+                sub: simResult ? `IC ${confLevel}%: ${simResult.ic95}` : 'Custo total, 8 categorias',
                 valueClass: 'text-c-text',
               },
               {
                 icon: <ArrowUpRight size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Valor atualizado 2023',
-                value: 'R$ 36,9 M',
+                label: 'Valor atualizado',
+                value: `R$ ${filteredTotals.updated}`,
                 sub: 'Custo total, valor atualizado',
                 valueClass: 'text-c-text',
               },
               {
-                icon: <Shield size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Nível de incerteza',
-                value: UNCERTAINTY_LABEL[uncertaintyKey],
-                sub: cvLabel,
-                valueClass: UNCERTAINTY_COLOR[uncertaintyKey],
+                icon: <Plus size={14} strokeWidth={2} className="text-accent-700" />,
+                label: 'Provisão base',
+                value: fmtM(filteredBase),
+                sub: 'Total com provisão de 20%',
+                valueClass: 'text-c-text',
               },
             ].map(kpi => (
               <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
@@ -188,19 +243,20 @@ export default function PortalClienteRelatorio() {
 
           {/* Custo por categoria + Métricas de risco */}
           <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
-            <CostByCategoryTable categories={MOCK_CATEGORIES} totals={MOCK_TOTALS} />
+            <CostByCategoryTable categories={filteredCategories} totals={filteredTotals} />
             <RiskMetricsCard
               metrics={riskMetrics}
               cvLabel={cvLabel}
-              icLo={icLo}
-              icHi={icHi}
+              icLo={icLoLabel}
+              icHi={icHiLabel}
               contingency="0%"
               uncertainty={simResult?.uncertainty}
             />
           </div>
 
-          <MonetaryMethodsCard methods={METHODS} />
-          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} categories={MOCK_DISBURSEMENT_BY_CATEGORY} />
+          <PhaseBreakdown />
+          <MonetaryMethodsCard methods={monetaryMethods} />
+          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} categories={filteredDisbursement} />
           <FanChartCard data={fanData} />
 
         </div>
@@ -257,6 +313,16 @@ export default function PortalClienteRelatorio() {
 
           </div>
         </div>
+      )}
+
+      {/* Modal código de acesso (admin) */}
+      {codeModalOpen && (
+        <CodigoAcessoModal
+          reportId={id}
+          clientName="NX Gold"
+          projectName="Fechamento de Mina"
+          onClose={() => setCodeModalOpen(false)}
+        />
       )}
 
       {/* Toast PDF */}

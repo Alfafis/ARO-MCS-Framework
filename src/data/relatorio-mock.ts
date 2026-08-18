@@ -1,9 +1,23 @@
 import type { CostCategory, CostTotals, FanPoint, DisbursementCategory } from '@/types/relatorio'
 
+export interface Phase {
+  name:        string
+  description: string
+  value:       number
+}
+
+// Fonte: Khaled 1 Provisionamento_Financeiro_NX_Gold — aba "9. Síntese Por Atividade"
+export const MOCK_PHASES: Phase[] = [
+  { name: 'Pré-Fechamento',  description: 'Estudos e planejamento',        value:  2_306_040 },
+  { name: 'Fechamento',      description: 'Execução física',                value: 18_911_818 },
+  { name: 'Pós-Fechamento',  description: 'Monitoramento (anos 7–10)',     value: 12_586_441 },
+  { name: 'Provisão 20%',    description: 'Margem de segurança financeira', value:  7_390_181 },
+]
+
 export const MOCK_CATEGORIES: CostCategory[] = [
   { rank: '01', name: 'Estudos',               min: '6,55M',  max: '9,10M',  updated: '9,54M'  },
   { rank: '02', name: 'Cavas',                 min: '2,27M',  max: '2,42M',  updated: '2,53M'  },
-  { rank: '03', name: 'Pilhas',                min: '1,72M',  max: '1,80M',  updated: '1,89M'  },
+  { rank: '03', name: 'Pilhas de Estéril',      min: '1,72M',  max: '1,80M',  updated: '1,89M'  },
   { rank: '04', name: 'Barragens',             min: '0,41M',  max: '0,43M',  updated: '0,45M'  },
   { rank: '05', name: 'Planta Industrial',     min: '0,84M',  max: '0,88M',  updated: '0,92M'  },
   { rank: '06', name: 'Áreas de Apoio',        min: '3,79M',  max: '3,99M',  updated: '4,18M'  },

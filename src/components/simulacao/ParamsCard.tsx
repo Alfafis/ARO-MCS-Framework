@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Play, SlidersHorizontal } from 'lucide-react'
+import { Check, Play, SlidersHorizontal } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -7,6 +7,7 @@ import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import type { Distribution } from '@/types/simulacao'
+import { ALL_CATEGORY_NAMES } from '@/lib/monteCarlo'
 
 const DIST_OPTIONS: Distribution[] = ['Triangular', 'Normal', 'Uniforme']
 
@@ -19,13 +20,16 @@ const CONF_OPTIONS = [
 interface Props {
   dist:               Distribution
   iterations:         string
+  confidence:         string
   running:            boolean
   onDistChange:       (d: Distribution) => void
   onIterationsChange: (v: string) => void
+  onConfidenceChange: (v: string) => void
   onRun:              () => void
+  onCategoriesChange: (cats: Set<string>) => void
 }
 
-export default function ParamsCard({ dist, iterations, running, onDistChange, onIterationsChange, onRun }: Props) {
+export default function ParamsCard({ dist, iterations, confidence, running, onDistChange, onIterationsChange, onConfidenceChange, onRun, onCategoriesChange }: Props) {
   const t = useT(simulacaoT)
 
   const CAT_OPTIONS = [
@@ -33,9 +37,22 @@ export default function ParamsCard({ dist, iterations, running, onDistChange, on
     { value: 'custom', label: t.catCustom },
   ]
 
-  const [cats,       setCats]       = useState('all')
-  const [confidence, setConfidence] = useState('95')
-  const [openSelect, setOpenSelect] = useState<string | null>(null)
+  const [cats,         setCats]         = useState('all')
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set(ALL_CATEGORY_NAMES))
+  const [openSelect,   setOpenSelect]   = useState<string | null>(null)
+
+  function toggleCat(cat: string) {
+    setSelectedCats(prev => {
+      const next = new Set(prev)
+      if (next.has(cat) && next.size > 1) next.delete(cat)
+      else next.add(cat)
+      return next
+    })
+  }
+  useEffect(() => {
+    onCategoriesChange(cats === 'all' ? new Set(ALL_CATEGORY_NAMES) : new Set(selectedCats))
+  }, [cats, selectedCats, onCategoriesChange])
+
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -83,11 +100,33 @@ export default function ParamsCard({ dist, iterations, running, onDistChange, on
         <Label htmlFor="sim-cats">{t.categoriesIncluded}</Label>
         <CustomSelect id="sim-cats" options={CAT_OPTIONS} value={cats} onChange={setCats}
           isOpen={openSelect === 'cats'} onToggle={() => toggle('cats')} />
+        {cats === 'custom' && (
+          <div className="flex flex-col gap-0.5 mt-1 pl-1">
+            {ALL_CATEGORY_NAMES.map(cat => {
+              const checked = selectedCats.has(cat)
+              return (
+                <button
+                  key={cat}
+                  type="button"
+                  onClick={() => toggleCat(cat)}
+                  className="flex items-center gap-2.5 py-[5px] text-left bg-transparent border-0 cursor-pointer rounded-[6px] hover:bg-[#f6f5f3] px-1.5 transition-colors duration-150"
+                >
+                  <div className={`w-[15px] h-[15px] rounded-[4px] flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? 'bg-accent' : 'bg-[#e4e1de]'}`}>
+                    {checked && <Check size={9} strokeWidth={3} color="white" aria-hidden="true" />}
+                  </div>
+                  <span className={`text-[12.5px] leading-tight transition-colors duration-150 ${checked ? 'text-c-text' : 'text-c-text-2'}`}>
+                    {cat}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="sim-conf">{t.confidenceLevel}</Label>
-        <CustomSelect id="sim-conf" options={CONF_OPTIONS} value={confidence} onChange={setConfidence}
+        <CustomSelect id="sim-conf" options={CONF_OPTIONS} value={confidence} onChange={onConfidenceChange}
           isOpen={openSelect === 'conf'} onToggle={() => toggle('conf')} />
       </div>
 

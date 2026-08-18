@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { LangProvider } from './i18n/LangContext'
 import { ClientProvider } from './context/ClientContext'
+import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
 import OctahedronIcon from './components/icons/OctahedronIcon'
 import Login from './pages/Login'
@@ -120,6 +121,7 @@ export default function App() {
   return (
     <LangProvider>
     <ClientProvider>
+    <SimulationProvider>
     <BrowserRouter>
       <Routes>
         {/* Rota pública */}
@@ -185,6 +187,7 @@ export default function App() {
         <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
+    </SimulationProvider>
     </ClientProvider>
     </LangProvider>
   )

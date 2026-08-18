@@ -26,7 +26,7 @@ function shapeFor(dist: Distribution): number[] {
   return [52, 63, 71, 77, 81, 84, 82, 79, 75, 69, 63, 57]
 }
 
-function computeResult(dist: Distribution): SimResult {
+function computeResult(dist: Distribution, iterations: string): SimResult {
   const shape = shapeFor(dist)
   const bars = shape.map(v => Math.max(4, Math.round(v * (0.85 + Math.random() * 0.32))))
   const mean = 38.5 + (Math.random() - 0.5) * 2.4
@@ -52,8 +52,13 @@ function computeResult(dist: Distribution): SimResult {
     uncertainty,
     range:     `±${rangeNum.toFixed(1)}%`,
     bars,
-    status:    'Agora mesmo',
+    status:          'Agora mesmo',
     cv,
+    confidenceLevel: 95,
+    p80:             'R$ 0,0M',
+    exceedProb:      '0,00%',
+    iterations,
+    distribution:    dist,
   }
 }
 
@@ -85,13 +90,13 @@ export default function SimulacaoDrawer({ open, onClose, onResult }: Props) {
   const runSimulation = useCallback(() => {
     setRunning(true)
     setTimeout(() => {
-      const next = computeResult(dist)
+      const next = computeResult(dist, iterations)
       try { localStorage.setItem('aro_sim_result', JSON.stringify(next)) } catch {}
       setResult(next)
       onResult(next)
       setRunning(false)
     }, 1300)
-  }, [dist, onResult])
+  }, [dist, iterations, onResult])
 
   function toggle(id: string) {
     setOpenSel(prev => prev === id ? null : id)

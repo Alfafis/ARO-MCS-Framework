@@ -1,20 +1,22 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus, Copy, Check } from 'lucide-react'
+import { Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import ClientSelector from '@/components/layout/ClientSelector'
 import { useClient } from '@/context/ClientContext'
-import KpiCard from '@/components/dashboard/KpiCard'
-import RecentLaunches from '@/components/dashboard/RecentLaunches'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
-import FanChartCard from '@/components/resumo-executivo/FanChartCard'
+import DisbursementChart from '@/components/dashboard/DisbursementChart'
+import PhaseBreakdown from '@/components/dashboard/PhaseBreakdown'
+import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
+import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RisksCard from '@/components/resumo-executivo/RisksCard'
-import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
-import { MOCK_RISK_METRIC_VALUES, buildFanData } from '@/data/relatorio-mock'
-import type { RiskMetric } from '@/types/relatorio'
+import { MOCK_CATEGORIES, MOCK_TOTALS } from '@/data/relatorio-mock'
+import { computeMonetaryMethods, BASE_TOTAL_WITH_PROVISION } from '@/lib/financeiro'
+
+const MONETARY_METHODS = computeMonetaryMethods(BASE_TOTAL_WITH_PROVISION)
 
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
@@ -32,18 +34,6 @@ export default function ResumoExecutivo() {
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
   }
-
-  const fanLabels = Array.from({ length: 10 }, (_, i) =>
-    `${t.yearPrefix[0]}${t.yearPrefix.slice(1).toLowerCase()} ${i + 1}`
-  )
-  const fanData = buildFanData(fanLabels)
-
-  const riskMetrics: RiskMetric[] = [
-    { label: t.metricMean,   value: MOCK_RISK_METRIC_VALUES[0] },
-    { label: t.metricStddev, value: MOCK_RISK_METRIC_VALUES[1] },
-    { label: 'P(x > 80%)',   value: MOCK_RISK_METRIC_VALUES[2] },
-    { label: 'Prob. de excedência (x>80%)', value: MOCK_RISK_METRIC_VALUES[3] },
-  ]
 
   return (
     <>
@@ -72,55 +62,23 @@ export default function ResumoExecutivo() {
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col gap-4">
 
-        {/* 4 KPI cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <KpiCard
-            icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.avgCost}
-            value="R$ 32,4 M"
-            sub={t.avgCostSub}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <CostByCategoryTable
+            className="lg:col-span-7"
+            categories={MOCK_CATEGORIES}
+            totals={MOCK_TOTALS}
           />
-          <KpiCard
-            icon={<ArrowLeftRight size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.minMaxRange}
-            value="R$ 29,6–35,2 M"
-            sub={t.minMaxSub}
-          />
-          <KpiCard
-            icon={<ArrowUpRight size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.updatedValue}
-            value="R$ 36,9 M"
-            sub={t.updatedSub}
-          />
-          <KpiCard
-            icon={<Plus size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.baseProvision}
-            value="R$ 40,57 M"
-            sub={t.baseSub}
-          />
+          <PhaseBreakdown className="lg:col-span-5" />
         </div>
 
-        <FanChartCard data={fanData} />
+        <DisbursementChart />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <div className="lg:col-span-5">
-            <RiskMetricsCard
-              metrics={riskMetrics}
-              cvLabel="CV = 4,97%"
-              icLo="IC 95%: R$ 32,35 M"
-              icHi="R$ 32,41 M"
-              contingency="0%"
-            />
-          </div>
-          <div className="lg:col-span-7">
-            <RisksCard />
-          </div>
+          <MonetaryMethodsCard className="lg:col-span-7" methods={MONETARY_METHODS} />
+          <RevisionTimeline className="lg:col-span-5" />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <RecentLaunches />
-          <RevisionTimeline />
-        </div>
+        <RisksCard />
 
       </div>
     </>

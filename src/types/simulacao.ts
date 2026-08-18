@@ -10,9 +10,14 @@ export interface SimResult {
   max: string
   uncertainty: UncertaintyLevel
   range: string
-  bars: number[]
-  status: string
-  cv: number
+  bars:             number[]
+  status:           string
+  cv:               number
+  confidenceLevel:  number
+  p80:              string
+  exceedProb:       string
+  iterations:       string
+  distribution:     Distribution
 }
 
 export interface HistoryRun {

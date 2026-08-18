@@ -30,6 +30,7 @@ export const simulacaoT: Record<Lang, {
   unc_high:           string
   justFinished:       string
   runFrom:            string
+  noResultYet:        string
   months:             string[]
   distLabels:         Record<'Triangular' | 'Normal' | 'Uniforme', string>
 }> = {
@@ -63,6 +64,7 @@ export const simulacaoT: Record<Lang, {
     unc_high:           'Alta',
     justFinished:       'Concluída agora mesmo',
     runFrom:            'Rodada de',
+    noResultYet:        'Nenhuma simulação rodada ainda. Configure os parâmetros e clique em Rodar simulação.',
     months:             ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniforme' },
   },
@@ -96,6 +98,7 @@ export const simulacaoT: Record<Lang, {
     unc_high:           'High',
     justFinished:       'Just completed',
     runFrom:            'Run from',
+    noResultYet:        'No simulation run yet. Configure the parameters and click Run simulation.',
     months:             ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniform' },
   },
@@ -129,6 +132,7 @@ export const simulacaoT: Record<Lang, {
     unc_high:           'Alta',
     justFinished:       'Recién completada',
     runFrom:            'Ejecución del',
+    noResultYet:        'Ninguna simulación ejecutada aún. Configure los parámetros y haga clic en Ejecutar simulación.',
     months:             ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniforme' },
   },
