@@ -60,6 +60,16 @@ export const resumoT: Record<Lang, {
   colStatus:      string
   statusValidated: string
   statusReview:    string
+  // PhaseBreakdown
+  phaseTitle:         string
+  phasePreLabel:      string
+  phasePreDesc:       string
+  phaseClosureLabel:  string
+  phaseClosureDesc:   string
+  phasePostLabel:     string
+  phasePostDesc:      string
+  phaseProvisionLabel: string
+  phaseProvisionDesc:  string
   // RevisionTimeline
   revTimeline:    string
   rev0Title:      string
@@ -82,7 +92,7 @@ export const resumoT: Record<Lang, {
     avgCostSub:     'Monte Carlo · 10.000 iterações',
     minMaxRange:    'Faixa min–max',
     minMaxSub:      'Custo total, 8 categorias',
-    updatedValue:   'Valor atualizado 2023',
+    updatedValue:   'Valor atualizado',
     updatedSub:     'Custo total, valor atualizado',
     baseProvision:  'Provisão base',
     baseSub:        'Valor presente antes de atualização',
@@ -124,6 +134,15 @@ export const resumoT: Record<Lang, {
     colStatus:        'Status',
     statusValidated:  'Validado',
     statusReview:     'Em revisão',
+    phaseTitle:         'Custo por fase de fechamento',
+    phasePreLabel:      'Pré-Fechamento',
+    phasePreDesc:       'Estudos e planejamento',
+    phaseClosureLabel:  'Fechamento',
+    phaseClosureDesc:   'Execução física',
+    phasePostLabel:     'Pós-Fechamento',
+    phasePostDesc:      'Monitoramento (anos 7–10)',
+    phaseProvisionLabel: 'Provisão 20%',
+    phaseProvisionDesc:  'Margem de segurança financeira',
     revTimeline:      'Timeline de revisões',
     rev0Title:        'Rev0 — Versão inicial',
     rev0Date:         'Jan/2026',
@@ -145,7 +164,7 @@ export const resumoT: Record<Lang, {
     avgCostSub:     'Monte Carlo · 10,000 iterations',
     minMaxRange:    'Min–max range',
     minMaxSub:      'Total cost, 8 categories',
-    updatedValue:   'Updated value 2023',
+    updatedValue:   'Updated value',
     updatedSub:     'Total cost, updated value',
     baseProvision:  'Base provision',
     baseSub:        'Present value before update',
@@ -187,6 +206,15 @@ export const resumoT: Record<Lang, {
     colStatus:        'Status',
     statusValidated:  'Validated',
     statusReview:     'In review',
+    phaseTitle:         'Cost by closure phase',
+    phasePreLabel:      'Pre-Closure',
+    phasePreDesc:       'Studies and planning',
+    phaseClosureLabel:  'Closure',
+    phaseClosureDesc:   'Physical execution',
+    phasePostLabel:     'Post-Closure',
+    phasePostDesc:      'Monitoring (years 7–10)',
+    phaseProvisionLabel: '20% Provision',
+    phaseProvisionDesc:  'Financial safety margin',
     revTimeline:      'Revision timeline',
     rev0Title:        'Rev0 — Initial version',
     rev0Date:         'Jan/2026',
@@ -208,7 +236,7 @@ export const resumoT: Record<Lang, {
     avgCostSub:     'Monte Carlo · 10.000 iteraciones',
     minMaxRange:    'Rango mín–máx',
     minMaxSub:      'Costo total, 8 categorías',
-    updatedValue:   'Valor actualizado 2023',
+    updatedValue:   'Valor actualizado',
     updatedSub:     'Costo total, valor actualizado',
     baseProvision:  'Provisión base',
     baseSub:        'Valor presente antes de actualización',
@@ -250,6 +278,15 @@ export const resumoT: Record<Lang, {
     colStatus:        'Estado',
     statusValidated:  'Validado',
     statusReview:     'En revisión',
+    phaseTitle:         'Costo por fase de cierre',
+    phasePreLabel:      'Pre-Cierre',
+    phasePreDesc:       'Estudios y planificación',
+    phaseClosureLabel:  'Cierre',
+    phaseClosureDesc:   'Ejecución física',
+    phasePostLabel:     'Post-Cierre',
+    phasePostDesc:      'Monitoreo (años 7–10)',
+    phaseProvisionLabel: 'Provisión 20%',
+    phaseProvisionDesc:  'Margen de seguridad financiera',
     revTimeline:      'Línea de tiempo de revisiones',
     rev0Title:        'Rev0 — Versión inicial',
     rev0Date:         'Ene/2026',

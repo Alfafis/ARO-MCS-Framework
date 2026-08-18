@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom'
 import { Download, Copy, Check, KeyRound } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, ArrowUpRight, Plus } from 'lucide-react'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
+import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
@@ -17,15 +18,11 @@ import {
 } from '@/data/relatorio-mock'
 import { validateCodeForReport } from '@/data/invite-codes'
 import { useSimulation } from '@/context/SimulationContext'
-import { computeMonetaryMethods, BASE_TOTAL_WITH_PROVISION, TOTAL_UPDATED_2023 } from '@/lib/financeiro'
+import { computeMonetaryValues, BASE_TOTAL_WITH_PROVISION, TOTAL_UPDATED_2023 } from '@/lib/financeiro'
+import { useT } from '@/i18n/LangContext'
+import { relatorioClienteT } from '@/i18n/relatorio-cliente'
+import { resumoT } from '@/i18n/resumo-executivo'
 import type { DisbursementYear, RiskMetric } from '@/types/relatorio'
-
-const DISBURSEMENT_YEARS: DisbursementYear[] = MOCK_DISBURSEMENT_VALUES.map((value, i) => ({
-  label: `ANO ${i + 1}`,
-  value,
-}))
-
-const FAN_LABELS = Array.from({ length: 10 }, (_, i) => `Ano ${i + 1}`)
 
 function fmtM(v: number) {
   return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} M`
@@ -42,10 +39,27 @@ function sessionKey(id: string) {
 export default function PortalClienteRelatorio() {
   const { id = '' } = useParams<{ id: string }>()
   const { simResult, activeCategories } = useSimulation()
+  const t     = useT(relatorioClienteT)
+  const tBase = useT(resumoT)
+
+  const disbursementYears: DisbursementYear[] = useMemo(
+    () => MOCK_DISBURSEMENT_VALUES.map((value, i) => ({
+      label: `${tBase.yearPrefix} ${i + 1}`,
+      value,
+    })),
+    [tBase.yearPrefix]
+  )
+
+  const fanLabels = useMemo(
+    () => Array.from({ length: 10 }, (_, i) =>
+      `${tBase.yearPrefix[0]}${tBase.yearPrefix.slice(1).toLowerCase()} ${i + 1}`
+    ),
+    [tBase.yearPrefix]
+  )
 
   const fanData = useMemo(
-    () => buildFanData(FAN_LABELS, simResult?.cv),
-    [simResult]
+    () => buildFanData(fanLabels, simResult?.cv),
+    [fanLabels, simResult]
   )
 
   const activeCatSet = useMemo(() => new Set(activeCategories), [activeCategories])
@@ -66,7 +80,16 @@ export default function PortalClienteRelatorio() {
     return BASE_TOTAL_WITH_PROVISION * (filteredUpdated / TOTAL_UPDATED_2023)
   }, [filteredCategories])
 
-  const monetaryMethods = useMemo(() => computeMonetaryMethods(filteredBase), [filteredBase])
+  const monetaryMethods = useMemo(() => {
+    const [simple, compound, inflation, ipca] = computeMonetaryValues(filteredBase)
+    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
+    return [
+      { label: tBase.method1, value: fmt(simple)    },
+      { label: tBase.method2, value: fmt(compound)  },
+      { label: tBase.method3, value: fmt(inflation) },
+      { label: tBase.method4, value: fmt(ipca)      },
+    ]
+  }, [filteredBase, tBase])
 
   const filteredTotals = useMemo(() => {
     const parseM = (s: string) => parseFloat(s.replace(',', '.').replace('M', '').replace('k', '')) *
@@ -80,10 +103,10 @@ export default function PortalClienteRelatorio() {
   }, [filteredCategories])
 
   const riskMetrics: RiskMetric[] = [
-    { label: 'Média',                          value: simResult?.mean      ?? MOCK_RISK_METRIC_VALUES[0] },
-    { label: 'Desvio-padrão',                  value: simResult?.stddev    ?? MOCK_RISK_METRIC_VALUES[1] },
-    { label: 'P80 (valor a 80%)',              value: simResult?.p80       ?? MOCK_RISK_METRIC_VALUES[2] },
-    { label: 'Prob. de excedência',            value: simResult?.exceedProb ?? MOCK_RISK_METRIC_VALUES[3] },
+    { label: t.riskMean,       value: simResult?.mean       ?? MOCK_RISK_METRIC_VALUES[0] },
+    { label: t.riskStddev,     value: simResult?.stddev     ?? MOCK_RISK_METRIC_VALUES[1] },
+    { label: t.riskP80,        value: simResult?.p80        ?? MOCK_RISK_METRIC_VALUES[2] },
+    { label: t.riskExceedProb, value: simResult?.exceedProb ?? MOCK_RISK_METRIC_VALUES[3] },
   ]
 
   const cvLabel   = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : 'CV = 4,97%'
@@ -91,7 +114,7 @@ export default function PortalClienteRelatorio() {
   const [icLo, icHi] = simResult
     ? simResult.ic95.replace('M', '').split('–')
     : ['32,35', '32,41']
-  const icLoLabel = `IC ${confLevel}%: R$ ${icLo} M`
+  const icLoLabel = t.icLabel(confLevel, icLo)
   const icHiLabel = `R$ ${icHi} M`
 
   const [accessGranted, setAccessGranted] = useState<boolean>(() => {
@@ -112,7 +135,7 @@ export default function PortalClienteRelatorio() {
     try {
       await navigator.clipboard.writeText(url)
     } catch {
-      prompt('Copie o link do relatório:', url)
+      prompt(t.copyLinkPrompt, url)
     }
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
@@ -145,7 +168,7 @@ export default function PortalClienteRelatorio() {
         </div>
         <div className="flex items-center gap-3 print:hidden">
           <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-[#f0eeec] text-c-text-2 text-[12px] font-medium">
-            NX Gold — Portal do cliente
+            NX Gold — {t.portalPill}
           </span>
           {accessGranted && (
             <>
@@ -155,7 +178,7 @@ export default function PortalClienteRelatorio() {
                   className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
                 >
                   <KeyRound size={13} strokeWidth={2} />
-                  Código de acesso
+                  {t.accessCodeBtn}
                 </button>
               )}
               <button
@@ -163,18 +186,19 @@ export default function PortalClienteRelatorio() {
                 className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
               >
                 {linkCopied
-                  ? <><Check size={13} strokeWidth={2} /> Link copiado!</>
-                  : <><Copy size={13} strokeWidth={2} /> Copiar link</>}
+                  ? <><Check size={13} strokeWidth={2} /> {t.linkCopiedBtn}</>
+                  : <><Copy size={13} strokeWidth={2} /> {t.copyLinkBtn}</>}
               </button>
               <button
                 onClick={handleDownload}
                 className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
               >
                 <Download size={13} strokeWidth={2} />
-                Baixar PDF
+                {t.downloadPdfBtn}
               </button>
             </>
           )}
+          <LangSelector ariaLabel={t.selectLang} />
         </div>
       </header>
 
@@ -185,14 +209,14 @@ export default function PortalClienteRelatorio() {
           {/* Cabeçalho do relatório */}
           <div>
             <div className="flex items-center gap-3 mb-1.5">
-              <h1 className="text-[22px] font-bold text-c-text">Relatório — Fechamento de Mina</h1>
+              <h1 className="text-[22px] font-bold text-c-text">{t.reportTitle}</h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold">
-                Rev1 · Vigente
+                Rev1 · {t.reportRevisionCurrent}
               </span>
             </div>
             <p className="text-[13px] text-c-text-2">
-              Provisionamento financeiro NX Gold
-              {simResult && ` · Simulação Monte Carlo, ${simResult.iterations} iterações · Distribuição ${simResult.distribution}`}
+              {t.reportSubtitleBase}
+              {simResult && t.reportSubtitleSim(simResult.iterations, simResult.distribution)}
             </p>
           </div>
 
@@ -201,30 +225,30 @@ export default function PortalClienteRelatorio() {
             {[
               {
                 icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Custo médio',
+                label: t.kpiAvgCost,
                 value: simResult?.mean ?? 'R$ 32,4 M',
-                sub: simResult ? `Monte Carlo · ${simResult.status}` : 'Monte Carlo · 10.000 iterações',
+                sub: simResult ? t.kpiAvgCostSubMC(simResult.status) : t.kpiAvgCostSubDefault,
                 valueClass: 'text-c-text',
               },
               {
                 icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Faixa min–max',
+                label: t.kpiMinMaxRange,
                 value: simResult?.p10p90 ?? 'R$ 29,6–35,2 M',
-                sub: simResult ? `IC ${confLevel}%: ${simResult.ic95}` : 'Custo total, 8 categorias',
+                sub: simResult ? t.kpiMinMaxSubIC(confLevel, simResult.ic95) : t.kpiMinMaxSubDefault,
                 valueClass: 'text-c-text',
               },
               {
                 icon: <ArrowUpRight size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Valor atualizado',
+                label: t.kpiUpdatedValue,
                 value: `R$ ${filteredTotals.updated}`,
-                sub: 'Custo total, valor atualizado',
+                sub: t.kpiUpdatedSub,
                 valueClass: 'text-c-text',
               },
               {
                 icon: <Plus size={14} strokeWidth={2} className="text-accent-700" />,
-                label: 'Provisão base',
+                label: t.kpiBaseProvision,
                 value: fmtM(filteredBase),
-                sub: 'Total com provisão de 20%',
+                sub: t.kpiBaseSub,
                 valueClass: 'text-c-text',
               },
             ].map(kpi => (
@@ -256,7 +280,7 @@ export default function PortalClienteRelatorio() {
 
           <PhaseBreakdown />
           <MonetaryMethodsCard methods={monetaryMethods} />
-          <AnnualDisbursementCard years={DISBURSEMENT_YEARS} categories={filteredDisbursement} />
+          <AnnualDisbursementCard years={disbursementYears} categories={filteredDisbursement} />
           <FanChartCard data={fanData} />
 
         </div>
@@ -274,18 +298,18 @@ export default function PortalClienteRelatorio() {
               </div>
             </div>
 
-            <h2 className="text-[17px] font-bold text-c-text mb-5">Acesse seu relatório</h2>
+            <h2 className="text-[17px] font-bold text-c-text mb-5">{t.modalTitle}</h2>
 
             <form onSubmit={handleCodeSubmit} className="flex flex-col gap-3">
               <div>
                 <label className="block text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
-                  Código de acesso
+                  {t.modalCodeLabel}
                 </label>
                 <input
                   type="text"
                   value={codeInput}
                   onChange={e => { setCodeInput(e.target.value); setCodeError(false) }}
-                  placeholder="Ex: NXGOLD-2024"
+                  placeholder={t.modalCodePlaceholder}
                   autoFocus
                   autoComplete="off"
                   autoCapitalize="characters"
@@ -298,7 +322,7 @@ export default function PortalClienteRelatorio() {
                 />
                 {codeError && (
                   <p className="text-[12px] text-[#e33] mt-1.5">
-                    Código inválido ou expirado. Verifique e tente novamente.
+                    {t.modalCodeError}
                   </p>
                 )}
               </div>
@@ -307,7 +331,7 @@ export default function PortalClienteRelatorio() {
                 type="submit"
                 className="w-full py-2.5 rounded-[11px] bg-accent text-white font-semibold text-[0.875rem] cursor-pointer border-0 hover:opacity-90 transition-opacity duration-150"
               >
-                Acessar relatório
+                {t.modalSubmit}
               </button>
             </form>
 
@@ -328,7 +352,7 @@ export default function PortalClienteRelatorio() {
       {/* Toast PDF */}
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center px-5 py-3 rounded-full bg-[#14151a] text-white text-[13px] font-semibold shadow-[0_16px_40px_-12px_rgba(20,21,26,.5)]">
-          Gerando PDF…
+          {t.pdfGenerating}
         </div>
       )}
     </div>

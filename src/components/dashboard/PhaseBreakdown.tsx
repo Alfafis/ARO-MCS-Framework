@@ -1,5 +1,7 @@
 import { Layers } from 'lucide-react'
-import { MOCK_PHASES } from '@/data/relatorio-mock'
+import { MOCK_PHASES, type PhaseKey } from '@/data/relatorio-mock'
+import { useT } from '@/i18n/LangContext'
+import { resumoT } from '@/i18n/resumo-executivo'
 
 const TOTAL = MOCK_PHASES.reduce((acc, p) => acc + p.value, 0)
 
@@ -16,18 +18,28 @@ interface Props {
 }
 
 export default function PhaseBreakdown({ className = '' }: Props) {
+  const t = useT(resumoT)
+
+  const LABELS: Record<PhaseKey, { name: string; description: string }> = {
+    pre:       { name: t.phasePreLabel,       description: t.phasePreDesc       },
+    closure:   { name: t.phaseClosureLabel,   description: t.phaseClosureDesc   },
+    post:      { name: t.phasePostLabel,      description: t.phasePostDesc      },
+    provision: { name: t.phaseProvisionLabel, description: t.phaseProvisionDesc },
+  }
+
   return (
     <div className={`card ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-5">
         <Layers size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">Custo por fase de fechamento</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.phaseTitle}</span>
       </div>
 
       <div className="flex flex-col gap-4">
-        {MOCK_PHASES.map(({ name, description, value }) => {
+        {MOCK_PHASES.map(({ key, value }) => {
+          const { name, description } = LABELS[key]
           const pct = (value / TOTAL) * 100
           return (
-            <div key={name}>
+            <div key={key}>
               <div className="flex justify-between items-baseline mb-0.5">
                 <span className="text-[0.8125rem] font-semibold text-c-text">{name}</span>
                 <span className="font-mono text-[0.875rem] font-bold text-c-text">{fmtM(value)}</span>
@@ -48,7 +60,7 @@ export default function PhaseBreakdown({ className = '' }: Props) {
       </div>
 
       <div className="flex justify-between items-baseline pt-4 mt-4 border-t border-c-line">
-        <span className="text-[0.8125rem] font-bold text-c-text">Total</span>
+        <span className="text-[0.8125rem] font-bold text-c-text">{t.totalLabel}</span>
         <span className="font-mono text-[0.875rem] font-bold text-c-text">{fmtM(TOTAL)}</span>
       </div>
     </div>

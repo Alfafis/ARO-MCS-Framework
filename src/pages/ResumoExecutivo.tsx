@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -14,15 +14,24 @@ import RisksCard from '@/components/resumo-executivo/RisksCard'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
 import { MOCK_CATEGORIES, MOCK_TOTALS } from '@/data/relatorio-mock'
-import { computeMonetaryMethods, BASE_TOTAL_WITH_PROVISION } from '@/lib/financeiro'
-
-const MONETARY_METHODS = computeMonetaryMethods(BASE_TOTAL_WITH_PROVISION)
+import { computeMonetaryValues, BASE_TOTAL_WITH_PROVISION } from '@/lib/financeiro'
 
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
   const navigate = useNavigate()
   const { clients, selectedClient, setSelectedClient } = useClient()
   const [linkCopied, setLinkCopied] = useState(false)
+
+  const monetaryMethods = useMemo(() => {
+    const [simple, compound, inflation, ipca] = computeMonetaryValues(BASE_TOTAL_WITH_PROVISION)
+    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
+    return [
+      { label: t.method1, value: fmt(simple)    },
+      { label: t.method2, value: fmt(compound)  },
+      { label: t.method3, value: fmt(inflation) },
+      { label: t.method4, value: fmt(ipca)      },
+    ]
+  }, [t])
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${selectedClient}`
@@ -74,7 +83,7 @@ export default function ResumoExecutivo() {
         <DisbursementChart />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <MonetaryMethodsCard className="lg:col-span-7" methods={MONETARY_METHODS} />
+          <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} />
           <RevisionTimeline className="lg:col-span-5" />
         </div>
 

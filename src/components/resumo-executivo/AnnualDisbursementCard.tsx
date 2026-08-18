@@ -54,7 +54,7 @@ export default function AnnualDisbursementCard({ years, categories }: Props) {
 
             {/* Total row */}
             <div className="py-[5px] pr-3 flex items-center">
-              <span className="text-[12px] font-semibold text-c-text">Total</span>
+              <span className="text-[12px] font-semibold text-c-text">{t.totalLabel}</span>
             </div>
             {years.map((y) => (
               <div key={`t${y.label}`} className="py-[5px] flex items-center justify-center">

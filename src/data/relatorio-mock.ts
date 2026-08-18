@@ -1,17 +1,18 @@
 import type { CostCategory, CostTotals, FanPoint, DisbursementCategory } from '@/types/relatorio'
 
+export type PhaseKey = 'pre' | 'closure' | 'post' | 'provision'
+
 export interface Phase {
-  name:        string
-  description: string
-  value:       number
+  key:   PhaseKey
+  value: number
 }
 
 // Fonte: Khaled 1 Provisionamento_Financeiro_NX_Gold — aba "9. Síntese Por Atividade"
 export const MOCK_PHASES: Phase[] = [
-  { name: 'Pré-Fechamento',  description: 'Estudos e planejamento',        value:  2_306_040 },
-  { name: 'Fechamento',      description: 'Execução física',                value: 18_911_818 },
-  { name: 'Pós-Fechamento',  description: 'Monitoramento (anos 7–10)',     value: 12_586_441 },
-  { name: 'Provisão 20%',    description: 'Margem de segurança financeira', value:  7_390_181 },
+  { key: 'pre',       value:  2_306_040 },
+  { key: 'closure',   value: 18_911_818 },
+  { key: 'post',      value: 12_586_441 },
+  { key: 'provision', value:  7_390_181 },
 ]
 
 export const MOCK_CATEGORIES: CostCategory[] = [
