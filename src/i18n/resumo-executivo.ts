@@ -61,13 +61,16 @@ export const resumoT: Record<Lang, {
   statusValidated: string
   statusReview:    string
   // PhaseBreakdown
-  phaseTitle:         string
-  phasePreLabel:      string
-  phasePreDesc:       string
-  phaseClosureLabel:  string
-  phaseClosureDesc:   string
-  phasePostLabel:     string
-  phasePostDesc:      string
+  phaseTitle:          string
+  phasePreLabel:       string
+  phasePreDesc:        string
+  phasePreYears:       string
+  phaseClosureLabel:   string
+  phaseClosureDesc:    string
+  phaseClosureYears:   string
+  phasePostLabel:      string
+  phasePostDesc:       string
+  phasePostYears:      string
   phaseProvisionLabel: string
   phaseProvisionDesc:  string
   // RevisionTimeline
@@ -136,11 +139,14 @@ export const resumoT: Record<Lang, {
     statusReview:     'Em revisão',
     phaseTitle:         'Custo por fase de fechamento',
     phasePreLabel:      'Pré-Fechamento',
-    phasePreDesc:       'Estudos e planejamento',
+    phasePreDesc:       'Estudos + Cavas',
+    phasePreYears:      'Anos 1–4',
     phaseClosureLabel:  'Fechamento',
-    phaseClosureDesc:   'Execução física',
+    phaseClosureDesc:   'Pilhas, Barragens, Planta, Áreas, Demolição',
+    phaseClosureYears:  'Anos 5–6',
     phasePostLabel:     'Pós-Fechamento',
-    phasePostDesc:      'Monitoramento (anos 7–10)',
+    phasePostDesc:      'Monitoramento',
+    phasePostYears:     'Anos 7–10',
     phaseProvisionLabel: 'Provisão 20%',
     phaseProvisionDesc:  'Margem de segurança financeira',
     revTimeline:      'Timeline de revisões',
@@ -208,11 +214,14 @@ export const resumoT: Record<Lang, {
     statusReview:     'In review',
     phaseTitle:         'Cost by closure phase',
     phasePreLabel:      'Pre-Closure',
-    phasePreDesc:       'Studies and planning',
+    phasePreDesc:       'Studies + Cavas',
+    phasePreYears:      'Years 1–4',
     phaseClosureLabel:  'Closure',
-    phaseClosureDesc:   'Physical execution',
+    phaseClosureDesc:   'Piles, Dams, Plant, Support Areas, Demolition',
+    phaseClosureYears:  'Years 5–6',
     phasePostLabel:     'Post-Closure',
-    phasePostDesc:      'Monitoring (years 7–10)',
+    phasePostDesc:      'Monitoring',
+    phasePostYears:     'Years 7–10',
     phaseProvisionLabel: '20% Provision',
     phaseProvisionDesc:  'Financial safety margin',
     revTimeline:      'Revision timeline',
@@ -280,11 +289,14 @@ export const resumoT: Record<Lang, {
     statusReview:     'En revisión',
     phaseTitle:         'Costo por fase de cierre',
     phasePreLabel:      'Pre-Cierre',
-    phasePreDesc:       'Estudios y planificación',
+    phasePreDesc:       'Estudios + Cavas',
+    phasePreYears:      'Años 1–4',
     phaseClosureLabel:  'Cierre',
-    phaseClosureDesc:   'Ejecución física',
+    phaseClosureDesc:   'Pilas, Represas, Planta, Áreas de Apoyo, Demolición',
+    phaseClosureYears:  'Años 5–6',
     phasePostLabel:     'Post-Cierre',
-    phasePostDesc:      'Monitoreo (años 7–10)',
+    phasePostDesc:      'Monitoreo',
+    phasePostYears:     'Años 7–10',
     phaseProvisionLabel: 'Provisión 20%',
     phaseProvisionDesc:  'Margen de seguridad financiera',
     revTimeline:      'Línea de tiempo de revisiones',

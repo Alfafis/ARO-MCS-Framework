@@ -7,23 +7,27 @@ export interface Phase {
   value: number
 }
 
-// Fonte: Khaled 1 Provisionamento_Financeiro_NX_Gold — aba "9. Síntese Por Atividade"
+// Fonte: Khaled 1 Provisionamento_Financeiro_NX_Gold — agrupado por categoria
+// pre: Estudos (9.538.620) + Cavas (2.534.515)
+// closure: Pilhas (1.891.990) + Barragens (451.017) + Planta (921.235) + Áreas (4.178.430) + Demolição (4.795.201)
+// post: Monitoramento (12.586.441)
+// provision: 20% do total sem provisão (36.897.449)
 export const MOCK_PHASES: Phase[] = [
-  { key: 'pre',       value:  2_306_040 },
-  { key: 'closure',   value: 18_911_818 },
+  { key: 'pre',       value: 12_073_135 },
+  { key: 'closure',   value: 12_237_873 },
   { key: 'post',      value: 12_586_441 },
-  { key: 'provision', value:  7_390_181 },
+  { key: 'provision', value:  7_379_490 },
 ]
 
 export const MOCK_CATEGORIES: CostCategory[] = [
-  { rank: '01', name: 'Estudos',               min: '6,55M',  max: '9,10M',  updated: '9,54M'  },
-  { rank: '02', name: 'Cavas',                 min: '2,27M',  max: '2,42M',  updated: '2,53M'  },
-  { rank: '03', name: 'Pilhas de Estéril',      min: '1,72M',  max: '1,80M',  updated: '1,89M'  },
-  { rank: '04', name: 'Barragens',             min: '0,41M',  max: '0,43M',  updated: '0,45M'  },
-  { rank: '05', name: 'Planta Industrial',     min: '0,84M',  max: '0,88M',  updated: '0,92M'  },
-  { rank: '06', name: 'Áreas de Apoio',        min: '3,79M',  max: '3,99M',  updated: '4,18M'  },
-  { rank: '07', name: 'Demolição Estr. Civis', min: '4,44M',  max: '4,57M',  updated: '4,80M'  },
-  { rank: '08', name: 'Monitoramento',         min: '9,59M',  max: '12,01M', updated: '12,59M' },
+  { rank: '01', name: 'Estudos',               min: '6,55M',  max: '9,10M',  updated: '9,54M',  phase: 'pre'     },
+  { rank: '02', name: 'Cavas',                 min: '2,27M',  max: '2,42M',  updated: '2,53M',  phase: 'pre'     },
+  { rank: '03', name: 'Pilhas de Estéril',     min: '1,72M',  max: '1,80M',  updated: '1,89M',  phase: 'closure' },
+  { rank: '04', name: 'Barragens',             min: '0,41M',  max: '0,43M',  updated: '0,45M',  phase: 'closure' },
+  { rank: '05', name: 'Planta Industrial',     min: '0,84M',  max: '0,88M',  updated: '0,92M',  phase: 'closure' },
+  { rank: '06', name: 'Áreas de Apoio',        min: '3,79M',  max: '3,99M',  updated: '4,18M',  phase: 'closure' },
+  { rank: '07', name: 'Demolição Estr. Civis', min: '4,44M',  max: '4,57M',  updated: '4,80M',  phase: 'closure' },
+  { rank: '08', name: 'Monitoramento',         min: '9,59M',  max: '12,01M', updated: '12,59M', phase: 'post'    },
 ]
 
 export const MOCK_TOTALS: CostTotals = {

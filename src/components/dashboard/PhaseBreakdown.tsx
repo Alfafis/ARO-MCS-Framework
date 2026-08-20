@@ -20,10 +20,10 @@ interface Props {
 export default function PhaseBreakdown({ className = '' }: Props) {
   const t = useT(resumoT)
 
-  const LABELS: Record<PhaseKey, { name: string; description: string }> = {
-    pre:       { name: t.phasePreLabel,       description: t.phasePreDesc       },
-    closure:   { name: t.phaseClosureLabel,   description: t.phaseClosureDesc   },
-    post:      { name: t.phasePostLabel,      description: t.phasePostDesc      },
+  const LABELS: Record<PhaseKey, { name: string; description: string; years?: string }> = {
+    pre:       { name: t.phasePreLabel,       description: t.phasePreDesc,       years: t.phasePreYears       },
+    closure:   { name: t.phaseClosureLabel,   description: t.phaseClosureDesc,   years: t.phaseClosureYears   },
+    post:      { name: t.phasePostLabel,      description: t.phasePostDesc,      years: t.phasePostYears      },
     provision: { name: t.phaseProvisionLabel, description: t.phaseProvisionDesc },
   }
 
@@ -36,7 +36,7 @@ export default function PhaseBreakdown({ className = '' }: Props) {
 
       <div className="flex flex-col gap-4">
         {MOCK_PHASES.map(({ key, value }) => {
-          const { name, description } = LABELS[key]
+          const { name, description, years } = LABELS[key]
           const pct = (value / TOTAL) * 100
           return (
             <div key={key}>
@@ -44,8 +44,15 @@ export default function PhaseBreakdown({ className = '' }: Props) {
                 <span className="text-[0.8125rem] font-semibold text-c-text">{name}</span>
                 <span className="font-mono text-[0.875rem] font-bold text-c-text">{fmtM(value)}</span>
               </div>
-              <div className="flex justify-between items-baseline mb-1.5">
-                <span className="text-[11px] text-c-text-2">{description}</span>
+              <div className="flex justify-between items-center mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-c-text-2">{description}</span>
+                  {years && (
+                    <span className="text-[10px] font-semibold text-accent bg-accent/10 rounded-full px-2 py-0.5 leading-none">
+                      {years}
+                    </span>
+                  )}
+                </div>
                 <span className="font-mono text-[11px] text-c-text-2">{fmtPct(pct)}</span>
               </div>
               <div className="h-[6px] rounded-[4px] bg-[#f0eeec] overflow-hidden">

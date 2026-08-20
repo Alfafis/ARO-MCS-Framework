@@ -1,9 +1,12 @@
+export type PhaseCategory = 'pre' | 'closure' | 'post'
+
 export interface CostCategory {
   rank: string
   name: string
   min: string
   max: string
   updated: string
+  phase: PhaseCategory
 }
 
 export interface CostTotals {
