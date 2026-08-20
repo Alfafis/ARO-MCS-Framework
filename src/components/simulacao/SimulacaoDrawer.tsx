@@ -9,6 +9,7 @@ import HistogramCard from './HistogramCard'
 import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
 import type { Distribution, SimResult, UncertaintyLevel } from '@/types/simulacao'
+import { clampIterations, maskIterations } from '@/lib/monteCarlo'
 
 const uid = () => Math.random().toString(36).slice(2)
 
@@ -183,8 +184,10 @@ export default function SimulacaoDrawer({ open, onClose, onResult }: Props) {
               <Input
                 id="drawer-iterations"
                 variant="filled"
+                inputMode="numeric"
                 value={iterations}
-                onChange={e => setIterations(e.target.value)}
+                onChange={e => setIterations(maskIterations(e.target.value))}
+                onBlur={e => setIterations(clampIterations(e.target.value))}
               />
             </div>
 

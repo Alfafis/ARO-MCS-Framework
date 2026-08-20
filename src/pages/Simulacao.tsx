@@ -12,7 +12,7 @@ import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
-import { runMonteCarlo, ALL_CATEGORY_NAMES } from '@/lib/monteCarlo'
+import { runMonteCarlo, ALL_CATEGORY_NAMES, parseIterationsNumber } from '@/lib/monteCarlo'
 import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 const uid = () => Math.random().toString(36).slice(2)
@@ -21,10 +21,6 @@ function nowStr(months: string[]): string {
   const d = new Date()
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-function parseIterations(s: string): number {
-  return parseInt(s.replace(/\./g, '').replace(',', ''), 10) || 10_000
 }
 
 function computeResult(dist: Distribution, n: number, activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
@@ -70,7 +66,7 @@ export default function Simulacao() {
   const runSimulation = useCallback(() => {
     setRunning(true)
     setTimeout(() => {
-      const n    = parseIterations(iterations)
+      const n    = parseIterationsNumber(iterations)
       const conf = parseInt(confidence, 10) || 95
       const next: SimResult = {
         ...computeResult(dist, n, activeCategories, conf),

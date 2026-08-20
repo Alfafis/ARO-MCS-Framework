@@ -7,7 +7,7 @@ import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import type { Distribution } from '@/types/simulacao'
-import { ALL_CATEGORY_NAMES } from '@/lib/monteCarlo'
+import { ALL_CATEGORY_NAMES, clampIterations, maskIterations } from '@/lib/monteCarlo'
 
 const DIST_OPTIONS: Distribution[] = ['Triangular', 'Normal', 'Uniforme']
 
@@ -93,7 +93,14 @@ export default function ParamsCard({ dist, iterations, confidence, running, onDi
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="iterations">{t.iterCount}</Label>
-        <Input id="iterations" variant="filled" value={iterations} onChange={e => onIterationsChange(e.target.value)} />
+        <Input
+          id="iterations"
+          variant="filled"
+          inputMode="numeric"
+          value={iterations}
+          onChange={e => onIterationsChange(maskIterations(e.target.value))}
+          onBlur={e => onIterationsChange(clampIterations(e.target.value))}
+        />
       </div>
 
       <div className="flex flex-col gap-1.5">

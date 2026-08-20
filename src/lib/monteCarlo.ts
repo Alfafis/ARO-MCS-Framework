@@ -20,6 +20,26 @@ export const CATEGORY_PARAMS: CategoryParam[] = [
 
 export const ALL_CATEGORY_NAMES = CATEGORY_PARAMS.map(c => c.name)
 
+export const MIN_ITERATIONS = 100
+export const MAX_ITERATIONS = 100_000
+
+export function parseIterationsNumber(input: string): number {
+  const n = parseInt(input.replace(/\D/g, ''), 10)
+  if (!Number.isFinite(n) || n <= 0) return MIN_ITERATIONS
+  return Math.min(MAX_ITERATIONS, Math.max(MIN_ITERATIONS, n))
+}
+
+export function clampIterations(input: string): string {
+  return parseIterationsNumber(input).toLocaleString('pt-BR')
+}
+
+export function maskIterations(input: string): string {
+  const digits = input.replace(/\D/g, '').slice(0, 6)
+  if (!digits) return ''
+  const n = Math.min(MAX_ITERATIONS, parseInt(digits, 10))
+  return n.toLocaleString('pt-BR')
+}
+
 // Analytical stddev per category based on distribution type
 export function categoryStddev(cat: CategoryParam, dist: Distribution): number {
   if (dist === 'Normal' || dist === 'Uniforme') {
