@@ -11,7 +11,6 @@ import ClienteModal from '@/components/clientes/ClienteModal'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useProjetoRowActions } from '@/hooks/useProjetoRowActions'
-import { TIPOS_PROJETO } from '@/data/categoria-templates'
 import type { FilterTab } from '@/types/clientes'
 
 function initials(name: string): string {
@@ -26,7 +25,7 @@ function initials(name: string): string {
 export default function Projetos() {
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos, criarProjeto } = useProjeto()
+  const { clientes, projetos, criarProjeto, tiposProjeto } = useProjeto()
   const { handleAction: sharedHandleAction, linkCopied, codeModalFor, setCodeModalFor } = useProjetoRowActions(projetos)
 
   const FILTER_OPTS: { value: FilterTab; label: string }[] = [
@@ -41,7 +40,7 @@ export default function Projetos() {
   ]
   const TIPO_OPTS = [
     { value: 'all', label: t.filterByTypeAll },
-    ...TIPOS_PROJETO.map(tp => ({ value: tp.id, label: tp.nome })),
+    ...tiposProjeto.map(tp => ({ value: tp.id, label: tp.nome })),
   ]
 
   const [search,      setSearch]      = useState('')
@@ -177,7 +176,7 @@ export default function Projetos() {
                   key={row.id}
                   row={row}
                   badgeLabel={initials(row.projeto)}
-                  subtitle={TIPOS_PROJETO.find(tp => tp.id === row.tipoProjetoId)?.nome ?? '—'}
+                  subtitle={tiposProjeto.find(tp => tp.id === row.tipoProjetoId)?.nome ?? '—'}
                   clienteNome={clienteNomePorId.get(row.clienteId) ?? '—'}
                   isMenuOpen={openMenu === row.id}
                   onOpen={() => navigate(`/projetos/${row.id}/dashboard`)}

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n/LangContext'
 import { clientesT } from '@/i18n/clientes'
-import { TIPOS_PROJETO } from '@/data/categoria-templates'
+import { useProjeto } from '@/context/ProjetoContext'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import type { Cliente } from '@/types/clientes'
 
@@ -17,13 +17,21 @@ interface Props {
   onCancel:  () => void
 }
 
-const TIPO_OPTIONS = TIPOS_PROJETO.map(tp => ({ value: tp.id, label: tp.nome }))
-
 export default function ClienteModal({ clientes, onConfirm, onCancel }: Props) {
   const t = useT(clientesT)
+  const { tiposProjeto } = useProjeto()
+  const TIPO_OPTIONS = tiposProjeto.map(tp => ({ value: tp.id, label: tp.nome }))
   const [form, setForm] = useState<Form>({
-    projeto: '', tipoProjetoId: TIPOS_PROJETO[0].id, clienteId: clientes?.[0]?.id,
+    projeto: '', tipoProjetoId: tiposProjeto[0]?.id ?? '', clienteId: clientes?.[0]?.id,
   })
+
+  // tiposProjeto chega assíncrono do ProjetoProvider — se o modal abrir antes
+  // do fetch resolver, o select nasce vazio; preenche assim que a lista chegar.
+  useEffect(() => {
+    if (!form.tipoProjetoId && tiposProjeto[0]) {
+      setForm(prev => ({ ...prev, tipoProjetoId: tiposProjeto[0].id }))
+    }
+  }, [tiposProjeto, form.tipoProjetoId])
   const [tipoOpen, setTipoOpen] = useState(false)
   const [clienteOpen, setClienteOpen] = useState(false)
   const canSubmit = form.projeto.trim().length > 0 && (!clientes || !!form.clienteId)

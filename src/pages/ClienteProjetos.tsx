@@ -10,7 +10,6 @@ import ClienteModal from '@/components/clientes/ClienteModal'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useProjetoRowActions } from '@/hooks/useProjetoRowActions'
-import { TIPOS_PROJETO } from '@/data/categoria-templates'
 import type { FilterTab } from '@/types/clientes'
 
 function initials(name: string): string {
@@ -26,7 +25,7 @@ export default function ClienteProjetos() {
   const { clienteId = '' } = useParams<{ clienteId: string }>()
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos: allProjetos, criarProjeto } = useProjeto()
+  const { clientes, projetos: allProjetos, criarProjeto, tiposProjeto } = useProjeto()
 
   const cliente = clientes.find(c => c.id === clienteId)
   const rows = allProjetos.filter(p => p.clienteId === clienteId)
@@ -150,7 +149,7 @@ export default function ClienteProjetos() {
                   key={row.id}
                   row={row}
                   badgeLabel={initials(row.projeto)}
-                  subtitle={TIPOS_PROJETO.find(tp => tp.id === row.tipoProjetoId)?.nome ?? '—'}
+                  subtitle={tiposProjeto.find(tp => tp.id === row.tipoProjetoId)?.nome ?? '—'}
                   isMenuOpen={openMenu === row.id}
                   onOpen={() => navigate(`/projetos/${row.id}/dashboard`)}
                   onMenuToggle={e => {

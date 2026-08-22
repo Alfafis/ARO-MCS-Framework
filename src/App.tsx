@@ -6,6 +6,7 @@ import { LangProvider } from './i18n/LangContext'
 import { ProjetoProvider } from './context/ProjetoContext'
 import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
+import DocumentTitle from './components/layout/DocumentTitle'
 import OctahedronIcon from './components/icons/OctahedronIcon'
 import Login from './pages/Login'
 import ResumoExecutivo from './pages/ResumoExecutivo'
@@ -15,6 +16,8 @@ import ProjetoWorkspace from './pages/ProjetoWorkspace'
 import Projetos from './pages/Projetos'
 import Lancamentos from './pages/Lancamentos'
 import Revisoes from './pages/Revisoes'
+import Perfil from './pages/Perfil'
+import Configuracoes from './pages/Configuracoes'
 import Clientes from './pages/Clientes'
 import ClienteProjetos from './pages/ClienteProjetos'
 import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
@@ -137,6 +140,7 @@ export default function App() {
     <ProjetoProvider>
     <SimulationProvider>
     <BrowserRouter>
+      <DocumentTitle />
       <Routes>
         {/* Rota pública */}
         <Route
@@ -168,6 +172,22 @@ export default function App() {
           <Route path="revisoes" element={<Revisoes />} />
           <Route path="lancamentos" element={<Lancamentos />} />
         </Route>
+        <Route
+          path="/perfil"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <Perfil />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/configuracoes"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <Configuracoes />
+            </ProtectedLayout>
+          }
+        />
         <Route
           path="/clientes"
           element={

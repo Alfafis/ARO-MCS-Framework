@@ -6,19 +6,19 @@ import { useT } from '@/i18n/LangContext'
 import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import { useProjeto } from '@/context/ProjetoContext'
-import { TIPOS_PROJETO, CATEGORIA_TEMPLATES } from '@/data/categoria-templates'
+import { CATEGORIA_TEMPLATES } from '@/data/categoria-templates'
 import type { Projeto } from '@/types/clientes'
-
-const TIPOS_COM_EXEMPLO = TIPOS_PROJETO.filter(tp => (CATEGORIA_TEMPLATES[tp.id]?.length ?? 0) > 0)
 
 export default function Categorias() {
   const t = useT(categoriasT)
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const {
-    catalogo,
+    catalogo, tiposProjeto,
     addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
     carregarTemplateExemplo, renomearCategoriaCatalogo,
   } = useProjeto()
+
+  const TIPOS_COM_EXEMPLO = tiposProjeto.filter(tp => (CATEGORIA_TEMPLATES[tp.id]?.length ?? 0) > 0)
 
   const categories = projeto.categorias
 

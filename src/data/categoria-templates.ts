@@ -3,11 +3,10 @@ export interface TipoProjeto {
   nome: string
 }
 
-export const TIPOS_PROJETO: TipoProjeto[] = [
-  { id: 'fechamento-mina', nome: 'Fechamento de Mina (ARO)' },
-  { id: 'ambiental',       nome: 'Ambiental' },
-  { id: 'outro',           nome: 'Outro' },
-]
+// Fonte de verdade é a tabela `tipos_projeto` (ver ProjetoContext.tiposProjeto,
+// gerido em /configuracoes) — os 3 slugs abaixo (fechamento-mina, ambiental,
+// outro) são só as chaves seed que CATEGORIA_TEMPLATES referencia; tipos
+// criados depois pelo admin não têm blueprint de exemplo, e é esperado.
 
 // Blueprint de categoria/item sem id — id é gerado na hora de clonar pra dentro de um projeto.
 export interface ItemBlueprint {

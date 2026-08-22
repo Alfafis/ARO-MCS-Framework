@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { NavLink, useLocation } from 'react-router-dom'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   FolderKanban,
   Users, ChevronsLeft, MoreHorizontal, User, Settings, LogOut,
@@ -9,12 +9,26 @@ import {
 import { useLang, useT, type Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
+import { supabase } from '@/integrations/supabase/client'
 
 const LANGUAGES: { code: Lang; label: string }[] = [
   { code: 'pt-BR', label: 'Português (Brasil)' },
   { code: 'en',    label: 'English'             },
   { code: 'es',    label: 'Español'             },
 ]
+
+function initialsFromEmail(email: string): string {
+  const local = email.split('@')[0] ?? ''
+  const letters = local.replace(/[^a-zA-Z]/g, '')
+  return (letters.slice(0, 2) || '??').toUpperCase()
+}
+
+function initialsFromNome(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean)
+  if (partes.length === 0) return '??'
+  const iniciais = partes.length === 1 ? partes[0].slice(0, 2) : partes[0][0] + partes[partes.length - 1][0]
+  return iniciais.toUpperCase()
+}
 
 interface SidebarProps {
   collapsed: boolean
@@ -31,20 +45,55 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen,    setLangOpen]    = useState(false)
   const [langMenuPos, setLangMenuPos] = useState({ bottom: 0, left: 0, width: 0 })
+  const [email,       setEmail]       = useState('')
+  const [nome,        setNome]        = useState('')
+  const [fotoUrl,     setFotoUrl]     = useState<string | null>(null)
   const profileRef    = useRef<HTMLDivElement>(null)
   const langRef       = useRef<HTMLDivElement>(null)
   const langBtnRef    = useRef<HTMLButtonElement>(null)
   const langMenuRef   = useRef<HTMLDivElement>(null)
   const location   = useLocation()
+  const navigate   = useNavigate()
 
   const NAV_ITEMS = [
     { to: '/clientes',    label: t.clients,   Icon: Users,        matchExact: false },
-    // exato: /projetos/:id/* é o workspace de projeto, com nav própria — não é
-    // "dentro" da lista global mesmo entrando por ela. Revisões e Lançamentos
-    // passaram pra dentro do workspace por projeto (2026-08-21) — não são mais
-    // rotas globais.
-    { to: '/projetos',    label: t.projects,  Icon: FolderKanban, matchExact: true  },
+    // não-exato: /projetos/:id/* é o workspace de projeto (nav própria via
+    // ProjetoWorkspace), mas continua "dentro" de Projetos pra fins de
+    // destaque na sidebar global — usuário passa a maior parte do tempo lá
+    // dentro, perder o highlight nesse momento deixa a sidebar parecendo sem
+    // nada selecionado (2026-08-22).
+    { to: '/projetos',    label: t.projects,  Icon: FolderKanban, matchExact: false },
+    { to: '/configuracoes', label: t.settings, Icon: Settings,    matchExact: false },
   ]
+
+  async function fetchPerfil(userId: string) {
+    const { data } = await supabase.from('perfis').select('nome, foto_url').eq('id', userId).single()
+    setNome(data?.nome ?? '')
+    setFotoUrl(data?.foto_url ?? null)
+  }
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setEmail(session?.user.email ?? '')
+      if (session) void fetchPerfil(session.user.id)
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setEmail(session?.user.email ?? '')
+      if (session) void fetchPerfil(session.user.id)
+      else { setNome(''); setFotoUrl(null) }
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    function handlePerfilAtualizado() {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) void fetchPerfil(session.user.id)
+      })
+    }
+    window.addEventListener('perfil-atualizado', handlePerfilAtualizado)
+    return () => window.removeEventListener('perfil-atualizado', handlePerfilAtualizado)
+  }, [])
 
   useEffect(() => {
     if (langOpen && langBtnRef.current) {
@@ -120,7 +169,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
               onClick={() => onMobileClose?.()}
             >
               <span className="ico" aria-hidden="true">
-                <Icon size={14} strokeWidth={2} />
+                <Icon size={16} strokeWidth={2} />
               </span>
               {!collapsed && label}
             </NavLink>
@@ -140,14 +189,14 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
           aria-label={t.selectLang}
           style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
         >
-          <Globe size={14} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
+          <Globe size={16} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
           {!collapsed && (
             <>
-              <span className="flex-1 text-xs text-[#14151a] text-left overflow-hidden text-ellipsis">
+              <span className="flex-1 text-sm text-[#14151a] text-left overflow-hidden text-ellipsis">
                 {LANGUAGES.find(l => l.code === lang)?.label}
               </span>
               <ChevronDown
-                size={14}
+                size={16}
                 strokeWidth={2}
                 color="var(--c-text-2)"
                 aria-hidden="true"
@@ -217,26 +266,21 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
             transition:    'opacity 160ms ease, transform 160ms ease',
           }}
         >
-          <button className="profile-menu-item" role="menuitem">
-            <User size={14} strokeWidth={2} aria-hidden="true" />
-            {t.myProfile}
-          </button>
-          <NavLink
-            to="/configuracoes"
+          <button
             className="profile-menu-item"
             role="menuitem"
-            onClick={() => setProfileOpen(false)}
+            onClick={() => { setProfileOpen(false); navigate('/perfil') }}
           >
-            <Settings size={14} strokeWidth={2} aria-hidden="true" />
-            {t.settings}
-          </NavLink>
+            <User size={16} strokeWidth={2} aria-hidden="true" />
+            {t.myProfile}
+          </button>
           <div className="profile-dropdown-divider" role="separator" />
           <button
             className="profile-menu-item danger"
             role="menuitem"
             onClick={() => { setProfileOpen(false); onLogout() }}
           >
-            <LogOut size={14} strokeWidth={2} aria-hidden="true" />
+            <LogOut size={16} strokeWidth={2} aria-hidden="true" />
             {t.logout}
           </button>
         </div>
@@ -250,14 +294,18 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
           aria-label={t.openProfile}
           style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
         >
-          <div className="bsidebar-avatar" aria-hidden="true">CA</div>
+          <div className="bsidebar-avatar" aria-hidden="true">
+            {fotoUrl
+              ? <img src={fotoUrl} alt="" style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+              : (nome ? initialsFromNome(nome) : initialsFromEmail(email))}
+          </div>
           {!collapsed && (
             <>
               <div className="bsidebar-foot-info">
-                <div className="name">Cesar Aro</div>
+                <div className="name">{nome || email || '—'}</div>
                 <div className="role">{t.consultant}</div>
               </div>
-              <MoreHorizontal size={14} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
+              <MoreHorizontal size={16} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
             </>
           )}
         </button>

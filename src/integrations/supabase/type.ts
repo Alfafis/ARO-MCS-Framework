@@ -262,18 +262,30 @@ export type Database = {
       perfis: {
         Row: {
           criado_em: string
+          foto_url: string | null
           id: string
+          nome: string | null
           papel: string
+          profissao: string | null
+          telefone: string | null
         }
         Insert: {
           criado_em?: string
+          foto_url?: string | null
           id: string
+          nome?: string | null
           papel?: string
+          profissao?: string | null
+          telefone?: string | null
         }
         Update: {
           criado_em?: string
+          foto_url?: string | null
           id?: string
+          nome?: string | null
           papel?: string
+          profissao?: string | null
+          telefone?: string | null
         }
         Relationships: []
       }
@@ -467,6 +479,28 @@ export type Database = {
         }
       }
       arquivar_projeto: { Args: { p_id: string }; Returns: undefined }
+      atualizar_foto_perfil: {
+        Args: { p_foto_url: string }
+        Returns: undefined
+      }
+      atualizar_meu_perfil: {
+        Args: { p_nome: string; p_profissao: string; p_telefone: string }
+        Returns: {
+          criado_em: string
+          foto_url: string | null
+          id: string
+          nome: string | null
+          papel: string
+          profissao: string | null
+          telefone: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "perfis"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       atualizar_status_lancamento: {
         Args: { p_id: string; p_status: string }
         Returns: undefined
@@ -562,6 +596,19 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      criar_tipo_projeto: {
+        Args: { p_nome: string }
+        Returns: {
+          id: string
+          nome: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tipos_projeto"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       definir_codigo_acesso: {
         Args: { p_codigo: string; p_projeto_id: string }
         Returns: string
@@ -635,6 +682,7 @@ export type Database = {
       remove_item_custo: { Args: { p_id: string }; Returns: undefined }
       remover_categoria_projeto: { Args: { p_id: string }; Returns: undefined }
       remover_lancamento: { Args: { p_id: string }; Returns: undefined }
+      remover_tipo_projeto: { Args: { p_id: string }; Returns: undefined }
       renomear_categoria_catalogo: {
         Args: { p_id: string; p_novo_nome: string }
         Returns: {
@@ -644,6 +692,19 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "categorias_catalogo"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      renomear_tipo_projeto: {
+        Args: { p_id: string; p_novo_nome: string }
+        Returns: {
+          id: string
+          nome: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "tipos_projeto"
           isOneToOne: true
           isSetofReturn: false
         }

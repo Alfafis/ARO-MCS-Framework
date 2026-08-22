@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
-import { CATEGORIA_TEMPLATES } from '@/data/categoria-templates'
+import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
 import { parseMoedaBR, formatMoedaCompact } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
@@ -50,6 +50,10 @@ interface NovoProjetoForm {
 interface ProjetoContextValue {
   clientes:        Cliente[]
   criarCliente:    (nome: string) => Promise<string>
+  tiposProjeto:      TipoProjeto[]
+  criarTipoProjeto:    (nome: string) => Promise<TipoProjeto>
+  renomearTipoProjeto: (id: string, novoNome: string) => Promise<void>
+  removerTipoProjeto:  (id: string) => Promise<void>
   catalogo:        CategoriaCatalogo[]
   renomearCategoriaCatalogo: (catalogoId: string, novoNome: string) => Promise<void>
   projetos:        Projeto[]
@@ -114,6 +118,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
 
 export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [clientes, setClientes] = useState<Cliente[]>([])
+  const [tiposProjeto, setTiposProjeto] = useState<TipoProjeto[]>([])
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
 
@@ -125,6 +130,14 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       .then(({ data, error }) => {
         if (error || !data) return
         setClientes(data.map(c => ({ id: c.id, nome: c.nome, initials: initials(c.nome) })))
+      })
+    supabase
+      .from('tipos_projeto')
+      .select('id, nome')
+      .order('nome')
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setTiposProjeto(data)
       })
     supabase
       .from('projetos')
@@ -151,6 +164,27 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       ? prev
       : [...prev, { id: data.id, nome: data.nome, initials: initials(data.nome) }])
     return data.id
+  }, [])
+
+  // Dedup por nome vive na RPC (mesmo padrão de create_cliente) — chamar de
+  // novo com nome repetido devolve a linha existente, nunca duplica.
+  const criarTipoProjeto = useCallback(async (nome: string): Promise<TipoProjeto> => {
+    const { data, error } = await supabase.rpc('criar_tipo_projeto', { p_nome: nome })
+    if (error || !data) throw error ?? new Error('Falha ao criar tipo de projeto')
+    setTiposProjeto(prev => prev.some(t => t.id === data.id) ? prev : [...prev, data].sort((a, b) => a.nome.localeCompare(b.nome)))
+    return data
+  }, [])
+
+  const renomearTipoProjeto = useCallback(async (id: string, novoNome: string) => {
+    const { data, error } = await supabase.rpc('renomear_tipo_projeto', { p_id: id, p_novo_nome: novoNome })
+    if (error || !data) throw error ?? new Error('Falha ao renomear tipo de projeto')
+    setTiposProjeto(prev => prev.map(t => t.id === id ? data : t).sort((a, b) => a.nome.localeCompare(b.nome)))
+  }, [])
+
+  const removerTipoProjeto = useCallback(async (id: string) => {
+    const { error } = await supabase.rpc('remover_tipo_projeto', { p_id: id })
+    if (error) throw error
+    setTiposProjeto(prev => prev.filter(t => t.id !== id))
   }, [])
 
   // Rename é global — colisão de nome no catálogo sobe como erro (unique
@@ -327,6 +361,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   return (
     <ProjetoContext.Provider value={{
       clientes, criarCliente,
+      tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,

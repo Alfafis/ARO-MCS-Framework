@@ -164,11 +164,11 @@
   border-radius: 12px;
   text-decoration: none;
   color: var(--c-text-2);
-  font-size: 0.844rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   white-space: nowrap;
   cursor: pointer;
-  transition: color var(--dur) ease;
+  transition: color var(--dur) ease, background var(--dur) ease;
   border: none;
   background: none;
   width: 100%;
@@ -176,17 +176,17 @@
 }
 
 .bsidebar-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.bsidebar-link:hover { color: var(--c-text); }
+.bsidebar-link:hover { color: var(--c-text); background: #f6f5f3; }
 .bsidebar-link:hover .ico { background: #e7e4e1; }
-.bsidebar-link.active { color: var(--c-text); }
+.bsidebar-link.active { color: var(--c-text); background: #f6f5f3; }
 .bsidebar-link.active .ico { background: var(--accent); box-shadow: var(--shadow-1); color: #fff; }
-.bsidebar-link.active:hover { color: var(--c-text); }
+.bsidebar-link.active:hover { color: var(--c-text); background: #f0eeec; }
 .bsidebar-link.active:hover .ico { background: var(--accent); box-shadow: var(--shadow-1); color: #fff; }
 
 .bsidebar-link .ico {
-  width: 28px;
-  height: 28px;
-  border-radius: 9px;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
   background: #f0eeec;
   display: flex;
   align-items: center;
@@ -216,12 +216,12 @@
 .bsidebar-foot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .bsidebar-avatar {
-  width: 26px;
-  height: 26px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background: var(--accent-100);
   color: var(--accent-700);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -237,7 +237,7 @@
 }
 
 .bsidebar-foot-info .name {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
   color: var(--c-text);
   line-height: 1.2;
@@ -246,7 +246,7 @@
 }
 
 .bsidebar-foot-info .role {
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--c-text-2);
   line-height: 1.2;
 }
@@ -276,7 +276,7 @@
   gap: 8px;
   padding: 8px 10px;
   border-radius: 8px;
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   font-weight: 500;
   color: var(--c-text);
   cursor: pointer;
@@ -296,9 +296,9 @@
 /* ── Custom select ── */
 .csel-btn {
   width: 100%;
-  background: #f6f5f3;
+  background: var(--c-card);
   border: none;
-  border-radius: 11px;
+  border-radius: var(--r-pill);
   padding: 9px 13px;
   font-family: var(--font-sans);
   font-size: 0.875rem;
@@ -309,10 +309,11 @@
   justify-content: space-between;
   gap: 8px;
   text-align: left;
-  transition: background var(--dur) ease;
+  box-shadow: var(--shadow-1);
+  transition: background var(--dur) ease, box-shadow var(--dur) ease;
 }
 
-.csel-btn:hover { background: #efece9; }
+.csel-btn:hover { background: #f6f5f3; box-shadow: var(--shadow-2); }
 .csel-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .csel-menu {

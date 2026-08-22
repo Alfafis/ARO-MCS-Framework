@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 
 export type Lang = 'pt-BR' | 'en' | 'es'
 
@@ -19,6 +19,12 @@ function getInitialLang(): Lang {
 
 export function LangProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>(getInitialLang)
+
+  // <html lang> precisa acompanhar o idioma escolhido — leitor de tela e
+  // tradutor automático do browser leem esse atributo, não o conteúdo.
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
 
   function setLang(l: Lang) {
     localStorage.setItem(STORAGE_KEY, l)
