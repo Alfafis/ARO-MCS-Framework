@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
-  FolderKanban,
+  LayoutDashboard, FolderKanban,
   Users, ChevronsLeft, MoreHorizontal, User, Settings, LogOut,
   Globe, ChevronDown,
 } from 'lucide-react'
@@ -56,6 +56,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
   const navigate   = useNavigate()
 
   const NAV_ITEMS = [
+    { to: '/visao-geral', label: t.overview,  Icon: LayoutDashboard, matchExact: false },
     { to: '/clientes',    label: t.clients,   Icon: Users,        matchExact: false },
     // não-exato: /projetos/:id/* é o workspace de projeto (nav própria via
     // ProjetoWorkspace), mas continua "dentro" de Projetos pra fins de

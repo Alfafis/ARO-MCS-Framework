@@ -14,6 +14,7 @@ import Categorias from './pages/Categorias'
 import Simulacao from './pages/Simulacao'
 import ProjetoWorkspace from './pages/ProjetoWorkspace'
 import Projetos from './pages/Projetos'
+import VisaoGeral from './pages/VisaoGeral'
 import Lancamentos from './pages/Lancamentos'
 import Revisoes from './pages/Revisoes'
 import Perfil from './pages/Perfil'
@@ -149,6 +150,14 @@ export default function App() {
         />
 
         {/* Rotas protegidas */}
+        <Route
+          path="/visao-geral"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <VisaoGeral />
+            </ProtectedLayout>
+          }
+        />
         <Route
           path="/projetos"
           element={

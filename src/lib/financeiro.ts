@@ -1,6 +1,4 @@
-// Fonte: Khaled 1 Provisionamento_Financeiro_NX_Gold — aba "9. Síntese Por Atividade"
-export const BASE_TOTAL_WITH_PROVISION = 40_565_159  // total com provisão 20%, atualizado 2023
-export const TOTAL_UPDATED_2023        = 36_897_448  // total sem provisão, atualizado 2023
+import type { Category } from '@/types/categorias'
 
 const SIMPLE_RATE    = 0.1075
 const COMPOUND_RATE  = 0.1075
@@ -36,4 +34,21 @@ export function formatMoedaCompact(n: number): string {
 export function formatMoedaBR(n: number): string {
   if (n === 0) return ''
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
+}
+
+// Ponto médio (min+max)/2 somado de todos os itens de todas as categorias —
+// única fonte de "valor esperado" do projeto, usada por ProjetoContext
+// (formatado), pela Visão Geral global (soma numérica cross-projeto) e pelo
+// ranking por cliente. Extraída pra número puro porque `estimateTotal` só
+// existia formatada ("R$ 1,2 M") e string compacta não reverte pra número
+// sem perder precisão.
+export function valorEsperadoNumerico(categorias: Category[]): number {
+  let min = 0, max = 0
+  for (const cat of categorias) {
+    for (const item of cat.items) {
+      min += parseMoedaBR(item.min)
+      max += parseMoedaBR(item.max)
+    }
+  }
+  return (min + max) / 2
 }

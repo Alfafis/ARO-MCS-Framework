@@ -23,6 +23,7 @@ export default function DocumentTitle() {
     const [, root, , tab] = location.pathname.split('/')
     const label = {
       login:      tLogin.enter,
+      'visao-geral': tNav.overview,
       clientes:   tNav.clients,
       projetos:   root === 'projetos' && tab
         ? ({ dashboard: tNav.overview, categorias: tNav.costCategories, simulacao: tNav.simulation, revisoes: tNav.revisions, lancamentos: tNav.launches }[tab] ?? tNav.projects)

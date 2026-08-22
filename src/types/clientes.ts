@@ -17,6 +17,7 @@ export interface Projeto {
   rev:             string
   esperado:        string
   atualizado:      string
+  atualizadoEm:    string   // ISO cru — atualizado é formatado (relativo), não ordenável
   highlight:       boolean
   // Dados de cadastro — nascem no fluxo "Novo projeto", editáveis depois em Categorias.
   tipoProjetoId:   string

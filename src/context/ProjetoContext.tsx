@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
-import { parseMoedaBR, formatMoedaCompact } from '@/lib/financeiro'
+import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
@@ -18,15 +18,9 @@ function initials(name: string): string {
 }
 
 function estimateTotal(categorias: Category[]): string {
-  let totalMin = 0, totalMax = 0
-  for (const cat of categorias) {
-    for (const item of cat.items) {
-      totalMin += parseMoedaBR(item.min)
-      totalMax += parseMoedaBR(item.max)
-    }
-  }
-  if (totalMin === 0 && totalMax === 0) return '—'
-  return formatMoedaCompact((totalMin + totalMax) / 2)
+  const total = valorEsperadoNumerico(categorias)
+  if (total === 0) return '—'
+  return formatMoedaCompact(total)
 }
 
 // Campo do item → chave que a RPC update_item_custo espera no patch jsonb.
@@ -106,6 +100,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
     rev: row.rev,
     esperado: estimateTotal(categorias),
     atualizado: formatRelativeTime(row.atualizado_em),
+    atualizadoEm: row.atualizado_em,
     highlight: false,
     tipoProjetoId: row.tipo_projeto_id,
     moeda: row.moeda,
