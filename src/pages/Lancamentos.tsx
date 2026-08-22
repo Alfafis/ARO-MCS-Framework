@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 import { CheckCircle2, Clock, DollarSign, Search } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
 import { lancamentosT } from '@/i18n/lancamentos'
 import LancRow from '@/components/lancamentos/LancRow'
 import LancModal from '@/components/lancamentos/LancModal'
-import type { FilterTab, IconKey, Lancamento, LancStatus } from '@/types/lancamentos'
-
-const uid = () => Math.random().toString(36).slice(2)
+import { supabase } from '@/integrations/supabase/client'
+import type { Projeto } from '@/types/clientes'
+import type { LancamentoRow } from '@/types'
+import type { FilterTab, IconKey, LancStatus } from '@/types/lancamentos'
 
 const ICON_KEY_MAP: Record<string, IconKey> = {
   barragem: 'barragem', monitoramento: 'monitoramento', cavas: 'cavas',
@@ -25,14 +27,8 @@ function formatM(v: number): string {
   return `R$ ${(v / 1e6).toFixed(2).replace('.', ',')} M`
 }
 
-const INITIAL: Lancamento[] = [
-  { id: uid(), categoria: 'Barragem',       anexo: 'Anexo: NF-4471.pdf',    periodo: 'Jul/2026', valor: 612000, status: 'validado', iconKey: 'barragem',      highlight: false },
-  { id: uid(), categoria: 'Monitoramento',  anexo: 'Anexo: fatura-jul.pdf', periodo: 'Jul/2026', valor: 218000, status: 'revisao',  iconKey: 'monitoramento', highlight: false },
-  { id: uid(), categoria: 'Cavas',          anexo: 'Anexo: NF-4402.pdf',    periodo: 'Jun/2026', valor: 940000, status: 'validado', iconKey: 'cavas',         highlight: false },
-  { id: uid(), categoria: 'Áreas de apoio', anexo: 'Lançado pelo cliente',  periodo: 'Jun/2026', valor: 87000,  status: 'pendente', iconKey: 'default',       highlight: false },
-]
-
 export default function Lancamentos() {
+  const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const t = useT(lancamentosT)
 
   const FILTER_OPTS: { value: FilterTab; label: string }[] = [
@@ -42,11 +38,23 @@ export default function Lancamentos() {
     { value: 'pendente', label: t.filterPending    },
   ]
 
-  const [rows,      setRows]      = useState<Lancamento[]>(INITIAL)
+  const [rows,      setRows]      = useState<LancamentoRow[]>([])
   const [search,    setSearch]    = useState('')
   const [filter,    setFilter]    = useState<FilterTab>('all')
   const [openMenu,  setOpenMenu]  = useState<string | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    const { data, error } = await supabase
+      .from('lancamentos')
+      .select('*')
+      .eq('projeto_id', projeto.id)
+      .order('criado_em', { ascending: false })
+    if (!error && data) setRows(data)
+  }, [projeto.id])
+
+  useEffect(() => { load() }, [load])
 
   useEffect(() => {
     function onMouseDown() { setOpenMenu(null) }
@@ -63,32 +71,32 @@ export default function Lancamentos() {
     (filter === 'all' || r.status === filter)
   )
 
-  const handleAction = useCallback((id: string, action: 'validado' | 'revisao' | 'delete') => {
+  const handleAction = useCallback(async (id: string, action: 'validado' | 'revisao' | 'delete') => {
     setOpenMenu(null)
     if (action === 'delete') {
+      const { error } = await supabase.rpc('remover_lancamento', { p_id: id })
+      if (error) return
       setRows(prev => prev.filter(r => r.id !== id))
     } else {
+      const { error } = await supabase.rpc('atualizar_status_lancamento', { p_id: id, p_status: action })
+      if (error) return
       setRows(prev => prev.map(r => r.id === id ? { ...r, status: action as LancStatus } : r))
     }
   }, [])
 
-  const confirmAdd = useCallback((form: { categoria: string; periodo: string; valor: string }) => {
-    const novo: Lancamento = {
-      id:        uid(),
-      categoria: form.categoria.trim(),
-      anexo:     '',
-      periodo:   form.periodo.trim() || 'N/D',
-      valor:     parseValor(form.valor),
-      status:    'pendente',
-      iconKey:   iconFor(form.categoria.trim()),
-      highlight: true,
-    }
-    setRows(prev => [novo, ...prev])
+  const confirmAdd = useCallback(async (form: { categoria: string; periodo: string; valor: string }) => {
+    const { data, error } = await supabase.rpc('criar_lancamento', {
+      p_projeto_id: projeto.id,
+      p_categoria: form.categoria,
+      p_periodo: form.periodo.trim() || 'N/D',
+      p_valor: parseValor(form.valor),
+    })
+    if (error || !data) return
+    setRows(prev => [data, ...prev])
     setModalOpen(false)
-    setTimeout(() => {
-      setRows(prev => prev.map(r => r.id === novo.id ? { ...r, highlight: false } : r))
-    }, 900)
-  }, [])
+    setHighlightId(data.id)
+    setTimeout(() => setHighlightId(null), 900)
+  }, [projeto.id])
 
   return (
     <div className="flex flex-col h-full">
@@ -98,7 +106,7 @@ export default function Lancamentos() {
           <div className="flex items-center gap-2 mb-1">
             <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
           </div>
-          <p className="text-[13px] text-c-text-2">{t.headerSubtitle}</p>
+          <p className="text-[13px] text-c-text-2">{t.headerSubtitle(projeto.projeto)}</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="primary" onClick={() => setModalOpen(true)}>{t.newEntry}</Button>
@@ -176,7 +184,16 @@ export default function Lancamentos() {
               filtered.map(row => (
                 <LancRow
                   key={row.id}
-                  row={row}
+                  row={{
+                    id: row.id,
+                    categoria: row.categoria,
+                    anexo: row.anexo ?? '',
+                    periodo: row.periodo,
+                    valor: row.valor,
+                    status: row.status as LancStatus,
+                    iconKey: iconFor(row.categoria),
+                    highlight: highlightId === row.id,
+                  }}
                   isMenuOpen={openMenu === row.id}
                   onMenuToggle={e => {
                     e.stopPropagation()

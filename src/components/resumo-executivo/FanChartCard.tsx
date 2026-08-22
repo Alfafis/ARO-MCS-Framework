@@ -7,9 +7,10 @@ const CHART_H = 150
 
 interface Props {
   data: FanPoint[]
+  cv:   string
 }
 
-export default function FanChartCard({ data }: Props) {
+export default function FanChartCard({ data, cv }: Props) {
   const t = useT(resumoT)
 
   return (
@@ -48,7 +49,7 @@ export default function FanChartCard({ data }: Props) {
         </div>
       </div>
 
-      <p className="text-[11px] text-c-text-2 mt-3 leading-relaxed">{t.fanDesc}</p>
+      <p className="text-[11px] text-c-text-2 mt-3 leading-relaxed">{t.fanDesc(cv)}</p>
     </div>
   )
 }

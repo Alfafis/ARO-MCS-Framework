@@ -5,15 +5,9 @@ import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
 import { loginT } from '@/i18n/login'
+import { supabase } from '@/integrations/supabase/client'
 
-const MOCK_EMAIL    = 'aro@admin.com'
-const MOCK_PASSWORD = '123456'
-
-interface Props {
-  onLogin: () => void
-}
-
-export default function Login({ onLogin }: Props) {
+export default function Login() {
   const navigate = useNavigate()
   const t = useT(loginT)
   const [email,    setEmail]    = useState('')
@@ -27,19 +21,17 @@ export default function Login({ onLogin }: Props) {
     { Icon: Users,      label: t.feature3Label, desc: t.feature3Desc },
   ]
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
     setLoading(true)
-    setTimeout(() => {
-      if (email === MOCK_EMAIL && password === MOCK_PASSWORD) {
-        onLogin()
-        navigate('/dashboard', { replace: true })
-      } else {
-        setError(t.wrongCredentials)
-        setLoading(false)
-      }
-    }, 600)
+    const { error: authError } = await supabase.auth.signInWithPassword({ email, password })
+    if (authError) {
+      setError(authError.message.toLowerCase().includes('confirm') ? t.emailNotConfirmed : t.wrongCredentials)
+      setLoading(false)
+      return
+    }
+    navigate('/clientes', { replace: true })
   }
 
   return (

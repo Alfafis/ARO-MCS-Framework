@@ -7,6 +7,7 @@ export const sidebarT: Record<Lang, {
   launches:       string
   revisions:      string
   clients:        string
+  projects:       string
   expand:         string
   collapse:       string
   selectLang:     string
@@ -18,11 +19,12 @@ export const sidebarT: Record<Lang, {
 }> = {
   'pt-BR': {
     overview:       'Visão geral',
-    costCategories: 'Categorias de custo',
+    costCategories: 'Categorias',
     simulation:     'Simulação',
     launches:       'Lançamentos',
     revisions:      'Revisões',
     clients:        'Clientes',
+    projects:       'Projetos',
     expand:         'Expandir menu lateral',
     collapse:       'Recolher menu lateral',
     selectLang:     'Selecionar idioma',
@@ -34,11 +36,12 @@ export const sidebarT: Record<Lang, {
   },
   'en': {
     overview:       'Overview',
-    costCategories: 'Cost categories',
+    costCategories: 'Categories',
     simulation:     'Simulation',
     launches:       'Entries',
     revisions:      'Revisions',
     clients:        'Clients',
+    projects:       'Projects',
     expand:         'Expand sidebar',
     collapse:       'Collapse sidebar',
     selectLang:     'Select language',
@@ -50,11 +53,12 @@ export const sidebarT: Record<Lang, {
   },
   'es': {
     overview:       'Vista general',
-    costCategories: 'Categorías de costo',
+    costCategories: 'Categorías',
     simulation:     'Simulación',
     launches:       'Lanzamientos',
     revisions:      'Revisiones',
     clients:        'Clientes',
+    projects:       'Proyectos',
     expand:         'Expandir menú lateral',
     collapse:       'Contraer menú lateral',
     selectLang:     'Seleccionar idioma',

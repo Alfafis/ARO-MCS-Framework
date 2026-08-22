@@ -5,14 +5,14 @@ export interface CostCategory {
   name: string
   min: string
   max: string
-  updated: string
-  phase: PhaseCategory
+  updated?: string
+  phase?: PhaseCategory
 }
 
 export interface CostTotals {
   min: string
   max: string
-  updated: string
+  updated?: string
 }
 
 export interface MonetaryMethod {

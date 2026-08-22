@@ -378,7 +378,7 @@
 /* Linhas de item — grid de colunas */
 .item-row {
   display: grid;
-  grid-template-columns: 1fr 90px 130px 130px 140px 32px;
+  grid-template-columns: 1fr 80px 120px 120px 120px 140px 100px 32px;
   align-items: center;
   gap: 8px;
   padding: 8px 0;

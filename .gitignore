@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+*.env
+CLAUDE.MD
+credenciais.local.txt
+
+# Dado financeiro real de cliente — nunca versionar
+docs/*.xlsx
 
 # Editor directories and files
 .vscode/*

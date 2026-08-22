@@ -1,4 +1,6 @@
 import type { Distribution } from '@/types/simulacao'
+import type { Category, CategoriaCatalogo } from '@/types/categorias'
+import { parseMoedaBR } from '@/lib/financeiro'
 
 export interface CategoryParam {
   name: string
@@ -7,18 +9,23 @@ export interface CategoryParam {
   max:  number
 }
 
-export const CATEGORY_PARAMS: CategoryParam[] = [
-  { name: 'Estudos',               min:  6_550_000, mode:  8_150_000, max:  9_100_000 },
-  { name: 'Cavas',                  min:  2_272_500, mode:  2_350_000, max:  2_418_000 },
-  { name: 'Pilhas de Estéril',      min:  1_718_800, mode:  1_780_000, max:  1_805_500 },
-  { name: 'Barragens',              min:    408_000, mode:    425_000, max:    430_278 },
-  { name: 'Planta Industrial',      min:    840_600, mode:    865_500, max:    878_900 },
-  { name: 'Áreas de Apoio',         min:  3_788_800, mode:  3_885_500, max:  3_986_300 },
-  { name: 'Demolição Estr. Civis',  min:  4_437_700, mode:  4_550_000, max:  4_574_600 },
-  { name: 'Monitoramento',          min:  9_589_100, mode: 11_300_000, max: 12_007_700 },
-]
-
-export const ALL_CATEGORY_NAMES = CATEGORY_PARAMS.map(c => c.name)
+// Deriva os parâmetros da simulação a partir dos itens cadastrados em Categorias.
+// mode = ponto médio min/max — sem um campo "mais provável" capturado por item ainda,
+// é a melhor aproximação disponível (ver docs/simulacao.md).
+// Nome vem do catálogo (compartilhado) — valores vêm só dos itens deste projeto.
+export function categoryParamsFromCategorias(categorias: Category[], catalogo: CategoriaCatalogo[]): CategoryParam[] {
+  return categorias
+    .map(cat => {
+      let min = 0, max = 0
+      for (const item of cat.items) {
+        min += parseMoedaBR(item.min)
+        max += parseMoedaBR(item.max)
+      }
+      const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+      return { name: nome, min, max, mode: (min + max) / 2 }
+    })
+    .filter(c => c.min > 0 || c.max > 0)
+}
 
 export const MIN_ITERATIONS = 100
 export const MAX_ITERATIONS = 100_000
@@ -94,10 +101,11 @@ export interface MCResult {
 export function runMonteCarlo(
   dist:             Distribution,
   iterations:       number,
+  categoryParams:   CategoryParam[],
   activeCategories: Set<string>,
   confidence = 95,
 ): MCResult {
-  const cats = CATEGORY_PARAMS.filter(c => activeCategories.has(c.name))
+  const cats = categoryParams.filter(c => activeCategories.has(c.name))
   const n    = Math.max(100, Math.min(100_000, iterations))
   const results = new Float64Array(n)
 

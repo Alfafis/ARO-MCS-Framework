@@ -8,6 +8,7 @@ export const loginT: Record<Lang, {
   enter:         string
   entering:      string
   wrongCredentials: string
+  emailNotConfirmed: string
   feature1Label: string
   feature1Desc:  string
   feature2Label: string
@@ -23,6 +24,7 @@ export const loginT: Record<Lang, {
     enter:            'Entrar',
     entering:         'Entrando…',
     wrongCredentials: 'E-mail ou senha incorretos.',
+    emailNotConfirmed: 'Confirme seu e-mail antes de entrar — verifique sua caixa de entrada.',
     feature1Label:    'Simulação Monte Carlo',
     feature1Desc:     '10.000 iterações por projeto',
     feature2Label:    'Revisões auditáveis',
@@ -38,6 +40,7 @@ export const loginT: Record<Lang, {
     enter:            'Sign in',
     entering:         'Signing in…',
     wrongCredentials: 'Incorrect e-mail or password.',
+    emailNotConfirmed: 'Confirm your e-mail before signing in — check your inbox.',
     feature1Label:    'Monte Carlo Simulation',
     feature1Desc:     '10,000 iterations per project',
     feature2Label:    'Auditable revisions',
@@ -53,6 +56,7 @@ export const loginT: Record<Lang, {
     enter:            'Iniciar sesión',
     entering:         'Iniciando…',
     wrongCredentials: 'Correo electrónico o contraseña incorrectos.',
+    emailNotConfirmed: 'Confirma tu correo antes de iniciar sesión — revisa tu bandeja de entrada.',
     feature1Label:    'Simulación Monte Carlo',
     feature1Desc:     '10.000 iteraciones por proyecto',
     feature2Label:    'Revisiones auditables',

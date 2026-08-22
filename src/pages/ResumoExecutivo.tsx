@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
-import ClientSelector from '@/components/layout/ClientSelector'
-import { useClient } from '@/context/ClientContext'
+import type { Projeto } from '@/types/clientes'
 import RevisionTimeline from '@/components/dashboard/RevisionTimeline'
 import DisbursementChart from '@/components/dashboard/DisbursementChart'
 import PhaseBreakdown from '@/components/dashboard/PhaseBreakdown'
@@ -19,7 +18,7 @@ import { computeMonetaryValues, BASE_TOTAL_WITH_PROVISION } from '@/lib/financei
 export default function ResumoExecutivo() {
   const t = useT(resumoT)
   const navigate = useNavigate()
-  const { clients, selectedClient, setSelectedClient } = useClient()
+  const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const [linkCopied, setLinkCopied] = useState(false)
 
   const monetaryMethods = useMemo(() => {
@@ -34,7 +33,7 @@ export default function ResumoExecutivo() {
   }, [t])
 
   async function handleGerarLink() {
-    const url = `${window.location.origin}/relatorio/${selectedClient}`
+    const url = `${window.location.origin}/relatorio/${projeto.id}`
     try {
       await navigator.clipboard.writeText(url)
     } catch {
@@ -48,14 +47,6 @@ export default function ResumoExecutivo() {
     <>
       <PageHeader
         title={t.headerTitle}
-        badge="Rev1"
-        clientSelector={
-          <ClientSelector
-            options={clients}
-            value={selectedClient}
-            onChange={setSelectedClient}
-          />
-        }
         actions={
           <>
             <Button variant="ghost" onClick={handleGerarLink}>
@@ -64,7 +55,7 @@ export default function ResumoExecutivo() {
                 : <><Copy size={13} /> Gerar link do cliente</>}
             </Button>
             <Button variant="ghost">{t.exportPdf}</Button>
-            <Button variant="primary" onClick={() => navigate('/simulacao')}>{t.runSimulation}</Button>
+            <Button variant="primary" onClick={() => navigate(`/projetos/${projeto.id}/simulacao`)}>{t.runSimulation}</Button>
           </>
         }
       />
@@ -83,7 +74,7 @@ export default function ResumoExecutivo() {
         <DisbursementChart />
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} />
+          <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel="R$ 40,57 M" />
           <RevisionTimeline className="lg:col-span-5" />
         </div>
 

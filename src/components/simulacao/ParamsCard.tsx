@@ -7,7 +7,7 @@ import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import type { Distribution } from '@/types/simulacao'
-import { ALL_CATEGORY_NAMES, clampIterations, maskIterations } from '@/lib/monteCarlo'
+import { clampIterations, maskIterations } from '@/lib/monteCarlo'
 
 const DIST_OPTIONS: Distribution[] = ['Triangular', 'Normal', 'Uniforme']
 
@@ -22,6 +22,8 @@ interface Props {
   iterations:         string
   confidence:         string
   running:            boolean
+  disabled?:          boolean
+  categoryNames:      string[]
   onDistChange:       (d: Distribution) => void
   onIterationsChange: (v: string) => void
   onConfidenceChange: (v: string) => void
@@ -29,7 +31,7 @@ interface Props {
   onCategoriesChange: (cats: Set<string>) => void
 }
 
-export default function ParamsCard({ dist, iterations, confidence, running, onDistChange, onIterationsChange, onConfidenceChange, onRun, onCategoriesChange }: Props) {
+export default function ParamsCard({ dist, iterations, confidence, running, disabled, categoryNames, onDistChange, onIterationsChange, onConfidenceChange, onRun, onCategoriesChange }: Props) {
   const t = useT(simulacaoT)
 
   const CAT_OPTIONS = [
@@ -38,7 +40,7 @@ export default function ParamsCard({ dist, iterations, confidence, running, onDi
   ]
 
   const [cats,         setCats]         = useState('all')
-  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set(ALL_CATEGORY_NAMES))
+  const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set(categoryNames))
   const [openSelect,   setOpenSelect]   = useState<string | null>(null)
 
   function toggleCat(cat: string) {
@@ -50,8 +52,8 @@ export default function ParamsCard({ dist, iterations, confidence, running, onDi
     })
   }
   useEffect(() => {
-    onCategoriesChange(cats === 'all' ? new Set(ALL_CATEGORY_NAMES) : new Set(selectedCats))
-  }, [cats, selectedCats, onCategoriesChange])
+    onCategoriesChange(cats === 'all' ? new Set(categoryNames) : new Set(selectedCats))
+  }, [cats, selectedCats, categoryNames, onCategoriesChange])
 
   const ref = useRef<HTMLDivElement>(null)
 
@@ -109,7 +111,7 @@ export default function ParamsCard({ dist, iterations, confidence, running, onDi
           isOpen={openSelect === 'cats'} onToggle={() => toggle('cats')} />
         {cats === 'custom' && (
           <div className="flex flex-col gap-0.5 mt-1 pl-1">
-            {ALL_CATEGORY_NAMES.map(cat => {
+            {categoryNames.map(cat => {
               const checked = selectedCats.has(cat)
               return (
                 <button
@@ -144,7 +146,7 @@ export default function ParamsCard({ dist, iterations, confidence, running, onDi
         type="button"
         className="w-full py-3 justify-center text-sm"
         onClick={onRun}
-        disabled={running}
+        disabled={running || disabled}
         aria-busy={running}
       >
         {running ? (

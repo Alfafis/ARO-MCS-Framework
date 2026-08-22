@@ -1,38 +1,49 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Check, Copy, RefreshCw } from 'lucide-react'
 import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { generateCodeForReport, getCodeForReport, setCodeForReport } from '@/data/invite-codes'
+import { supabase } from '@/integrations/supabase/client'
 
 interface Props {
-  reportId:    string
+  reportId:    string  // projeto_id
   clientName:  string
   projectName: string
   onClose:     () => void
 }
 
 export default function CodigoAcessoModal({ reportId, clientName, projectName, onClose }: Props) {
-  const [code,         setCode]         = useState<string>(() => getCodeForReport(reportId) ?? '')
+  const [code,         setCode]         = useState<string>('')
   const [manualInput,  setManualInput]  = useState('')
   const [manualError,  setManualError]  = useState('')
   const [copied,       setCopied]       = useState(false)
 
-  function handleGenerate() {
-    const generated = generateCodeForReport(reportId, clientName, projectName)
-    setCode(generated)
+  useEffect(() => {
+    supabase.rpc('obter_codigo_acesso', { p_projeto_id: reportId }).then(({ data }) => {
+      if (data) setCode(data)
+    })
+  }, [reportId])
+
+  async function handleGenerate() {
+    const { data, error } = await supabase.rpc('gerar_codigo_acesso', { p_projeto_id: reportId })
+    if (error || !data) return
+    setCode(data)
     setManualInput('')
     setManualError('')
   }
 
-  function handleSaveManual(e: FormEvent) {
+  async function handleSaveManual(e: FormEvent) {
     e.preventDefault()
     const trimmed = manualInput.trim()
     if (trimmed.length < 4) {
       setManualError('O código precisa ter pelo menos 4 caracteres.')
       return
     }
-    setCodeForReport(reportId, trimmed, clientName, projectName)
-    setCode(trimmed.toUpperCase())
+    const { data, error } = await supabase.rpc('definir_codigo_acesso', { p_projeto_id: reportId, p_codigo: trimmed })
+    if (error || !data) {
+      setManualError('Não foi possível salvar o código.')
+      return
+    }
+    setCode(data)
     setManualInput('')
     setManualError('')
   }

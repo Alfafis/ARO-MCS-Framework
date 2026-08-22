@@ -2,20 +2,21 @@ import { useMemo } from 'react'
 import { Target } from 'lucide-react'
 import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
-import { CATEGORY_PARAMS, categoryStddev, categoryMean } from '@/lib/monteCarlo'
+import { categoryStddev, categoryMean, type CategoryParam } from '@/lib/monteCarlo'
 import type { Distribution, SimResult } from '@/types/simulacao'
 
 interface Props {
   result:           SimResult | null
   dist:             Distribution
   activeCategories: Set<string>
+  categoryParams:   CategoryParam[]
 }
 
-export default function UncertaintyCard({ result, dist, activeCategories }: Props) {
+export default function UncertaintyCard({ result, dist, activeCategories, categoryParams }: Props) {
   const t = useT(simulacaoT)
 
   const rows = useMemo(() => {
-    const cats = CATEGORY_PARAMS.filter(c => activeCategories.has(c.name))
+    const cats = categoryParams.filter(c => activeCategories.has(c.name))
     const totalMean = cats.reduce((s, c) => s + categoryMean(c, dist), 0) || 1
 
     return cats
@@ -24,7 +25,7 @@ export default function UncertaintyCard({ result, dist, activeCategories }: Prop
         pct:  (categoryStddev(cat, dist) / totalMean) * 100,
       }))
       .sort((a, b) => b.pct - a.pct)
-  }, [dist, activeCategories])
+  }, [dist, activeCategories, categoryParams])
 
   const fmt = (pct: number) =>
     `±${pct.toFixed(1).replace('.', ',')}%`

@@ -12,19 +12,18 @@ export const relatorioClienteT: Record<Lang, {
   // Report header
   reportTitle:       string
   reportRevisionCurrent: string
-  reportSubtitleBase: string
+  reportSubtitleBase: (clienteNome: string) => string
   reportSubtitleSim: (iterations: string, distribution: string) => string
+  reportNotFoundTitle: string
+  reportNotFoundBody:  string
   // KPIs
   kpiAvgCost:        string
-  kpiAvgCostSubDefault: string
+  simPendingSub:     string
   kpiAvgCostSubMC:   (status: string) => string
   kpiMinMaxRange:    string
-  kpiMinMaxSubDefault: string
   kpiMinMaxSubIC:    (confLevel: number, ic95: string) => string
-  kpiUpdatedValue:   string
-  kpiUpdatedSub:     string
   kpiBaseProvision:  string
-  kpiBaseSub:        string
+  kpiBaseSub:        (contingenciaPct: number) => string
   // Risk metrics labels
   riskMean:          string
   riskStddev:        string
@@ -48,20 +47,19 @@ export const relatorioClienteT: Record<Lang, {
     copyLinkPrompt:    'Copie o link do relatório:',
     downloadPdfBtn:    'Baixar PDF',
     selectLang:        'Selecionar idioma',
-    reportTitle:       'Relatório — Fechamento de Mina',
+    reportTitle:       'Relatório',
     reportRevisionCurrent: 'Vigente',
-    reportSubtitleBase: 'Provisionamento financeiro NX Gold',
+    reportSubtitleBase: (nome) => `Provisionamento financeiro ${nome}`,
     reportSubtitleSim: (iterations, dist) => ` · Simulação Monte Carlo, ${iterations} iterações · Distribuição ${dist}`,
+    reportNotFoundTitle: 'Relatório não encontrado',
+    reportNotFoundBody:  'O link usado não corresponde a nenhum projeto ativo. Verifique o link ou peça um novo à sua consultoria.',
     kpiAvgCost:        'Custo médio',
-    kpiAvgCostSubDefault: 'Monte Carlo · 10.000 iterações',
+    simPendingSub:     'Sem simulação rodada ainda',
     kpiAvgCostSubMC:   (status) => `Monte Carlo · ${status}`,
     kpiMinMaxRange:    'Faixa min–max',
-    kpiMinMaxSubDefault: 'Custo total, 8 categorias',
     kpiMinMaxSubIC:    (conf, ic) => `IC ${conf}%: ${ic}`,
-    kpiUpdatedValue:   'Valor atualizado',
-    kpiUpdatedSub:     'Custo total, valor atualizado',
     kpiBaseProvision:  'Provisão base',
-    kpiBaseSub:        'Total com provisão de 20%',
+    kpiBaseSub:        (pct) => `Total com provisão de ${pct}%`,
     riskMean:          'Média',
     riskStddev:        'Desvio-padrão',
     riskP80:           'P80 (valor a 80%)',
@@ -82,20 +80,19 @@ export const relatorioClienteT: Record<Lang, {
     copyLinkPrompt:    'Copy the report link:',
     downloadPdfBtn:    'Download PDF',
     selectLang:        'Select language',
-    reportTitle:       'Report — Mine Closure',
+    reportTitle:       'Report',
     reportRevisionCurrent: 'Current',
-    reportSubtitleBase: 'NX Gold financial provisioning',
+    reportSubtitleBase: (nome) => `${nome} financial provisioning`,
     reportSubtitleSim: (iterations, dist) => ` · Monte Carlo simulation, ${iterations} iterations · ${dist} distribution`,
+    reportNotFoundTitle: 'Report not found',
+    reportNotFoundBody:  'This link does not match any active project. Check the link or ask your consultant for a new one.',
     kpiAvgCost:        'Average cost',
-    kpiAvgCostSubDefault: 'Monte Carlo · 10,000 iterations',
+    simPendingSub:     'No simulation run yet',
     kpiAvgCostSubMC:   (status) => `Monte Carlo · ${status}`,
     kpiMinMaxRange:    'Min–max range',
-    kpiMinMaxSubDefault: 'Total cost, 8 categories',
     kpiMinMaxSubIC:    (conf, ic) => `${conf}% CI: ${ic}`,
-    kpiUpdatedValue:   'Updated value',
-    kpiUpdatedSub:     'Total cost, updated value',
     kpiBaseProvision:  'Base provision',
-    kpiBaseSub:        'Total with 20% provision',
+    kpiBaseSub:        (pct) => `Total with ${pct}% provision`,
     riskMean:          'Mean',
     riskStddev:        'Std. deviation',
     riskP80:           'P80 (value at 80%)',
@@ -116,20 +113,19 @@ export const relatorioClienteT: Record<Lang, {
     copyLinkPrompt:    'Copie el enlace del informe:',
     downloadPdfBtn:    'Descargar PDF',
     selectLang:        'Seleccionar idioma',
-    reportTitle:       'Informe — Cierre de Mina',
+    reportTitle:       'Informe',
     reportRevisionCurrent: 'Vigente',
-    reportSubtitleBase: 'Provisión financiera NX Gold',
+    reportSubtitleBase: (nome) => `Provisión financiera ${nome}`,
     reportSubtitleSim: (iterations, dist) => ` · Simulación Monte Carlo, ${iterations} iteraciones · Distribución ${dist}`,
+    reportNotFoundTitle: 'Informe no encontrado',
+    reportNotFoundBody:  'El enlace usado no corresponde a ningún proyecto activo. Verifique el enlace o pida uno nuevo a su consultoría.',
     kpiAvgCost:        'Costo promedio',
-    kpiAvgCostSubDefault: 'Monte Carlo · 10.000 iteraciones',
+    simPendingSub:     'Sin simulación ejecutada aún',
     kpiAvgCostSubMC:   (status) => `Monte Carlo · ${status}`,
     kpiMinMaxRange:    'Rango mín–máx',
-    kpiMinMaxSubDefault: 'Costo total, 8 categorías',
     kpiMinMaxSubIC:    (conf, ic) => `IC ${conf}%: ${ic}`,
-    kpiUpdatedValue:   'Valor actualizado',
-    kpiUpdatedSub:     'Costo total, valor actualizado',
     kpiBaseProvision:  'Provisión base',
-    kpiBaseSub:        'Total con provisión del 20%',
+    kpiBaseSub:        (pct) => `Total con provisión del ${pct}%`,
     riskMean:          'Media',
     riskStddev:        'Desviación estándar',
     riskP80:           'P80 (valor al 80%)',

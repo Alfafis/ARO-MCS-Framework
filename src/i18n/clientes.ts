@@ -1,7 +1,22 @@
 import type { Lang } from './LangContext'
 
 export const clientesT: Record<Lang, {
-  headerTitle:       string
+  // Lista de clientes (/clientes)
+  clientsHeaderTitle:    string
+  clientsHeaderSubtitle: string
+  newClient:             string
+  clientsBadge:          (n: number) => string
+  searchClientPlaceholder: string
+  colClient:             string
+  colProjectsCount:      string
+  projectsCount:         (n: number) => string
+  emptyClients:          string
+  // NovoClienteModal
+  newClientModalTitle:      string
+  labelClientName:          string
+  placeholderClientName:    string
+  createClient:             string
+  // Lista de projetos de um cliente (/clientes/:id)
   headerSubtitle:    string
   newProject:        string
   activesBadge:      (n: number) => string
@@ -27,29 +42,47 @@ export const clientesT: Record<Lang, {
   actionArchive:      string
   menuAriaLabel:      string
   linkCopied:         string
-  // ClienteModal
+  backToClients:      string
+  // ClienteModal (Novo projeto)
   modalTitle:        string
   labelClient:       string
   labelProject:      string
-  labelExpected:     string
-  placeholderClient:  string
+  labelProjectType:  string
+  helpProjectType:   string
   placeholderProject: string
-  placeholderExpected: string
   cancel:            string
   create:            string
   justNow:           string
+  // Lista global de projetos (/projetos)
+  projetosHeaderTitle:    string
+  projetosHeaderSubtitle: string
+  searchAllPlaceholder:   string
+  filterByClientAll:      string
+  filterByTypeAll:        string
 }> = {
   'pt-BR': {
-    headerTitle:       'Clientes e projetos',
-    headerSubtitle:    'Todos os projetos de provisionamento de ARO em andamento',
+    clientsHeaderTitle:    'Clientes',
+    clientsHeaderSubtitle: 'Todos os clientes da consultoria',
+    newClient:             '+ Novo cliente',
+    clientsBadge:          (n) => `${n} clientes`,
+    searchClientPlaceholder: 'Buscar por cliente...',
+    colClient:             'CLIENTE',
+    colProjectsCount:      'PROJETOS',
+    projectsCount:         (n) => n === 1 ? '1 projeto' : `${n} projetos`,
+    emptyClients:          'Nenhum cliente encontrado.',
+    newClientModalTitle:      'Novo cliente',
+    labelClientName:          'Nome do cliente',
+    placeholderClientName:    'Ex: NX Gold',
+    createClient:             'Criar cliente',
+    headerSubtitle:    'Projetos de provisionamento deste cliente',
     newProject:        '+ Novo projeto',
     activesBadge:      (n) => `${n} ativos`,
-    searchPlaceholder: 'Buscar por cliente ou projeto...',
+    searchPlaceholder: 'Buscar por projeto...',
     filterAll:         'Todos',
     filterActive:      'Em andamento',
     filterWaiting:     'Aguardando cliente',
     filterDone:        'Concluídos',
-    colProject:        'CLIENTE / PROJETO',
+    colProject:        'PROJETO',
     colStatus:         'STATUS',
     colRev:            'REV. ATUAL',
     colExpected:       'ESPERADO',
@@ -66,28 +99,45 @@ export const clientesT: Record<Lang, {
     actionArchive:      'Arquivar projeto',
     menuAriaLabel:      'Ações do projeto',
     linkCopied:         'Link copiado!',
+    backToClients:      '← Clientes',
     modalTitle:        'Novo projeto',
     labelClient:       'Cliente',
     labelProject:      'Nome do projeto',
-    labelExpected:     'Custo esperado (R$ M)',
-    placeholderClient:  'Ex: NX Gold',
+    labelProjectType:  'Tipo de projeto',
+    helpProjectType:   'Categorias de custo nascem em branco — dá pra carregar um exemplo depois, na tela de Categorias.',
     placeholderProject: 'Ex: Fechamento de Mina — ARO',
-    placeholderExpected: 'Ex: 38,5',
     cancel:            'Cancelar',
     create:            'Criar projeto',
     justNow:           'agora mesmo',
+    projetosHeaderTitle:    'Projetos',
+    projetosHeaderSubtitle: 'Todos os projetos de todos os clientes',
+    searchAllPlaceholder:   'Buscar por projeto ou cliente...',
+    filterByClientAll:      'Todos os clientes',
+    filterByTypeAll:        'Todos os tipos',
   },
   'en': {
-    headerTitle:       'Clients and projects',
-    headerSubtitle:    'All ARO provisioning projects in progress',
+    clientsHeaderTitle:    'Clients',
+    clientsHeaderSubtitle: 'All consulting clients',
+    newClient:             '+ New client',
+    clientsBadge:          (n) => `${n} clients`,
+    searchClientPlaceholder: 'Search by client...',
+    colClient:             'CLIENT',
+    colProjectsCount:      'PROJECTS',
+    projectsCount:         (n) => n === 1 ? '1 project' : `${n} projects`,
+    emptyClients:          'No clients found.',
+    newClientModalTitle:      'New client',
+    labelClientName:          'Client name',
+    placeholderClientName:    'e.g.: NX Gold',
+    createClient:             'Create client',
+    headerSubtitle:    'This client\'s provisioning projects',
     newProject:        '+ New project',
     activesBadge:      (n) => `${n} active`,
-    searchPlaceholder: 'Search by client or project...',
+    searchPlaceholder: 'Search by project...',
     filterAll:         'All',
     filterActive:      'In progress',
     filterWaiting:     'Awaiting client',
     filterDone:        'Completed',
-    colProject:        'CLIENT / PROJECT',
+    colProject:        'PROJECT',
     colStatus:         'STATUS',
     colRev:            'CURRENT REV.',
     colExpected:       'EXPECTED',
@@ -104,28 +154,45 @@ export const clientesT: Record<Lang, {
     actionArchive:      'Archive project',
     menuAriaLabel:      'Project actions',
     linkCopied:         'Link copied!',
+    backToClients:      '← Clients',
     modalTitle:        'New project',
     labelClient:       'Client',
     labelProject:      'Project name',
-    labelExpected:     'Expected cost (R$ M)',
-    placeholderClient:  'e.g.: NX Gold',
+    labelProjectType:  'Project type',
+    helpProjectType:   'Cost categories start blank — you can load an example later, in the Categories screen.',
     placeholderProject: 'e.g.: Mine Closure — ARO',
-    placeholderExpected: 'e.g.: 38.5',
     cancel:            'Cancel',
     create:            'Create project',
     justNow:           'just now',
+    projetosHeaderTitle:    'Projects',
+    projetosHeaderSubtitle: 'All projects across all clients',
+    searchAllPlaceholder:   'Search by project or client...',
+    filterByClientAll:      'All clients',
+    filterByTypeAll:        'All types',
   },
   'es': {
-    headerTitle:       'Clientes y proyectos',
-    headerSubtitle:    'Todos los proyectos de provisión ARO en curso',
+    clientsHeaderTitle:    'Clientes',
+    clientsHeaderSubtitle: 'Todos los clientes de la consultoría',
+    newClient:             '+ Nuevo cliente',
+    clientsBadge:          (n) => `${n} clientes`,
+    searchClientPlaceholder: 'Buscar por cliente...',
+    colClient:             'CLIENTE',
+    colProjectsCount:      'PROYECTOS',
+    projectsCount:         (n) => n === 1 ? '1 proyecto' : `${n} proyectos`,
+    emptyClients:          'No se encontraron clientes.',
+    newClientModalTitle:      'Nuevo cliente',
+    labelClientName:          'Nombre del cliente',
+    placeholderClientName:    'Ej: NX Gold',
+    createClient:             'Crear cliente',
+    headerSubtitle:    'Proyectos de provisión de este cliente',
     newProject:        '+ Nuevo proyecto',
     activesBadge:      (n) => `${n} activos`,
-    searchPlaceholder: 'Buscar por cliente o proyecto...',
+    searchPlaceholder: 'Buscar por proyecto...',
     filterAll:         'Todos',
     filterActive:      'En curso',
     filterWaiting:     'En espera del cliente',
     filterDone:        'Completados',
-    colProject:        'CLIENTE / PROYECTO',
+    colProject:        'PROYECTO',
     colStatus:         'ESTADO',
     colRev:            'REV. ACTUAL',
     colExpected:       'ESPERADO',
@@ -142,15 +209,20 @@ export const clientesT: Record<Lang, {
     actionArchive:      'Archivar proyecto',
     menuAriaLabel:      'Acciones del proyecto',
     linkCopied:         '¡Enlace copiado!',
+    backToClients:      '← Clientes',
     modalTitle:        'Nuevo proyecto',
     labelClient:       'Cliente',
     labelProject:      'Nombre del proyecto',
-    labelExpected:     'Costo esperado (R$ M)',
-    placeholderClient:  'Ej: NX Gold',
+    labelProjectType:  'Tipo de proyecto',
+    helpProjectType:   'Las categorías de costo empiezan en blanco — puedes cargar un ejemplo después, en la pantalla de Categorías.',
     placeholderProject: 'Ej: Cierre de Mina — ARO',
-    placeholderExpected: 'Ej: 38,5',
     cancel:            'Cancelar',
     create:            'Crear proyecto',
     justNow:           'ahora mismo',
+    projetosHeaderTitle:    'Proyectos',
+    projetosHeaderSubtitle: 'Todos los proyectos de todos los clientes',
+    searchAllPlaceholder:   'Buscar por proyecto o cliente...',
+    filterByClientAll:      'Todos los clientes',
+    filterByTypeAll:        'Todos los tipos',
   },
 }

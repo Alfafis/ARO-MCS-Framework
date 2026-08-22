@@ -2,7 +2,7 @@ import type { Lang } from './LangContext'
 
 export const lancamentosT: Record<Lang, {
   headerTitle:      string
-  headerSubtitle:   string
+  headerSubtitle:   (projetoNome: string) => string
   newEntry:         string
   kpiRealized:      string
   kpiValidated:     string
@@ -38,7 +38,7 @@ export const lancamentosT: Record<Lang, {
 }> = {
   'pt-BR': {
     headerTitle:      'Lançamentos realizados',
-    headerSubtitle:   'NX Gold · Fechamento de Mina — base do comparativo expectativa vs. realidade',
+    headerSubtitle:   (nome) => `${nome} — base do comparativo expectativa vs. realidade`,
     newEntry:         'Novo lançamento',
     kpiRealized:      'Realizado em 2026',
     kpiValidated:     'Validados',
@@ -73,7 +73,7 @@ export const lancamentosT: Record<Lang, {
   },
   'en': {
     headerTitle:      'Recorded entries',
-    headerSubtitle:   'NX Gold · Mine Closure — basis for expected vs. actual comparison',
+    headerSubtitle:   (nome) => `${nome} — basis for expected vs. actual comparison`,
     newEntry:         'New entry',
     kpiRealized:      'Realized in 2026',
     kpiValidated:     'Validated',
@@ -108,7 +108,7 @@ export const lancamentosT: Record<Lang, {
   },
   'es': {
     headerTitle:      'Lanzamientos realizados',
-    headerSubtitle:   'NX Gold · Cierre de Mina — base del comparativo expectativa vs. realidad',
+    headerSubtitle:   (nome) => `${nome} — base del comparativo expectativa vs. realidad`,
     newEntry:         'Nuevo lanzamiento',
     kpiRealized:      'Realizado en 2026',
     kpiValidated:     'Validados',

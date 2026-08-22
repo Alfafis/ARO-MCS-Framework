@@ -1,30 +1,22 @@
-import { useCallback, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate, useOutletContext } from 'react-router-dom'
 import { useSimulation } from '@/context/SimulationContext'
 import { FileText } from 'lucide-react'
-import ClientSelector from '@/components/layout/ClientSelector'
-import { useClient } from '@/context/ClientContext'
+import { useProjeto } from '@/context/ProjetoContext'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
 import { simulacaoT } from '@/i18n/simulacao'
+import type { Projeto } from '@/types/clientes'
 import ParamsCard from '@/components/simulacao/ParamsCard'
 import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
-import { runMonteCarlo, ALL_CATEGORY_NAMES, parseIterationsNumber } from '@/lib/monteCarlo'
+import { runMonteCarlo, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/monteCarlo'
 import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
 
-const uid = () => Math.random().toString(36).slice(2)
-
-function nowStr(months: string[]): string {
-  const d = new Date()
-  const pad = (n: number) => String(n).padStart(2, '0')
-  return `${pad(d.getDate())} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`
-}
-
-function computeResult(dist: Distribution, n: number, activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
-  const mc  = runMonteCarlo(dist, n, activeCategories, confidence)
+function computeResult(dist: Distribution, n: number, categoryParams: CategoryParam[], activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
+  const mc  = runMonteCarlo(dist, n, categoryParams, activeCategories, confidence)
   const toM = (v: number) => v / 1_000_000
   const fmt = (v: number) => `R$ ${toM(v).toFixed(1).replace('.', ',')}M`
   const rng = (v: number) => toM(v).toFixed(1).replace('.', ',')
@@ -51,56 +43,56 @@ function computeResult(dist: Distribution, n: number, activeCategories: Set<stri
 export default function Simulacao() {
   const t = useT(simulacaoT)
   const navigate = useNavigate()
-  const { clients, selectedClient, setSelectedClient } = useClient()
-  const { simResult: ctxResult, setSimulation } = useSimulation()
+  const { projeto } = useOutletContext<{ projeto: Projeto }>()
+  const { getSimState, loadSimState, setSimulation, previewResult } = useSimulation()
+  const { catalogo } = useProjeto()
+  const categoryParams = useMemo(() => categoryParamsFromCategorias(projeto.categorias, catalogo), [projeto.categorias, catalogo])
+  const categoryNames  = useMemo(() => categoryParams.map(c => c.name), [categoryParams])
+
+  useEffect(() => { loadSimState(projeto.id) }, [projeto.id, loadSimState])
+
+  const simState = getSimState(projeto.id)
+  const result   = simState.result
+  const history  = simState.history
+  const hasRun   = result !== null
+
   const [dist,             setDist]             = useState<Distribution>('Triangular')
   const [iterations,       setIterations]       = useState('10.000')
   const [confidence,       setConfidence]       = useState('95')
   const [running,          setRunning]          = useState(false)
-  const [result,           setResult]           = useState<SimResult | null>(ctxResult)
-  const [history,          setHistory]          = useState<HistoryRun[]>([])
   const [historyOpen,      setHistoryOpen]      = useState(false)
-  const [hasRun,           setHasRun]           = useState(ctxResult !== null)
-  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(ALL_CATEGORY_NAMES))
+  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(categoryNames))
 
   const runSimulation = useCallback(() => {
+    if (categoryParams.length === 0) return
     setRunning(true)
-    setTimeout(() => {
+    setTimeout(async () => {
       const n    = parseIterationsNumber(iterations)
       const conf = parseInt(confidence, 10) || 95
       const next: SimResult = {
-        ...computeResult(dist, n, activeCategories, conf),
+        ...computeResult(dist, n, categoryParams, activeCategories, conf),
         status:       t.justFinished,
         iterations,
         distribution: dist,
       }
-      setSimulation(next, [...activeCategories])
-      setResult(next)
-      setHistory(prev => [
-        { id: uid(), date: nowStr(t.months), dist, iterations, mean: next.mean, uncertainty: next.uncertainty },
-        ...prev.slice(0, 3),
-      ])
-      setHasRun(true)
-      setRunning(false)
+      try {
+        await setSimulation(projeto.id, next, [...activeCategories])
+      } finally {
+        setRunning(false)
+      }
     }, 1300)
-  }, [dist, iterations, confidence, activeCategories, t])
+  }, [dist, iterations, confidence, activeCategories, categoryParams, t, projeto.id, setSimulation])
 
   const loadHistoryRun = useCallback((run: HistoryRun) => {
-    setResult(prev => prev ? { ...prev, mean: run.mean, status: `${t.runFrom} ${run.date}` } : null)
+    previewResult(projeto.id, { mean: run.mean, status: `${t.runFrom} ${run.date}` })
     setHistoryOpen(false)
-  }, [t])
+  }, [t, projeto.id, previewResult])
 
   return (
     <div className="flex flex-col h-full">
 
       <header className="flex items-start justify-between px-4 sm:px-8 py-4 sm:py-[22px] gap-4 shrink-0">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">Rev0</span>
-          </div>
-          <ClientSelector options={clients} value={selectedClient} onChange={setSelectedClient} />
-        </div>
+        <h1 className="text-2xl font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h1>
         <div className="flex items-center gap-2 shrink-0">
           <Button variant="ghost" onClick={() => setHistoryOpen(true)}>
             {t.seeHistory}
@@ -111,10 +103,13 @@ export default function Simulacao() {
       <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_1.6fr] gap-4 items-start">
           <ParamsCard
+            key={projeto.id}
             dist={dist}
             iterations={iterations}
             confidence={confidence}
             running={running}
+            disabled={categoryParams.length === 0}
+            categoryNames={categoryNames}
             onDistChange={setDist}
             onIterationsChange={setIterations}
             onConfidenceChange={setConfidence}
@@ -122,9 +117,14 @@ export default function Simulacao() {
             onCategoriesChange={setActiveCategories}
           />
           <div className="flex flex-col gap-4">
+            {categoryParams.length === 0 && (
+              <div className="card text-[0.8125rem] text-c-text-2">
+                Este projeto ainda não tem categorias de custo cadastradas — sem itens com custo min/max, não há o que simular. Cadastre em "Categorias de custo".
+              </div>
+            )}
             <ResultCard result={result} />
             <HistogramCard result={result} iterations={iterations} />
-            <UncertaintyCard result={result} dist={dist} activeCategories={activeCategories} />
+            <UncertaintyCard result={result} dist={dist} activeCategories={activeCategories} categoryParams={categoryParams} />
             {hasRun && (
               <div className="card flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export default function Simulacao() {
                     <p className="text-[12px] text-c-text-2 mt-0.5">Visualize o resultado do ponto de vista do cliente.</p>
                   </div>
                 </div>
-                <Button variant="primary" onClick={() => navigate(`/relatorio/${selectedClient}`)}>
+                <Button variant="primary" onClick={() => navigate(`/relatorio/${projeto.id}`)}>
                   Ver relatório
                 </Button>
               </div>

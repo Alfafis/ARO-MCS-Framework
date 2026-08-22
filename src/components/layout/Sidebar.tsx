@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { NavLink, useLocation } from 'react-router-dom'
 import {
-  LayoutDashboard, Tag, Activity, FileText, History,
+  FolderKanban,
   Users, ChevronsLeft, MoreHorizontal, User, Settings, LogOut,
   Globe, ChevronDown,
 } from 'lucide-react'
@@ -38,12 +38,12 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
   const location   = useLocation()
 
   const NAV_ITEMS = [
-    { to: '/dashboard',   label: t.overview,       Icon: LayoutDashboard },
-    { to: '/categorias',  label: t.costCategories, Icon: Tag             },
-    { to: '/simulacao',   label: t.simulation,     Icon: Activity        },
-    { to: '/lancamentos', label: t.launches,        Icon: FileText        },
-    { to: '/revisoes',    label: t.revisions,      Icon: History         },
-    { to: '/clientes',    label: t.clients,        Icon: Users           },
+    { to: '/clientes',    label: t.clients,   Icon: Users,        matchExact: false },
+    // exato: /projetos/:id/* é o workspace de projeto, com nav própria — não é
+    // "dentro" da lista global mesmo entrando por ela. Revisões e Lançamentos
+    // passaram pra dentro do workspace por projeto (2026-08-21) — não são mais
+    // rotas globais.
+    { to: '/projetos',    label: t.projects,  Icon: FolderKanban, matchExact: true  },
   ]
 
   useEffect(() => {
@@ -106,8 +106,8 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
 
       {/* ── Navegação principal ── */}
       <nav className="bsidebar-scroll" aria-label="Menu principal">
-        {NAV_ITEMS.map(({ to, label, Icon }) => {
-          const isActive = location.pathname === to || location.pathname.startsWith(to + '/')
+        {NAV_ITEMS.map(({ to, label, Icon, matchExact }) => {
+          const isActive = location.pathname === to || (!matchExact && location.pathname.startsWith(to + '/'))
           return (
             <NavLink
               key={to}

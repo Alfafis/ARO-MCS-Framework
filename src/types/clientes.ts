@@ -1,14 +1,28 @@
+import type { Category } from './categorias'
+
 export type ProjStatus = 'andamento' | 'aguardando' | 'concluido'
 export type FilterTab  = 'all' | ProjStatus
 
+export interface Cliente {
+  id:       string
+  nome:     string
+  initials: string
+}
+
 export interface Projeto {
-  id:         string
-  initials:   string
-  projeto:    string
-  cliente:    string
-  status:     ProjStatus
-  rev:        string
-  esperado:   string
-  atualizado: string
-  highlight:  boolean
+  id:              string
+  clienteId:       string
+  projeto:         string
+  status:          ProjStatus
+  rev:             string
+  esperado:        string
+  atualizado:      string
+  highlight:       boolean
+  // Dados de cadastro — nascem no fluxo "Novo projeto", editáveis depois em Categorias.
+  tipoProjetoId:   string
+  moeda:           string
+  dataBase:        string
+  metodoAtualizacao: string
+  contingenciaPct: number
+  categorias:      Category[]
 }

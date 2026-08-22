@@ -5,17 +5,18 @@ import type { MonetaryMethod } from '@/types/relatorio'
 
 interface Props {
   methods:    MonetaryMethod[]
+  baseLabel:  string
   className?: string
 }
 
-export default function MonetaryMethodsCard({ methods, className = '' }: Props) {
+export default function MonetaryMethodsCard({ methods, baseLabel, className = '' }: Props) {
   const t = useT(resumoT)
 
   return (
     <div className={`card ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-4">
         <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">{t.monetaryTitle}</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.monetaryTitle(baseLabel)}</span>
       </div>
 
       <div className="flex flex-col">

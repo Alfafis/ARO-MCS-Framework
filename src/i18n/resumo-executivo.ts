@@ -16,7 +16,7 @@ export const resumoT: Record<Lang, {
   baseProvision:  string
   baseSub:        string
   // MonetaryMethodsCard
-  monetaryTitle:  string
+  monetaryTitle:  (base: string) => string
   method1:        string
   method2:        string
   method3:        string
@@ -26,7 +26,7 @@ export const resumoT: Record<Lang, {
   yearPrefix:     string
   // FanChartCard
   fanTitle:       string
-  fanDesc:        string
+  fanDesc:        (cv: string) => string
   // RisksCard
   risksTitle:     string
   risk1Title:     string
@@ -38,7 +38,7 @@ export const resumoT: Record<Lang, {
   risk4Title:     string
   risk4Desc:      string
   // CostByCategoryTable
-  costTableTitle: string
+  costTableTitle: (count: number) => string
   colHash:        string
   colCategory:    string
   colMin:         string
@@ -99,7 +99,7 @@ export const resumoT: Record<Lang, {
     updatedSub:     'Custo total, valor atualizado',
     baseProvision:  'Provisão base',
     baseSub:        'Valor presente antes de atualização',
-    monetaryTitle:  'Métodos de atualização monetária (10 anos, sobre R$ 40,57 M)',
+    monetaryTitle:  (base) => `Métodos de atualização monetária (10 anos, sobre ${base})`,
     method1:        'Juros simples — 10,75%/ano',
     method2:        'Juros compostos — 10,75%/ano',
     method3:        'Inflação constante — 3,4%/ano',
@@ -107,7 +107,7 @@ export const resumoT: Record<Lang, {
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
     yearPrefix:     'ANO',
     fanTitle:       'Leque de confiança (fan chart) — desembolso acumulado por ano',
-    fanDesc:        'Faixa estimada a partir do coeficiente de variação da simulação de Monte Carlo (4,97%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.',
+    fanDesc:        cv => `Faixa estimada a partir do coeficiente de variação da simulação de Monte Carlo (${cv}%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.`,
     risksTitle:     'Riscos e pontos de atenção',
     risk1Title:     'Contingência divergente entre categorias',
     risk1Desc:      'A síntese por setor aplica 0% de contingência, enquanto a síntese por atividade aplica 20% sobre base equivalente — os dois totais não convergem.',
@@ -117,7 +117,7 @@ export const resumoT: Record<Lang, {
     risk3Desc:      'O desvio-padrão vem só do range Min-Max de cada item — resulta em CV de ~5%, quando estimativas classe conceitual costumam ficar entre -30% e +50%.',
     risk4Title:     'Inversão de Min/Max corrigida na Rev1',
     risk4Desc:      'Item 8.1.1 ("Bloqueio de acessos") tinha Min e Max invertidos na rev0 — já corrigido, listado no changelog da timeline de revisões.',
-    costTableTitle: 'Custo por categoria — 8 setores',
+    costTableTitle: (count) => `Custo por categoria — ${count} setores`,
     colHash:        '#',
     colCategory:    'Categoria',
     colMin:         'Min',
@@ -174,7 +174,7 @@ export const resumoT: Record<Lang, {
     updatedSub:     'Total cost, updated value',
     baseProvision:  'Base provision',
     baseSub:        'Present value before update',
-    monetaryTitle:  'Monetary update methods (10 years, on R$ 40.57 M)',
+    monetaryTitle:  (base) => `Monetary update methods (10 years, on ${base})`,
     method1:        'Simple interest — 10.75%/yr',
     method2:        'Compound interest — 10.75%/yr',
     method3:        'Constant inflation — 3.4%/yr',
@@ -182,7 +182,7 @@ export const resumoT: Record<Lang, {
     disbursementTitle: 'Projected disbursement by year — Grand Total',
     yearPrefix:     'YEAR',
     fanTitle:       'Confidence fan chart — cumulative disbursement by year',
-    fanDesc:        'Range estimated from the Monte Carlo simulation coefficient of variation (4.97%) applied to cumulative disbursement by year — not an independent percentile (P10/P90) calculation per year.',
+    fanDesc:        cv => `Range estimated from the Monte Carlo simulation coefficient of variation (${cv}%) applied to cumulative disbursement by year — not an independent percentile (P10/P90) calculation per year.`,
     risksTitle:     'Risks and points of attention',
     risk1Title:     'Divergent contingency between categories',
     risk1Desc:      'The sector summary applies 0% contingency, while the activity summary applies 20% on an equivalent base — the two totals do not converge.',
@@ -192,7 +192,7 @@ export const resumoT: Record<Lang, {
     risk3Desc:      'The standard deviation comes only from the Min-Max range of each item — resulting in CV of ~5%, while conceptual-class estimates typically range from -30% to +50%.',
     risk4Title:     'Min/Max inversion corrected in Rev1',
     risk4Desc:      'Item 8.1.1 ("Access blocking") had inverted Min and Max in rev0 — already corrected, listed in the revision timeline changelog.',
-    costTableTitle: 'Cost by category — 8 sectors',
+    costTableTitle: (count) => `Cost by category — ${count} sectors`,
     colHash:        '#',
     colCategory:    'Category',
     colMin:         'Min',
@@ -249,7 +249,7 @@ export const resumoT: Record<Lang, {
     updatedSub:     'Costo total, valor actualizado',
     baseProvision:  'Provisión base',
     baseSub:        'Valor presente antes de actualización',
-    monetaryTitle:  'Métodos de actualización monetaria (10 años, sobre R$ 40,57 M)',
+    monetaryTitle:  (base) => `Métodos de actualización monetaria (10 años, sobre ${base})`,
     method1:        'Interés simple — 10,75%/año',
     method2:        'Interés compuesto — 10,75%/año',
     method3:        'Inflación constante — 3,4%/año',
@@ -257,7 +257,7 @@ export const resumoT: Record<Lang, {
     disbursementTitle: 'Desembolso proyectado por año — Total General',
     yearPrefix:     'AÑO',
     fanTitle:       'Abanico de confianza (fan chart) — desembolso acumulado por año',
-    fanDesc:        'Rango estimado a partir del coeficiente de variación de la simulación de Monte Carlo (4,97%) aplicado al desembolso acumulado por año — no es un cálculo de percentil (P10/P90) ejecutado independientemente para cada año.',
+    fanDesc:        cv => `Rango estimado a partir del coeficiente de variación de la simulación de Monte Carlo (${cv}%) aplicado al desembolso acumulado por año — no es un cálculo de percentil (P10/P90) ejecutado independientemente para cada año.`,
     risksTitle:     'Riesgos y puntos de atención',
     risk1Title:     'Contingencia divergente entre categorías',
     risk1Desc:      'El resumen por sector aplica 0% de contingencia, mientras que el resumen por actividad aplica 20% sobre base equivalente — los dos totales no convergen.',
@@ -267,7 +267,7 @@ export const resumoT: Record<Lang, {
     risk3Desc:      'La desviación estándar proviene solo del rango Mín-Máx de cada ítem — resulta en CV de ~5%, mientras que las estimaciones de clase conceptual suelen estar entre -30% y +50%.',
     risk4Title:     'Inversión de Mín/Máx corregida en Rev1',
     risk4Desc:      'El ítem 8.1.1 ("Bloqueo de accesos") tenía Mín y Máx invertidos en rev0 — ya corregido, listado en el registro de la línea de tiempo de revisiones.',
-    costTableTitle: 'Costo por categoría — 8 sectores',
+    costTableTitle: (count) => `Costo por categoría — ${count} sectores`,
     colHash:        '#',
     colCategory:    'Categoría',
     colMin:         'Mín',

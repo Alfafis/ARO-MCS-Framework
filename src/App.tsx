@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
+import { supabase } from './integrations/supabase/client'
 import { LangProvider } from './i18n/LangContext'
-import { ClientProvider } from './context/ClientContext'
+import { ProjetoProvider } from './context/ProjetoContext'
 import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
 import OctahedronIcon from './components/icons/OctahedronIcon'
@@ -10,9 +11,12 @@ import Login from './pages/Login'
 import ResumoExecutivo from './pages/ResumoExecutivo'
 import Categorias from './pages/Categorias'
 import Simulacao from './pages/Simulacao'
+import ProjetoWorkspace from './pages/ProjetoWorkspace'
+import Projetos from './pages/Projetos'
 import Lancamentos from './pages/Lancamentos'
 import Revisoes from './pages/Revisoes'
 import Clientes from './pages/Clientes'
+import ClienteProjetos from './pages/ClienteProjetos'
 import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
 import './index.css'
 
@@ -105,72 +109,65 @@ function ProtectedLayout({
   )
 }
 
-export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem('aro_auth') === '1')
+type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
-  function handleLogin() {
-    localStorage.setItem('aro_auth', '1')
-    setIsLoggedIn(true)
-  }
+export default function App() {
+  const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setAuthStatus(session ? 'authenticated' : 'unauthenticated')
+    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setAuthStatus(session ? 'authenticated' : 'unauthenticated')
+    })
+    return () => subscription.unsubscribe()
+  }, [])
 
   function handleLogout() {
-    localStorage.removeItem('aro_auth')
-    setIsLoggedIn(false)
+    supabase.auth.signOut()
   }
+
+  if (authStatus === 'loading') return null
+
+  const isLoggedIn = authStatus === 'authenticated'
 
   return (
     <LangProvider>
-    <ClientProvider>
+    <ProjetoProvider>
     <SimulationProvider>
     <BrowserRouter>
       <Routes>
         {/* Rota pública */}
         <Route
           path="/login"
-          element={isLoggedIn ? <Navigate to="/dashboard" replace /> : <Login onLogin={handleLogin} />}
+          element={isLoggedIn ? <Navigate to="/clientes" replace /> : <Login />}
         />
 
         {/* Rotas protegidas */}
         <Route
-          path="/dashboard"
+          path="/projetos"
           element={
             <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ResumoExecutivo />
+              <Projetos />
             </ProtectedLayout>
           }
         />
         <Route
-          path="/categorias"
+          path="/projetos/:projetoId"
           element={
             <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Categorias />
+              <ProjetoWorkspace />
             </ProtectedLayout>
           }
-        />
-        <Route
-          path="/simulacao"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Simulacao />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/lancamentos"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Lancamentos />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/revisoes"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Revisoes />
-            </ProtectedLayout>
-          }
-        />
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<ResumoExecutivo />} />
+          <Route path="categorias" element={<Categorias />} />
+          <Route path="simulacao" element={<Simulacao />} />
+          <Route path="revisoes" element={<Revisoes />} />
+          <Route path="lancamentos" element={<Lancamentos />} />
+        </Route>
         <Route
           path="/clientes"
           element={
@@ -179,16 +176,24 @@ export default function App() {
             </ProtectedLayout>
           }
         />
+        <Route
+          path="/clientes/:clienteId"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <ClienteProjetos />
+            </ProtectedLayout>
+          }
+        />
 
         {/* Portal standalone — sem sidebar */}
         <Route path="/relatorio/:id" element={<PortalClienteRelatorio />} />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to={isLoggedIn ? '/dashboard' : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={isLoggedIn ? '/clientes' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
     </SimulationProvider>
-    </ClientProvider>
+    </ProjetoProvider>
     </LangProvider>
   )
 }
