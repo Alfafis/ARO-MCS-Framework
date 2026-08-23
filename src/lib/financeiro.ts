@@ -1,20 +1,42 @@
 import type { Category } from '@/types/categorias'
 
-const SIMPLE_RATE    = 0.1075
-const COMPOUND_RATE  = 0.1075
-const INFLATION_RATE = 0.034
+// Tabela de escalonamento por ano da planilha de referência — fora do escopo do
+// Subsistema A (parâmetros globais só cobrem valor spot, não projeção ano-a-ano
+// vinda de API pública). Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
 const IPCA_RATES     = [0.034, 0.003, 0.028, 0.031, 0.040, 0.042, 0.050, 0.030, 0.0211, 0.034]
 const HORIZON_YEARS  = 10
 
-// [simples, compostos, inflação, IPCA] — valores brutos em R$
-export function computeMonetaryValues(filteredBase: number): [number, number, number, number] {
+export interface ParametrosCalculo {
+  selicPct:    number | null  // null = parâmetro global não configurado, omite simples/compostos
+  inflacaoPct: number | null  // null = parâmetro global não configurado, omite inflação constante
+}
+
+export interface MetodoAtualizacao {
+  metodo: 'simples' | 'compostos' | 'inflacao' | 'escalonamento'
+  valor:  number
+}
+
+// Escalonamento (IPCA_RATES) nunca é omitido — não depende de parâmetro global,
+// por isso está sempre presente no retorno, mesmo se simples/compostos/inflação
+// sumirem por falta de configuração.
+export function computeMonetaryValues(filteredBase: number, params: ParametrosCalculo): MetodoAtualizacao[] {
+  const resultados: MetodoAtualizacao[] = []
   const n = HORIZON_YEARS
-  const simpleInterest    = filteredBase * (1 + SIMPLE_RATE * n)
-  const compoundInterest  = filteredBase * Math.pow(1 + COMPOUND_RATE, n)
-  const constantInflation = filteredBase * Math.pow(1 + INFLATION_RATE, n)
+
+  if (params.selicPct !== null) {
+    const rate = params.selicPct / 100
+    resultados.push({ metodo: 'simples',   valor: filteredBase * (1 + rate * n) })
+    resultados.push({ metodo: 'compostos', valor: filteredBase * Math.pow(1 + rate, n) })
+  }
+  if (params.inflacaoPct !== null) {
+    const rate = params.inflacaoPct / 100
+    resultados.push({ metodo: 'inflacao', valor: filteredBase * Math.pow(1 + rate, n) })
+  }
   let ipcaFV = filteredBase
   for (const rate of IPCA_RATES) ipcaFV *= (1 + rate)
-  return [simpleInterest, compoundInterest, constantInflation, ipcaFV]
+  resultados.push({ metodo: 'escalonamento', valor: ipcaFV })
+
+  return resultados
 }
 
 // "R$ 1.234.567" ou "1.234.567,89" → 1234567(.89). Retorna 0 se não conseguir extrair número.

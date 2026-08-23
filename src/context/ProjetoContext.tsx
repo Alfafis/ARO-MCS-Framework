@@ -2,22 +2,13 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
+import { mapParametroGlobalRow } from '@/types/parametrosGlobais'
 import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
-import type { ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns, CarregarTemplateExemploItem, ParametroGlobalRow } from '@/types'
-
-function mapParametroGlobalRow(row: ParametroGlobalRow): ParametroGlobal {
-  return {
-    chave: row.chave as ParametroGlobalChave,
-    valor: Number(row.valor),
-    fonte: row.fonte as ParametroGlobal['fonte'],
-    serieBcb: row.serie_bcb,
-    atualizadoEm: row.atualizado_em,
-  }
-}
+import type { ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns, CarregarTemplateExemploItem } from '@/types'
 
 function initials(name: string): string {
   return name

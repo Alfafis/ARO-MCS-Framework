@@ -11,7 +11,7 @@ import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
-import { computeMonetaryValues } from '@/lib/financeiro'
+import { computeMonetaryValues, type MetodoAtualizacao } from '@/lib/financeiro'
 import { useT } from '@/i18n/LangContext'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -19,6 +19,21 @@ import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { Category, CategoriaCatalogo } from '@/types/categorias'
 import type { SimResult } from '@/types/simulacao'
 import type { RelatorioPublicoReturns } from '@/types'
+import { buscarParametro, mapParametroGlobalRow } from '@/types/parametrosGlobais'
+
+type ResumoT = typeof resumoT['pt-BR']
+
+// mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
+const pct = (v: number) => v.toFixed(2).replace('.', ',')
+
+function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPct: number | null, inflacaoPct: number | null, dataBaseAno: number | null): string {
+  switch (metodo) {
+    case 'simples':       return t.method1(pct(selicPct!))
+    case 'compostos':     return t.method2(pct(selicPct!))
+    case 'inflacao':      return t.method3(pct(inflacaoPct!))
+    case 'escalonamento': return t.method4(dataBaseAno)
+  }
+}
 
 function fmtM(v: number) {
   return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} M`
@@ -111,17 +126,19 @@ export default function PortalClienteRelatorio() {
   const contingenciaPct    = projeto?.contingencia_pct ?? 0
   const baseWithProvision  = baseTotal * (1 + contingenciaPct / 100)
 
+  const parametrosGlobais = useMemo(() => (bundle?.parametrosGlobais ?? []).map(mapParametroGlobalRow), [bundle])
+
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const [simple, compound, inflation, ipca] = computeMonetaryValues(baseWithProvision)
+    const selicPct    = buscarParametro(parametrosGlobais, 'selic')
+    const inflacaoPct = buscarParametro(parametrosGlobais, 'inflacao_ipca')
+    const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return [
-      { label: tBase.method1, value: fmt(simple)    },
-      { label: tBase.method2, value: fmt(compound)  },
-      { label: tBase.method3, value: fmt(inflation) },
-      { label: tBase.method4, value: fmt(ipca)      },
-    ]
-  }, [baseTotal, baseWithProvision, tBase])
+    return computeMonetaryValues(baseWithProvision, { selicPct, inflacaoPct }).map(({ metodo, valor }) => ({
+      label: labelPorMetodo(metodo, tBase, selicPct, inflacaoPct, dataBaseAno),
+      value: fmt(valor),
+    }))
+  }, [baseTotal, baseWithProvision, parametrosGlobais, projeto?.data_base, tBase])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: t.riskMean,       value: simResult.mean       },

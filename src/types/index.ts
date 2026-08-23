@@ -41,8 +41,9 @@ export interface CarregarTemplateExemploItem {
 // vazio em plpgsql). Checar `simulacao?.id` pra saber se existe de verdade,
 // nunca truthiness do objeto inteiro.
 export interface RelatorioPublicoReturns {
-  projeto:    ProjetoDbRow
-  cliente:    ClienteDbRow
-  categorias: CarregarTemplateExemploItem[]
-  simulacao:  SimulacaoRow
+  projeto:           ProjetoDbRow
+  cliente:           ClienteDbRow
+  categorias:        CarregarTemplateExemploItem[]
+  simulacao:         SimulacaoRow
+  parametrosGlobais: ParametroGlobalRow[]
 }

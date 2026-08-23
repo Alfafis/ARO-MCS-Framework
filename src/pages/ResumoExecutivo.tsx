@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/ProjetoContext'
 import { supabase } from '@/integrations/supabase/client'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
-import { computeMonetaryValues } from '@/lib/financeiro'
+import { computeMonetaryValues, type MetodoAtualizacao } from '@/lib/financeiro'
 import { formatDateTime } from '@/lib/utils'
 import { useT } from '@/i18n/LangContext'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -20,6 +20,19 @@ import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 import type { RevisaoRow } from '@/types'
+import { buscarParametro } from '@/types/parametrosGlobais'
+
+// mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
+const pct = (v: number) => v.toFixed(2).replace('.', ',')
+
+function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPct: number | null, inflacaoPct: number | null, dataBaseAno: number | null): string {
+  switch (metodo) {
+    case 'simples':       return t.method1(pct(selicPct!))
+    case 'compostos':     return t.method2(pct(selicPct!))
+    case 'inflacao':      return t.method3(pct(inflacaoPct!))
+    case 'escalonamento': return t.method4(dataBaseAno)
+  }
+}
 
 // "34,2" (compacto, sem "R$") — mesma convenção do Portal do Cliente pra
 // célula de tabela, onde o prefixo já vem da coluna/título ao redor.
@@ -56,7 +69,7 @@ export default function ResumoExecutivo() {
   const tRel = useT(relatorioClienteT)
   const navigate = useNavigate()
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
-  const { catalogo } = useProjeto()
+  const { catalogo, parametrosGlobais } = useProjeto()
   const [linkCopied, setLinkCopied] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
@@ -110,15 +123,15 @@ export default function ResumoExecutivo() {
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const [simple, compound, inflation, ipca] = computeMonetaryValues(baseWithProvision)
+    const selicPct    = buscarParametro(parametrosGlobais, 'selic')
+    const inflacaoPct = buscarParametro(parametrosGlobais, 'inflacao_ipca')
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return [
-      { label: t.method1, value: fmt(simple)    },
-      { label: t.method2, value: fmt(compound)  },
-      { label: t.method3, value: fmt(inflation) },
-      { label: t.method4, value: fmt(ipca)      },
-    ]
-  }, [baseTotal, baseWithProvision, t])
+    return computeMonetaryValues(baseWithProvision, { selicPct, inflacaoPct }).map(({ metodo, valor }) => ({
+      label: labelPorMetodo(metodo, t, selicPct, inflacaoPct, dataBaseAno),
+      value: fmt(valor),
+    }))
+  }, [baseTotal, baseWithProvision, parametrosGlobais, projeto.dataBase, t])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: tRel.riskMean,       value: simResult.mean       },

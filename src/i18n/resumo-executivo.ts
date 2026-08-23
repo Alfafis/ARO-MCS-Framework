@@ -7,10 +7,10 @@ export const resumoT: Record<Lang, {
   runSimulation:  string
   // MonetaryMethodsCard
   monetaryTitle:  (base: string) => string
-  method1:        string
-  method2:        string
-  method3:        string
-  method4:        string
+  method1:        (pct: string) => string
+  method2:        (pct: string) => string
+  method3:        (pct: string) => string
+  method4:        (anoInicio: number | null) => string
   // AnnualDisbursementCard (componente ainda sem consumidor ligado — mantido pra não quebrar o arquivo)
   disbursementTitle: string
   yearPrefix:     string
@@ -62,10 +62,10 @@ export const resumoT: Record<Lang, {
     exportPdf:      'Exportar PDF',
     runSimulation:  'Rodar simulação',
     monetaryTitle:  (base) => `Métodos de atualização monetária (10 anos, sobre ${base})`,
-    method1:        'Juros simples — 10,75%/ano',
-    method2:        'Juros compostos — 10,75%/ano',
-    method3:        'Inflação constante — 3,4%/ano',
-    method4:        'Escalonamento — IPCA variável 2024-2033',
+    method1:        (pct) => `Juros simples — ${pct}%/ano`,
+    method2:        (pct) => `Juros compostos — ${pct}%/ano`,
+    method3:        (pct) => `Inflação constante — ${pct}%/ano`,
+    method4:        (ano) => ano !== null ? `Escalonamento — IPCA variável ${ano}-${ano + 9}` : 'Escalonamento — IPCA variável', // +9 = HORIZON_YEARS-1 (lib/financeiro.ts)
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
     yearPrefix:     'ANO',
     fanTitle:       'Leque de confiança (fan chart) — desembolso acumulado por ano',
@@ -109,10 +109,10 @@ export const resumoT: Record<Lang, {
     exportPdf:      'Export PDF',
     runSimulation:  'Run simulation',
     monetaryTitle:  (base) => `Monetary update methods (10 years, on ${base})`,
-    method1:        'Simple interest — 10.75%/yr',
-    method2:        'Compound interest — 10.75%/yr',
-    method3:        'Constant inflation — 3.4%/yr',
-    method4:        'Escalation — variable IPCA 2024-2033',
+    method1:        (pct) => `Simple interest — ${pct}%/yr`,
+    method2:        (pct) => `Compound interest — ${pct}%/yr`,
+    method3:        (pct) => `Constant inflation — ${pct}%/yr`,
+    method4:        (ano) => ano !== null ? `Escalation — variable IPCA ${ano}-${ano + 9}` : 'Escalation — variable IPCA',
     disbursementTitle: 'Projected disbursement by year — Grand Total',
     yearPrefix:     'YEAR',
     fanTitle:       'Confidence fan chart — cumulative disbursement by year',
@@ -156,10 +156,10 @@ export const resumoT: Record<Lang, {
     exportPdf:      'Exportar PDF',
     runSimulation:  'Ejecutar simulación',
     monetaryTitle:  (base) => `Métodos de actualización monetaria (10 años, sobre ${base})`,
-    method1:        'Interés simple — 10,75%/año',
-    method2:        'Interés compuesto — 10,75%/año',
-    method3:        'Inflación constante — 3,4%/año',
-    method4:        'Escalonamiento — IPCA variable 2024-2033',
+    method1:        (pct) => `Interés simple — ${pct}%/año`,
+    method2:        (pct) => `Interés compuesto — ${pct}%/año`,
+    method3:        (pct) => `Inflación constante — ${pct}%/año`,
+    method4:        (ano) => ano !== null ? `Escalonamiento — IPCA variable ${ano}-${ano + 9}` : 'Escalonamiento — IPCA variable',
     disbursementTitle: 'Desembolso proyectado por año — Total General',
     yearPrefix:     'AÑO',
     fanTitle:       'Abanico de confianza (fan chart) — desembolso acumulado por año',

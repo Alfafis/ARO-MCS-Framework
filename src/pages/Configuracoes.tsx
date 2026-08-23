@@ -9,6 +9,7 @@ import { configuracoesT } from '@/i18n/configuracoes'
 import { useProjeto } from '@/context/ProjetoContext'
 import type { TipoProjeto } from '@/data/categoria-templates'
 import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
+import { isNaoConfigurado } from '@/types/parametrosGlobais'
 import { SERIE_BCB, buscarValorBcb } from '@/lib/bcb'
 import { formatRelativeTime } from '@/lib/utils'
 
@@ -84,14 +85,6 @@ const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['inflacao_ipca', 'cambio_usd_br
 function formatParametroValor(chave: ParametroGlobalChave, valor: number): string {
   if (chave === 'cambio_usd_brl') return `R$ ${valor.toFixed(4).replace('.', ',')}`
   return `${valor.toFixed(2).replace('.', ',')}%`
-}
-
-// "Nunca configurado" (seed) e "configurado manualmente como zero" são estados
-// diferentes, mas o schema não distingue — valor=0 com fonte='manual' é o único
-// jeito de representar "nunca tocado" (ver spec: câmbio nunca é 0 de verdade,
-// mas inflação/Selic hipoteticamente podem ser, então checar só `valor===0` mentiria).
-function isNaoConfigurado(p: ParametroGlobal): boolean {
-  return p.valor === 0 && p.fonte === 'manual'
 }
 
 interface ParametroRowProps {
