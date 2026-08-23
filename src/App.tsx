@@ -146,7 +146,7 @@ export default function App() {
         {/* Rota pública */}
         <Route
           path="/login"
-          element={isLoggedIn ? <Navigate to="/clientes" replace /> : <Login />}
+          element={isLoggedIn ? <Navigate to="/visao-geral" replace /> : <Login />}
         />
 
         {/* Rotas protegidas */}
@@ -218,7 +218,7 @@ export default function App() {
         <Route path="/relatorio/:id" element={<PortalClienteRelatorio />} />
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to={isLoggedIn ? '/clientes' : '/login'} replace />} />
+        <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/login'} replace />} />
       </Routes>
     </BrowserRouter>
     </SimulationProvider>

@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Shield, TrendingUp, Users } from 'lucide-react'
+import { Shield, TrendingUp } from 'lucide-react'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
@@ -18,7 +18,6 @@ export default function Login() {
   const FEATURES = [
     { Icon: TrendingUp, label: t.feature1Label, desc: t.feature1Desc },
     { Icon: Shield,     label: t.feature2Label, desc: t.feature2Desc },
-    { Icon: Users,      label: t.feature3Label, desc: t.feature3Desc },
   ]
 
   async function handleSubmit(e: FormEvent) {
@@ -31,7 +30,7 @@ export default function Login() {
       setLoading(false)
       return
     }
-    navigate('/clientes', { replace: true })
+    navigate('/visao-geral', { replace: true })
   }
 
   return (
@@ -104,7 +103,7 @@ export default function Login() {
       </div>
 
       {/* Cards de feature */}
-      <div className="grid grid-cols-3 gap-3 w-full max-w-[400px] mt-4">
+      <div className="grid grid-cols-2 gap-3 w-full max-w-[400px] mt-4">
         {FEATURES.map(({ Icon, label, desc }) => (
           <div key={label} className="bg-white rounded-[16px] px-4 py-3.5" style={{ boxShadow: '0 1px 2px rgba(20,21,26,.06)' }}>
             <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center mb-2">
