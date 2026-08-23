@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Shield, TrendingUp } from 'lucide-react'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/LangContext'
@@ -14,11 +13,6 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error,    setError]    = useState('')
   const [loading,  setLoading]  = useState(false)
-
-  const FEATURES = [
-    { Icon: TrendingUp, label: t.feature1Label, desc: t.feature1Desc },
-    { Icon: Shield,     label: t.feature2Label, desc: t.feature2Desc },
-  ]
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -100,19 +94,6 @@ export default function Login() {
             {loading ? t.entering : t.enter}
           </Button>
         </form>
-      </div>
-
-      {/* Cards de feature */}
-      <div className="grid grid-cols-2 gap-3 w-full max-w-[400px] mt-4">
-        {FEATURES.map(({ Icon, label, desc }) => (
-          <div key={label} className="bg-white rounded-[16px] px-4 py-3.5" style={{ boxShadow: '0 1px 2px rgba(20,21,26,.06)' }}>
-            <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center mb-2">
-              <Icon size={13} color="var(--accent-700)" strokeWidth={2} aria-hidden="true" />
-            </div>
-            <p className="text-[12px] font-semibold text-c-text leading-tight">{label}</p>
-            <p className="text-[11px] text-c-text-2 mt-0.5 leading-tight">{desc}</p>
-          </div>
-        ))}
       </div>
     </div>
   )
