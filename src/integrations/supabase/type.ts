@@ -259,6 +259,41 @@ export type Database = {
           },
         ]
       }
+      parametros_globais: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          fonte: string
+          serie_bcb: number | null
+          valor: number
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          fonte?: string
+          serie_bcb?: number | null
+          valor: number
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          fonte?: string
+          serie_bcb?: number | null
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parametros_globais_atualizado_por_fkey"
+            columns: ["atualizado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       perfis: {
         Row: {
           criado_em: string
@@ -501,6 +536,28 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      atualizar_parametro_global: {
+        Args: {
+          p_chave: string
+          p_fonte: string
+          p_serie_bcb?: number
+          p_valor: number
+        }
+        Returns: {
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          fonte: string
+          serie_bcb: number | null
+          valor: number
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parametros_globais"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       atualizar_status_lancamento: {
         Args: { p_id: string; p_status: string }
         Returns: undefined
@@ -729,6 +786,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      unaccent: { Args: { "": string }; Returns: string }
       update_categoria_preenche: {
         Args: { p_id: string; p_preenche: string }
         Returns: undefined

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { Check, Plus, Settings2, Trash2, X } from 'lucide-react'
+import { Check, Plus, RefreshCw, Settings2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -8,6 +8,9 @@ import { useT } from '@/i18n/LangContext'
 import { configuracoesT } from '@/i18n/configuracoes'
 import { useProjeto } from '@/context/ProjetoContext'
 import type { TipoProjeto } from '@/data/categoria-templates'
+import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
+import { SERIE_BCB, buscarValorBcb } from '@/lib/bcb'
+import { formatRelativeTime } from '@/lib/utils'
 
 interface TipoRowProps {
   tipo: TipoProjeto
@@ -74,9 +77,139 @@ function TipoRow({ tipo, onRename, onRemove }: TipoRowProps) {
   )
 }
 
+const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['inflacao_ipca', 'cambio_usd_brl', 'selic']
+
+// Formato de exibição: câmbio é preço (R$ por USD), inflação/Selic são taxa —
+// mesmo valor bruto do banco (4.44 = 4,44%), só muda o sufixo.
+function formatParametroValor(chave: ParametroGlobalChave, valor: number): string {
+  if (chave === 'cambio_usd_brl') return `R$ ${valor.toFixed(4).replace('.', ',')}`
+  return `${valor.toFixed(2).replace('.', ',')}%`
+}
+
+// "Nunca configurado" (seed) e "configurado manualmente como zero" são estados
+// diferentes, mas o schema não distingue — valor=0 com fonte='manual' é o único
+// jeito de representar "nunca tocado" (ver spec: câmbio nunca é 0 de verdade,
+// mas inflação/Selic hipoteticamente podem ser, então checar só `valor===0` mentiria).
+function isNaoConfigurado(p: ParametroGlobal): boolean {
+  return p.valor === 0 && p.fonte === 'manual'
+}
+
+interface ParametroRowProps {
+  parametro: ParametroGlobal
+  label: string
+  t: typeof configuracoesT['pt-BR']
+  onSalvar: (valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
+  onValorInvalido: () => void
+  onBuscaFalhou: () => void
+}
+
+function ParametroRow({ parametro, label, t, onSalvar, onValorInvalido, onBuscaFalhou }: ParametroRowProps) {
+  const [editing, setEditing] = useState<string | null>(null)
+  const [buscando, setBuscando] = useState(false)
+  const isEditing = editing !== null
+  const editRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isEditing) return
+    function onMouseDown(e: MouseEvent) {
+      if (editRef.current?.contains(e.target as Node)) return
+      setEditing(null)
+    }
+    document.addEventListener('mousedown', onMouseDown)
+    return () => document.removeEventListener('mousedown', onMouseDown)
+  }, [isEditing])
+
+  async function confirmEdicao() {
+    const raw = (editing ?? '').trim().replace(',', '.')
+    const valor = Number(raw)
+    if (raw === '' || !Number.isFinite(valor)) {
+      onValorInvalido()
+      return
+    }
+    setEditing(null)
+    await onSalvar(valor, 'manual', null)
+  }
+
+  async function atualizarDaApi() {
+    setBuscando(true)
+    try {
+      const serie = SERIE_BCB[parametro.chave]
+      let valor: number
+      try {
+        valor = await buscarValorBcb(serie)
+      } catch {
+        onBuscaFalhou()
+        return
+      }
+      await onSalvar(valor, 'bcb-sgs', serie)
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  const naoConfigurado = isNaoConfigurado(parametro)
+
+  return (
+    <div className="flex items-center gap-2 py-2 border-b border-[rgba(20,21,26,.04)] last:border-b-0">
+      <div className="flex flex-col flex-1 min-w-0">
+        <span className="text-[13px] font-medium text-c-text">{label}</span>
+        {!naoConfigurado && (
+          <span className="text-[11px] text-c-text-2">
+            {parametro.fonte === 'bcb-sgs' ? t.fonteBcb : t.fonteManual} · {formatRelativeTime(parametro.atualizadoEm)}
+          </span>
+        )}
+      </div>
+      {isEditing ? (
+        <div className="flex items-center gap-2" ref={editRef}>
+          <Input
+            variant="filled"
+            className="w-28"
+            autoFocus
+            value={editing}
+            onChange={e => setEditing(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Enter') void confirmEdicao()
+              if (e.key === 'Escape') setEditing(null)
+            }}
+            aria-label={label}
+          />
+          <Button variant="icon-btn" onClick={confirmEdicao} aria-label="Confirmar valor">
+            <Check size={14} aria-hidden="true" />
+          </Button>
+          <Button variant="icon-danger" onClick={() => setEditing(null)} aria-label="Cancelar edição">
+            <X size={14} aria-hidden="true" />
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3" ref={editRef}>
+          <button
+            type="button"
+            className="text-[13px] font-semibold text-c-text hover:text-[var(--accent)] transition-colors"
+            onClick={() => setEditing(String(parametro.valor))}
+          >
+            {naoConfigurado ? t.naoConfigurado : formatParametroValor(parametro.chave, parametro.valor)}
+          </button>
+          <Button variant="icon-btn" disabled={buscando} onClick={atualizarDaApi} aria-label={t.atualizarDaApi} title={t.atualizarDaApi}>
+            <RefreshCw size={14} className={buscando ? 'animate-spin' : ''} aria-hidden="true" />
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const PARAMETRO_LABEL_KEY: Record<ParametroGlobalChave, keyof typeof configuracoesT['pt-BR']> = {
+  inflacao_ipca: 'parametroInflacao',
+  cambio_usd_brl: 'parametroCambio',
+  selic: 'parametroSelic',
+}
+
 export default function Configuracoes() {
   const t = useT(configuracoesT)
-  const { tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto, loading } = useProjeto()
+  const {
+    tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
+    parametrosGlobais, atualizarParametroGlobal, loading,
+  } = useProjeto()
 
   const [novoNome, setNovoNome] = useState('')
   const [criando, setCriando]   = useState(false)
@@ -153,6 +286,44 @@ export default function Configuracoes() {
               <Plus size={14} aria-hidden="true" />
               {t.addTipo}
             </Button>
+          </div>
+        </div>
+
+        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
+            <Settings2 size={14} color="var(--accent)" aria-hidden="true" />
+            <span>{t.parametrosSectionTitle}</span>
+          </div>
+          <p className="text-[12px] text-c-text-2 -mt-2">{t.parametrosSectionHint}</p>
+
+          <div className="flex flex-col">
+            {loading && (
+              <div className="flex flex-col gap-2 py-1">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+              </div>
+            )}
+            {!loading && PARAMETRO_ORDEM.map(chave => {
+              const parametro = parametrosGlobais.find(p => p.chave === chave)
+              if (!parametro) return null
+              return (
+                <ParametroRow
+                  key={chave}
+                  parametro={parametro}
+                  label={t[PARAMETRO_LABEL_KEY[chave]]}
+                  t={t}
+                  onValorInvalido={() => showToast(t.valorInvalidoToast)}
+                  onBuscaFalhou={() => showToast(t.buscarErroToast)}
+                  onSalvar={async (valor, fonte, serieBcb) => {
+                    try {
+                      await atualizarParametroGlobal(chave, valor, fonte, serieBcb)
+                      showToast(t.atualizadoToast)
+                    } catch {
+                      showToast(t.atualizarErroToast)
+                    }
+                  }}
+                />
+              )
+            })}
           </div>
         </div>
       </div>

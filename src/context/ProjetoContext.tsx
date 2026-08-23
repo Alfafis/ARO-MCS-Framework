@@ -1,12 +1,23 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
+import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
 import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
-import type { ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns, CarregarTemplateExemploItem } from '@/types'
+import type { ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns, CarregarTemplateExemploItem, ParametroGlobalRow } from '@/types'
+
+function mapParametroGlobalRow(row: ParametroGlobalRow): ParametroGlobal {
+  return {
+    chave: row.chave as ParametroGlobalChave,
+    valor: Number(row.valor),
+    fonte: row.fonte as ParametroGlobal['fonte'],
+    serieBcb: row.serie_bcb,
+    atualizadoEm: row.atualizado_em,
+  }
+}
 
 function initials(name: string): string {
   return name
@@ -51,6 +62,8 @@ interface ProjetoContextValue {
   removerTipoProjeto:  (id: string) => Promise<void>
   catalogo:        CategoriaCatalogo[]
   renomearCategoriaCatalogo: (catalogoId: string, novoNome: string) => Promise<void>
+  parametrosGlobais: ParametroGlobal[]
+  atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   projetos:        Projeto[]
   criarProjeto:    (form: NovoProjetoForm) => Promise<void>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
@@ -117,6 +130,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [tiposProjeto, setTiposProjeto] = useState<TipoProjeto[]>([])
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
+  const [parametrosGlobais, setParametrosGlobais] = useState<ParametroGlobal[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
@@ -169,8 +183,15 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setCatalogo(data)
       })
+    const fetchParametrosGlobais = supabase
+      .from('parametros_globais')
+      .select('*')
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setParametrosGlobais(data.map(mapParametroGlobalRow))
+      })
 
-    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo])
+    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais])
       .then(() => setLoading(false))
   }
 
@@ -210,6 +231,17 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     const { data, error } = await supabase.rpc('renomear_categoria_catalogo', { p_id: catalogoId, p_novo_nome: novoNome })
     if (error || !data) throw error ?? new Error('Falha ao renomear categoria')
     setCatalogo(prev => prev.map(c => c.id === catalogoId ? { id: data.id, nome: data.nome } : c))
+  }, [])
+
+  const atualizarParametroGlobal = useCallback(async (
+    chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null
+  ) => {
+    const { data, error } = await supabase.rpc('atualizar_parametro_global', {
+      p_chave: chave, p_valor: valor, p_fonte: fonte, p_serie_bcb: serieBcb,
+    })
+    if (error || !data) throw error ?? new Error('Falha ao atualizar parâmetro global')
+    const atualizado = mapParametroGlobalRow(data)
+    setParametrosGlobais(prev => prev.map(p => p.chave === chave ? atualizado : p))
   }, [])
 
   const criarProjeto = useCallback(async (form: NovoProjetoForm) => {
@@ -381,6 +413,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       clientes, criarCliente,
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
+      parametrosGlobais, atualizarParametroGlobal,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
       atualizarRevLocal,
