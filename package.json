@@ -7,7 +7,7 @@
     "dev": "vite",
 "build": "npm run type-check && npm run lint && vite build",
     "build:dev": "vite build --mode development",
-    "type-check": "tsc --noEmit",
+    "type-check": "tsc -b",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "preview": "vite preview --port 8484",
