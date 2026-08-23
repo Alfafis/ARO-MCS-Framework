@@ -283,23 +283,25 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
           </Button>
         </div>
       </div>
-      <div className="max-h-64 overflow-y-auto rounded-[11px] bg-[#f6f5f3]">
-        <div className="grid grid-cols-[64px_1fr_1fr] gap-x-2 gap-y-1 p-2 text-[11.5px]">
+      <div className="max-h-64 overflow-y-auto rounded-[11px] border border-[rgba(20,21,26,.06)]">
+        <div className="grid grid-cols-[64px_1fr_1fr] gap-x-2 gap-y-1.5 p-2 text-[11.5px]">
           <span className="text-c-text-2 font-medium">{t.colAno}</span>
           <span className="text-c-text-2 font-medium">{t.colMinPct}</span>
           <span className="text-c-text-2 font-medium">{t.colMaxPct}</span>
           {ANOS_TABELA.map(ano => (
             <Fragment key={ano}>
               <span className="flex items-center text-c-text">{ano}</span>
-              <input
-                className="row-input"
+              <Input
+                variant="filled"
+                className="h-7 px-2 py-0 text-[11.5px]"
                 value={valorAtual(ano, 'min')}
                 onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
                 onBlur={e => void salvarCelula(ano, 'min', e.target.value)}
                 aria-label={`${label} ano ${ano} mínimo`}
               />
-              <input
-                className="row-input"
+              <Input
+                variant="filled"
+                className="h-7 px-2 py-0 text-[11.5px]"
                 value={valorAtual(ano, 'max')}
                 onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
                 onBlur={e => void salvarCelula(ano, 'max', e.target.value)}
