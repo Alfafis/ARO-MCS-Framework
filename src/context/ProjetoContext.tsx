@@ -3,12 +3,15 @@ import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categori
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
-import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
+import type { TipoProjeto } from '@/types/tiposProjeto'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
-import type { ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns, CarregarTemplateExemploItem } from '@/types'
+import type {
+  ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns,
+  CarregarTemplateExemploItem, CategoriaTemplateRow, ItemTemplateRow, TemplateAddCategoriaReturns,
+} from '@/types'
 
 function initials(name: string): string {
   return name
@@ -65,6 +68,16 @@ interface ProjetoContextValue {
   atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   parametrosAnuais: ParametroAnual[]
   atualizarParametroAnual: (chave: ParametroAnualChave, ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']) => Promise<void>
+  tiposComTemplate: string[]
+  templates:        Record<string, Category[]>
+  fetchTemplateCategorias: (tipoProjetoId: string) => Promise<void>
+  templateAddCategoria:    (tipoProjetoId: string) => Promise<void>
+  templateRemoveCategoria: (tipoProjetoId: string, catId: string) => Promise<void>
+  templateUpdateCategoria: (tipoProjetoId: string, catId: string, field: keyof Category, value: string | boolean) => Promise<void>
+  templateAddItem:         (tipoProjetoId: string, catId: string) => Promise<void>
+  templateRemoveItem:      (tipoProjetoId: string, catId: string, itemId: string) => Promise<void>
+  templateUpdateItem:      (tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => void
+  templateSaveItem:        (itemId: string, field: keyof CategoryItem, value: string) => Promise<void>
   projetos:        Projeto[]
   criarProjeto:    (form: NovoProjetoForm) => Promise<string>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
@@ -90,6 +103,25 @@ type ProjetoRowComCategorias = ProjetoDbRow & {
     categorias_catalogo: CategoriaCatalogoRow
     itens_custo: ItemCustoRow[]
   })[]
+}
+
+type CategoriaTemplateRowComItens = CategoriaTemplateRow & {
+  categorias_catalogo: CategoriaCatalogoRow
+  itens_template: ItemTemplateRow[]
+}
+
+// Mesmo shape de tela do projeto real (Category) — camposOperacionais não
+// existe em template (fato operacional é sempre por instância de projeto).
+function mapRowToTemplateCategoria(row: CategoriaTemplateRowComItens): Category {
+  return {
+    id: row.id,
+    catalogoId: row.catalogo_id,
+    preenche: row.preenche as Category['preenche'],
+    expanded: false,
+    justAdded: false,
+    items: row.itens_template.map(mapItemCustoRow),
+    camposOperacionais: [],
+  }
 }
 
 // Junta categorias_projeto/categorias_catalogo/itens_custo num só round-trip
@@ -135,6 +167,8 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
   const [parametrosGlobais, setParametrosGlobais] = useState<ParametroGlobal[]>([])
   const [parametrosAnuais, setParametrosAnuais] = useState<ParametroAnual[]>([])
+  const [tiposComTemplate, setTiposComTemplate] = useState<string[]>([])
+  const [templates, setTemplates] = useState<Record<string, Category[]>>({})
   const [projetos, setProjetos] = useState<Projeto[]>([])
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
@@ -201,8 +235,18 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setParametrosAnuais(data.map(mapParametroAnualRow))
       })
+    // Só o id do tipo — pra saber quais tipos têm template administrado sem
+    // carregar categoria+item de todo mundo no boot (Configuracoes busca o
+    // detalhe sob demanda via fetchTemplateCategorias).
+    const fetchTiposComTemplate = supabase
+      .from('categorias_template')
+      .select('tipo_projeto_id')
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setTiposComTemplate([...new Set(data.map(r => r.tipo_projeto_id))])
+      })
 
-    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais, fetchParametrosAnuais])
+    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais, fetchParametrosAnuais, fetchTiposComTemplate])
       .then(() => setLoading(false))
   }
 
@@ -324,35 +368,102 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     }))
   }, [])
 
-  // Substitui TODAS as categorias do projeto — mesmo comportamento do mock
-  // (carregar de novo descarta o que já tinha). Template continua vivendo no
-  // frontend (categoria-templates.ts); a RPC só persiste o que mandamos.
-  //
-  // Vínculo blueprint→catálogo passa a ser por NOME (find_or_create no
-  // banco), não mais por `catalogoKey` (que só existia em memória local).
-  // Efeito de borda aceito: renomear uma categoria do catálogo e depois
-  // carregar de novo um template que a referencia pelo nome antigo cria uma
-  // entrada nova em vez de reaproveitar a renomeada — templates persistidos
-  // nunca foram escopo (já documentado no schema original).
-  const carregarTemplateExemplo = useCallback(async (projetoId: string, tipoProjetoId: string) => {
-    const blueprint = CATEGORIA_TEMPLATES[tipoProjetoId] ?? []
-    const payload = blueprint.map(cat => ({
-      catalogoNome: cat.name,
-      preenche: cat.preenche,
-      itens: cat.items.map(item => ({
-        nome: item.name,
-        unidade: item.unit,
-        custoMin: parseMoedaBR(item.min),
-        custoMax: parseMoedaBR(item.max),
-        fonte: item.source,
-        aplicabilidade: item.aplicabilidade,
-        anoPrevisto: item.anoPrevisto,
-      })),
-    }))
+  // ----------------------------------------------------------------------
+  // Template de categoria por tipo_projeto (Configurações) — espelha as
+  // funções de categoria/item de projeto real acima, só que a chave é
+  // tipo_projeto_id em vez de projeto_id e o alvo é categorias_template/
+  // itens_template. Buscado sob demanda (não no boot) — só usado quando o
+  // editor de template em Configurações abre pra um tipo.
+  // ----------------------------------------------------------------------
 
+  const mapTemplateCategorias = useCallback((tipoProjetoId: string, fn: (categorias: Category[]) => Category[]) => {
+    setTemplates(prev => ({ ...prev, [tipoProjetoId]: fn(prev[tipoProjetoId] ?? []) }))
+  }, [])
+
+  const fetchTemplateCategorias = useCallback(async (tipoProjetoId: string) => {
+    const { data, error } = await supabase
+      .from('categorias_template')
+      .select('*, categorias_catalogo(*), itens_template(*)')
+      .eq('tipo_projeto_id', tipoProjetoId)
+      .order('ordem')
+    if (error || !data) return
+    setTemplates(prev => ({
+      ...prev,
+      [tipoProjetoId]: (data as unknown as CategoriaTemplateRowComItens[]).map(mapRowToTemplateCategoria),
+    }))
+  }, [])
+
+  const templateAddCategoria = useCallback(async (tipoProjetoId: string) => {
+    const { data, error } = await supabase.rpc('template_add_categoria', { p_tipo_projeto_id: tipoProjetoId })
+    if (error || !data) throw error ?? new Error('Falha ao criar categoria de template')
+    const { categoria, catalogo: novoCatalogo } = data as unknown as TemplateAddCategoriaReturns
+
+    setCatalogo(prev => prev.some(c => c.id === novoCatalogo.id) ? prev : [...prev, { id: novoCatalogo.id, nome: novoCatalogo.nome }])
+    setTiposComTemplate(prev => prev.includes(tipoProjetoId) ? prev : [...prev, tipoProjetoId])
+    mapTemplateCategorias(tipoProjetoId, categorias => {
+      const nova: Category = {
+        id: categoria.id, catalogoId: categoria.catalogo_id, preenche: categoria.preenche as Category['preenche'],
+        expanded: true, justAdded: true, items: [], camposOperacionais: [],
+      }
+      return [nova, ...categorias]
+    })
+    setTimeout(() => {
+      setTemplates(prev => ({ ...prev, [tipoProjetoId]: (prev[tipoProjetoId] ?? []).map(c => ({ ...c, justAdded: false })) }))
+    }, 900)
+  }, [mapTemplateCategorias])
+
+  const templateRemoveCategoria = useCallback(async (tipoProjetoId: string, catId: string) => {
+    const { error } = await supabase.rpc('template_remove_categoria', { p_id: catId })
+    if (error) throw error
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.filter(c => c.id !== catId))
+  }, [mapTemplateCategorias])
+
+  const templateUpdateCategoria = useCallback(async (tipoProjetoId: string, catId: string, field: keyof Category, value: string | boolean) => {
+    if (field === 'preenche') {
+      const { error } = await supabase.rpc('template_update_categoria_preenche', { p_id: catId, p_preenche: value as string })
+      if (error) throw error
+    }
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId ? { ...c, [field]: value } : c))
+  }, [mapTemplateCategorias])
+
+  const templateAddItem = useCallback(async (tipoProjetoId: string, catId: string) => {
+    const { data, error } = await supabase.rpc('template_add_item', { p_categoria_template_id: catId })
+    if (error || !data) throw error ?? new Error('Falha ao criar item de template')
+    const novoItem = mapItemCustoRow(data)
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId ? { ...c, items: [...c.items, novoItem] } : c))
+  }, [mapTemplateCategorias])
+
+  const templateRemoveItem = useCallback(async (tipoProjetoId: string, catId: string, itemId: string) => {
+    const { error } = await supabase.rpc('template_remove_item', { p_id: itemId })
+    if (error) throw error
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId ? { ...c, items: c.items.filter(i => i.id !== itemId) } : c))
+  }, [mapTemplateCategorias])
+
+  // Só estado local — digitar não toca rede, mesmo padrão de updateItem.
+  const templateUpdateItem = useCallback((tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => {
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, [field]: value } : i) }
+      : c
+    ))
+  }, [mapTemplateCategorias])
+
+  const templateSaveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: string) => {
+    if (field === 'id') return
+    const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
+    const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(value) : value
+    const { error } = await supabase.rpc('template_update_item', { p_id: itemId, p_patch: { [patchKey]: patchValue } })
+    if (error) throw error
+  }, [])
+
+  // Substitui TODAS as categorias do projeto — mesmo comportamento de sempre
+  // (carregar de novo descarta o que já tinha). Template agora mora no banco
+  // (categorias_template/itens_template, administrável em Configurações) —
+  // a RPC lê o template do servidor a partir do tipo, não recebe mais o
+  // conteúdo montado pelo frontend.
+  const carregarTemplateExemplo = useCallback(async (projetoId: string, tipoProjetoId: string) => {
     const { data, error } = await supabase.rpc('carregar_template_exemplo', {
       p_projeto_id: projetoId,
-      p_categorias: payload,
+      p_tipo_projeto_id: tipoProjetoId,
     })
     if (error || !data) throw error ?? new Error('Falha ao carregar template')
 
@@ -459,6 +570,9 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       catalogo, renomearCategoriaCatalogo,
       parametrosGlobais, atualizarParametroGlobal,
       parametrosAnuais, atualizarParametroAnual,
+      tiposComTemplate, templates, fetchTemplateCategorias,
+      templateAddCategoria, templateRemoveCategoria, templateUpdateCategoria,
+      templateAddItem, templateRemoveItem, templateUpdateItem, templateSaveItem,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       atualizarConfigFinanceira,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,

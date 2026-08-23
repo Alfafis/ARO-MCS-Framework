@@ -20,6 +20,8 @@ export type RevisaoRow             = PublicTables['revisoes']['Row']
 export type LancamentoRow          = PublicTables['lancamentos']['Row']
 export type ParametroGlobalRow     = PublicTables['parametros_globais']['Row']
 export type ParametroAnualRow      = PublicTables['parametros_anuais']['Row']
+export type CategoriaTemplateRow   = PublicTables['categorias_template']['Row']
+export type ItemTemplateRow        = PublicTables['itens_template']['Row']
 
 export type Papel = PerfilRow['papel']
 
@@ -35,6 +37,11 @@ export interface CarregarTemplateExemploItem {
   categoria: CategoriaProjetoRow
   catalogo:  CategoriaCatalogoRow
   itens:     ItemCustoRow[]
+}
+
+export interface TemplateAddCategoriaReturns {
+  categoria: CategoriaTemplateRow
+  catalogo:  CategoriaCatalogoRow
 }
 
 // obter_relatorio_publico: quando não há simulação ainda, `simulacao` não

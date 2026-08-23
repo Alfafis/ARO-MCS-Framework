@@ -112,6 +112,48 @@ export type Database = {
           },
         ]
       }
+      categorias_template: {
+        Row: {
+          catalogo_id: string
+          criado_em: string
+          id: string
+          ordem: number
+          preenche: string
+          tipo_projeto_id: string
+        }
+        Insert: {
+          catalogo_id: string
+          criado_em?: string
+          id?: string
+          ordem?: number
+          preenche?: string
+          tipo_projeto_id: string
+        }
+        Update: {
+          catalogo_id?: string
+          criado_em?: string
+          id?: string
+          ordem?: number
+          preenche?: string
+          tipo_projeto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_template_catalogo_id_fkey"
+            columns: ["catalogo_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_catalogo"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "categorias_template_tipo_projeto_id_fkey"
+            columns: ["tipo_projeto_id"]
+            isOneToOne: false
+            referencedRelation: "tipos_projeto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clientes: {
         Row: {
           criado_em: string
@@ -211,6 +253,59 @@ export type Database = {
             columns: ["categoria_projeto_id"]
             isOneToOne: false
             referencedRelation: "categorias_projeto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_template: {
+        Row: {
+          ano_previsto: string | null
+          aplicabilidade: string | null
+          atualizado_em: string
+          categoria_template_id: string
+          criado_em: string
+          custo_max: number
+          custo_min: number
+          fonte: string | null
+          id: string
+          nome: string
+          ordem: number
+          unidade: string
+        }
+        Insert: {
+          ano_previsto?: string | null
+          aplicabilidade?: string | null
+          atualizado_em?: string
+          categoria_template_id: string
+          criado_em?: string
+          custo_max: number
+          custo_min: number
+          fonte?: string | null
+          id?: string
+          nome: string
+          ordem?: number
+          unidade: string
+        }
+        Update: {
+          ano_previsto?: string | null
+          aplicabilidade?: string | null
+          atualizado_em?: string
+          categoria_template_id?: string
+          criado_em?: string
+          custo_max?: number
+          custo_min?: number
+          fonte?: string | null
+          id?: string
+          nome?: string
+          ordem?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_template_categoria_template_id_fkey"
+            columns: ["categoria_template_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_template"
             referencedColumns: ["id"]
           },
         ]
@@ -659,7 +754,7 @@ export type Database = {
         Returns: undefined
       }
       carregar_template_exemplo: {
-        Args: { p_categorias: Json; p_projeto_id: string }
+        Args: { p_projeto_id: string; p_tipo_projeto_id: string }
         Returns: Json
       }
       concluir_projeto: { Args: { p_id: string }; Returns: undefined }
@@ -879,6 +974,62 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "revisoes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      template_add_categoria: {
+        Args: { p_tipo_projeto_id: string }
+        Returns: Json
+      }
+      template_add_item: {
+        Args: { p_categoria_template_id: string }
+        Returns: {
+          ano_previsto: string | null
+          aplicabilidade: string | null
+          atualizado_em: string
+          categoria_template_id: string
+          criado_em: string
+          custo_max: number
+          custo_min: number
+          fonte: string | null
+          id: string
+          nome: string
+          ordem: number
+          unidade: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "itens_template"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      template_remove_categoria: { Args: { p_id: string }; Returns: undefined }
+      template_remove_item: { Args: { p_id: string }; Returns: undefined }
+      template_update_categoria_preenche: {
+        Args: { p_id: string; p_preenche: string }
+        Returns: undefined
+      }
+      template_update_item: {
+        Args: { p_id: string; p_patch: Json }
+        Returns: {
+          ano_previsto: string | null
+          aplicabilidade: string | null
+          atualizado_em: string
+          categoria_template_id: string
+          criado_em: string
+          custo_max: number
+          custo_min: number
+          fonte: string | null
+          id: string
+          nome: string
+          ordem: number
+          unidade: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "itens_template"
           isOneToOne: true
           isSetofReturn: false
         }

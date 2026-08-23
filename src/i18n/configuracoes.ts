@@ -31,6 +31,13 @@ export const configuracoesT: Record<Lang, {
   colMinPct:         string
   colMaxPct:         string
   atualizarAno1Title: string
+  templateSectionTitle: string
+  templateSectionHint:  string
+  templateAddCategoriaBtn: string
+  templateAddCategoriaErrorToast: string
+  templateRemoveCategoriaErrorToast: string
+  templateSaveErrorToast: string
+  templateEmpty: string
 }> = {
   'pt-BR': {
     headerTitle:      'Configurações',
@@ -63,6 +70,13 @@ export const configuracoesT: Record<Lang, {
     colMinPct:         'Mín %',
     colMaxPct:         'Máx %',
     atualizarAno1Title: 'Atualizar ano 1 da API',
+    templateSectionTitle: 'Template de categorias por tipo',
+    templateSectionHint:  'Categorias e itens padrão oferecidos como exemplo ao criar um projeto desse tipo — editáveis aqui, sem afetar projetos já criados.',
+    templateAddCategoriaBtn: '+ Categoria',
+    templateAddCategoriaErrorToast: 'Não foi possível criar a categoria.',
+    templateRemoveCategoriaErrorToast: 'Não foi possível remover a categoria.',
+    templateSaveErrorToast: 'Não foi possível salvar.',
+    templateEmpty: 'Nenhuma categoria de template ainda para este tipo.',
   },
   'en': {
     headerTitle:      'Settings',
@@ -95,6 +109,13 @@ export const configuracoesT: Record<Lang, {
     colMinPct:         'Min %',
     colMaxPct:         'Max %',
     atualizarAno1Title: 'Update year 1 from API',
+    templateSectionTitle: 'Category template by type',
+    templateSectionHint:  'Default categories and items offered as an example when creating a project of this type — editable here, doesn\'t affect existing projects.',
+    templateAddCategoriaBtn: '+ Category',
+    templateAddCategoriaErrorToast: 'Could not create the category.',
+    templateRemoveCategoriaErrorToast: 'Could not remove the category.',
+    templateSaveErrorToast: 'Could not save.',
+    templateEmpty: 'No template category yet for this type.',
   },
   'es': {
     headerTitle:      'Configuración',
@@ -127,5 +148,12 @@ export const configuracoesT: Record<Lang, {
     colMinPct:         'Mín %',
     colMaxPct:         'Máx %',
     atualizarAno1Title: 'Actualizar año 1 de la API',
+    templateSectionTitle: 'Plantilla de categorías por tipo',
+    templateSectionHint:  'Categorías e ítems predeterminados ofrecidos como ejemplo al crear un proyecto de ese tipo — editables aquí, no afecta proyectos ya creados.',
+    templateAddCategoriaBtn: '+ Categoría',
+    templateAddCategoriaErrorToast: 'No se pudo crear la categoría.',
+    templateRemoveCategoriaErrorToast: 'No se pudo quitar la categoría.',
+    templateSaveErrorToast: 'No se pudo guardar.',
+    templateEmpty: 'Todavía no hay categoría de plantilla para este tipo.',
   },
 }

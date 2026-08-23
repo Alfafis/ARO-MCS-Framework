@@ -7,7 +7,8 @@ import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/LangContext'
 import { configuracoesT } from '@/i18n/configuracoes'
 import { useProjeto } from '@/context/ProjetoContext'
-import type { TipoProjeto } from '@/data/categoria-templates'
+import CategoryBlock from '@/components/categorias/CategoryBlock'
+import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { isNaoConfigurado } from '@/types/parametrosGlobais'
 import { SERIE_BCB, SERIE_BCB_ANUAL, buscarValorBcb } from '@/lib/bcb'
@@ -315,6 +316,106 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
   )
 }
 
+// Editor de template de categoria por tipo_projeto — reaproveita CategoryBlock
+// (mesmo componente de edição usado em Categorias.tsx pra categoria de
+// projeto real), só trocando as funções de mutação pelas `template*` do
+// context. Seleção de tipo é local à seção — busca sob demanda ao trocar de
+// tipo, cacheada em `templates` (context) pra não rebuscar ao voltar.
+interface TemplateEditorProps {
+  tipos:   TipoProjeto[]
+  t:       typeof configuracoesT['pt-BR']
+  onToast: (msg: string) => void
+}
+
+function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
+  const {
+    catalogo, templates, fetchTemplateCategorias,
+    templateAddCategoria, templateRemoveCategoria, templateUpdateCategoria,
+    templateAddItem, templateRemoveItem, templateUpdateItem, templateSaveItem,
+    renomearCategoriaCatalogo,
+  } = useProjeto()
+  const [tipoSelecionadoId, setTipoSelecionadoId] = useState<string | null>(null)
+  const [carregando, setCarregando] = useState(false)
+
+  async function selecionarTipo(id: string) {
+    setTipoSelecionadoId(id)
+    if (templates[id]) return
+    setCarregando(true)
+    try {
+      await fetchTemplateCategorias(id)
+    } finally {
+      setCarregando(false)
+    }
+  }
+
+  const categorias = tipoSelecionadoId ? (templates[tipoSelecionadoId] ?? []) : []
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap gap-2">
+        {tipos.map(tipo => (
+          <button
+            key={tipo.id}
+            type="button"
+            onClick={() => void selecionarTipo(tipo.id)}
+            className={`px-3 py-1.5 rounded-full text-[12.5px] font-medium transition-colors cursor-pointer border ${
+              tipoSelecionadoId === tipo.id
+                ? 'bg-accent-100 text-accent-700 border-accent-100'
+                : 'bg-white text-c-text-2 border-[rgba(20,21,26,.08)] hover:text-c-text'
+            }`}
+          >
+            {tipo.nome}
+          </button>
+        ))}
+      </div>
+
+      {tipoSelecionadoId && (
+        <div className="flex flex-col gap-3">
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              onClick={() => templateAddCategoria(tipoSelecionadoId).catch(() => onToast(t.templateAddCategoriaErrorToast))}
+            >
+              <Plus size={14} aria-hidden="true" />
+              {t.templateAddCategoriaBtn}
+            </Button>
+          </div>
+
+          {carregando && (
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: 2 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          )}
+
+          {!carregando && categorias.length === 0 && (
+            <p className="text-[12.5px] text-c-text-2 text-center py-6">{t.templateEmpty}</p>
+          )}
+
+          {!carregando && categorias.map((cat, idx) => (
+            <CategoryBlock
+              key={cat.id}
+              category={cat}
+              nome={catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'}
+              index={idx}
+              onRemove={() => templateRemoveCategoria(tipoSelecionadoId, cat.id).catch(() => onToast(t.templateRemoveCategoriaErrorToast))}
+              onChange={(field, value) => templateUpdateCategoria(tipoSelecionadoId, cat.id, field, value).catch(() => onToast(t.templateSaveErrorToast))}
+              onRename={novoNome => {
+                renomearCategoriaCatalogo(cat.catalogoId, novoNome)
+                  .then(() => onToast(t.renameSavedToast))
+                  .catch(() => onToast(t.renameErrorToast))
+              }}
+              onAddItem={() => templateAddItem(tipoSelecionadoId, cat.id).catch(() => onToast(t.templateSaveErrorToast))}
+              onRemoveItem={itemId => templateRemoveItem(tipoSelecionadoId, cat.id, itemId).catch(() => onToast(t.templateSaveErrorToast))}
+              onUpdateItem={(itemId, field, value) => templateUpdateItem(tipoSelecionadoId, cat.id, itemId, field, value)}
+              onSaveItem={(itemId, field, value) => templateSaveItem(itemId, field, value).catch(() => onToast(t.templateSaveErrorToast))}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export default function Configuracoes() {
   const t = useT(configuracoesT)
   const {
@@ -456,6 +557,21 @@ export default function Configuracoes() {
               />
             ))}
           </div>
+        </div>
+
+        <div className="lg:col-span-2 rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+          <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
+            <Settings2 size={14} color="var(--accent)" aria-hidden="true" />
+            <span>{t.templateSectionTitle}</span>
+          </div>
+          <p className="text-[12px] text-c-text-2 -mt-2">{t.templateSectionHint}</p>
+
+          {loading && (
+            <div className="flex flex-col gap-2 py-1">
+              {Array.from({ length: 2 }, (_, i) => <Skeleton key={i} className="h-8 w-32" />)}
+            </div>
+          )}
+          {!loading && <TemplateEditor tipos={tiposProjeto} t={t} onToast={showToast} />}
         </div>
       </div>
 
