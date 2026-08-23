@@ -119,7 +119,10 @@ export default function Perfil() {
     setUploading(true)
     try {
       await limparArquivosAntigos()
-      const { error } = await supabase.rpc('atualizar_foto_perfil', { p_foto_url: null })
+      // p_foto_url aceita NULL em runtime (coluna nullable, sem NOT NULL na função) mas o
+      // gerador de tipos do Supabase não marca arg `text` simples como nullable — mesmo padrão
+      // já registrado em ProjetoContext.atualizarParametroAnual.
+      const { error } = await supabase.rpc('atualizar_foto_perfil', { p_foto_url: null as unknown as string })
       if (error) throw error
       setPerfil(p => p ? { ...p, foto_url: null } : p)
       window.dispatchEvent(new CustomEvent('perfil-atualizado'))

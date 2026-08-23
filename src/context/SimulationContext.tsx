@@ -3,6 +3,7 @@ import type { HistoryRun, SimResult } from '@/types/simulacao'
 import { supabase } from '@/integrations/supabase/client'
 import { formatDateTime } from '@/lib/utils'
 import type { SimulacaoRow } from '@/types'
+import type { Json } from '@/integrations/supabase/type'
 
 interface ProjectSimState {
   result:           SimResult | null
@@ -69,7 +70,10 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       p_iteracoes: result.iterations,
       p_confidence_level: result.confidenceLevel,
       p_active_categories: categories,
-      p_resultado: result,
+      // SimResult é totalmente serializável (só string/number/union), mas não tem index
+      // signature — TS não prova estruturalmente que bate com Json (mesmo padrão de cast
+      // já usado na leitura, `resultado as unknown as SimResult`, só que no sentido inverso).
+      p_resultado: result as unknown as Json,
     })
     if (error || !data) throw error ?? new Error('Falha ao registrar simulação')
     setStates(prev => {
