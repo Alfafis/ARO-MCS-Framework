@@ -18,12 +18,18 @@ interface Props {
   primaryLabel: string
   secondaryAction?: { label: string, onClick: () => void }
   onValorInvalido: () => void
+  // 'filled' (default) é pra dentro de card branco (aba Configurações) — mesmo fundo cinza usado
+  // em todo formulário sobre card. 'default' é pra tela cheia sem card (wizard): fundo branco +
+  // borda, senão o campo desaparece contra o cinza da página (mesmo bug já corrigido uma vez,
+  // ver ADR "input sem contraste"). CustomSelect (moeda/método) não muda — já é branco+sombra,
+  // desenhado pra contrastar direto contra a página cinza, não precisa de variant.
+  variant?: 'filled' | 'default'
 }
 
 // Formulário compartilhado entre o step 2 do wizard (/projetos/:id/config-inicial) e a aba
 // "Configurações" do workspace do projeto — mesmos campos, mesma RPC, só muda o rótulo do botão
 // principal e se existe uma ação secundária (o wizard tem "Pular por agora", a aba de edição não).
-export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, secondaryAction, onValorInvalido }: Props) {
+export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, secondaryAction, onValorInvalido, variant = 'filled' }: Props) {
   const t = useT(configFinanceiraT)
   const METODO_OPTIONS = [
     { value: 'a-definir', label: t.metodoADefinir },
@@ -88,7 +94,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
         <Label htmlFor="cf-data-base">{t.labelDataBase}</Label>
         <Input
           id="cf-data-base"
-          variant="filled"
+          variant={variant}
           inputMode="numeric"
           maxLength={4}
           value={dataBase}
@@ -100,7 +106,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
         <Label htmlFor="cf-horizonte">{t.labelHorizonte}</Label>
         <Input
           id="cf-horizonte"
-          variant="filled"
+          variant={variant}
           inputMode="numeric"
           value={horizonteAnos}
           onChange={e => setHorizonteAnos(e.target.value.replace(/\D/g, ''))}
@@ -125,7 +131,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
         <Label htmlFor="cf-contingencia">{t.labelContingencia}</Label>
         <Input
           id="cf-contingencia"
-          variant="filled"
+          variant={variant}
           inputMode="decimal"
           value={contingenciaPct}
           onChange={e => setContingenciaPct(e.target.value.replace(/[^\d,.-]/g, ''))}

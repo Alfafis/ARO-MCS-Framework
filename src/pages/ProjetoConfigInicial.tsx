@@ -51,6 +51,7 @@ export default function ProjetoConfigInicial() {
       <PageHeader title={t.wizardStep2Title} />
       <div className="px-4 sm:px-8 pb-8 max-w-[480px]">
         <ConfigFinanceiraForm
+          variant="default"
           initial={{
             moeda: projeto.moeda,
             dataBase: projeto.dataBase,

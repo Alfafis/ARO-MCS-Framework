@@ -80,7 +80,7 @@ export default function ProjetoNovo() {
               onToggle={() => setClienteOpen(o => !o)}
             />
           ) : (
-            <Input id="pn-cliente" variant="filled" value={clienteFixo!.nome} disabled />
+            <Input id="pn-cliente" variant="default" value={clienteFixo!.nome} disabled />
           )}
         </div>
 
@@ -88,7 +88,7 @@ export default function ProjetoNovo() {
           <Label htmlFor="pn-projeto">{t.labelProject}</Label>
           <Input
             id="pn-projeto"
-            variant="filled"
+            variant="default"
             placeholder={t.placeholderProject}
             value={projeto}
             onChange={e => setProjeto(e.target.value)}
