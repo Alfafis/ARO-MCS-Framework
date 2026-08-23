@@ -121,7 +121,22 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
   // marca o boot como concluído, não serializa as chamadas em si.
+  //
+  // Depende de onAuthStateChange, não de mount puro: ProjetoProvider já monta em
+  // /login (acima do gate de auth em App.tsx), então um `useEffect(() => {...}, [])`
+  // dispara esse fetch com a request ainda anônima (RLS default-deny devolve [] sem
+  // erro), e login subsequente não remonta o provider — sem esse listener, o
+  // dashboard ficava preso no snapshot vazio pelo resto da sessão SPA (só um F5,
+  // que já carrega a sessão do localStorage antes do fetch, mostrava dado real).
   useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) return
+      fetchAll()
+    })
+    return () => subscription.unsubscribe()
+  }, [])
+
+  function fetchAll() {
     const fetchClientes = supabase
       .from('clientes')
       .select('id, nome')
@@ -157,7 +172,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
 
     Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo])
       .then(() => setLoading(false))
-  }, [])
+  }
 
   const criarCliente = useCallback(async (nome: string): Promise<string> => {
     const { data, error } = await supabase.rpc('create_cliente', { p_nome: nome })
