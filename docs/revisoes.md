@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — "hash de ancoragem (OpenTimestamps)" abaixo é overclaim corrigido no código real: é hash SHA-256 de conteúdo, nunca houve integração com OpenTimestamps. Ver ADR "Revisões virou por-projeto" no vault. Layout/interatividade geral ainda são referência válida; a alegação de ancoragem blockchain, não.
+
 # Tela: Revisões do relatório
 
 Arquivo: `ARO-MCS Revisoes.dc.html`. Histórico auditável das revisões do relatório de provisionamento, com hash de ancoragem (OpenTimestamps).

@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — este doc descreve a spec original (abas Perfil/Notificações/Equipe). A tela real hoje (`src/pages/Configuracoes.tsx`) é CRUD de tipos de projeto — feature completamente diferente. Perfil virou rota própria (`/perfil`). Ver ADR "Tipos de projeto saem de array hardcoded" no vault. Mantido por referência histórica, não usar como spec vigente.
+
 # Tela: Configurações
 
 Arquivo: `ARO-MCS Configuracoes.dc.html`. Gestão de perfil, notificações e equipe do consultor logado. Não aparece na sidebar (acessível via dropdown de perfil).

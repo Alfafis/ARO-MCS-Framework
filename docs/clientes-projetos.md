@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — sidebar de 6 itens e modal "Novo projeto" com campo manual "Custo esperado (R$)" não refletem o código real. Hoje `criarProjeto` só recebe cliente/nome/tipo — o valor esperado é calculado a partir das categorias, nunca digitado. Ver ADR "workspace por projeto" no vault. Layout de lista/toolbar ainda é referência válida.
+
 # Tela: Clientes e projetos
 
 Arquivo: `ARO-MCS Clientes.dc.html`. Lista de todos os projetos de provisionamento de ARO em andamento na consultoria (visão do consultor sobre todos os clientes, não de um projeto só).

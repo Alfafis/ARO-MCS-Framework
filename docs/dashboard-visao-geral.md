@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — descreve o dashboard de projeto único pré-migração workspace-por-projeto, com "projeto ativo" implícito (conceito eliminado, ver ADR "Estado de simulação é por projeto, nunca global"). **Atenção ao nome**: existe hoje uma rota real `/visao-geral` — mas é a Visão Geral GLOBAL cross-cliente (KPIs agregados, ranking por cliente), feature diferente construída em 2026-08-22, sem relação com este doc. O dashboard por-projeto real é `src/pages/ResumoExecutivo.tsx` (aba "Visão geral" dentro do workspace).
+
 # Tela: Visão geral (Dashboard)
 
 Arquivo: `ARO-MCS Dashboard (Full).dc.html`. Tela inicial do sistema — visão consolidada do projeto ativo (NX Gold — Fechamento de Mina).

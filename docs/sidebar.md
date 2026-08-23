@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — a lista de 6 itens abaixo (Categorias/Simulação/Lançamentos/Revisões top-level) é pré-migração workspace-por-projeto. Sidebar real hoje tem 4 itens: Visão geral, Clientes, Projetos, Configurações — as 4 telas antigas viraram abas dentro do workspace de projeto (`/projetos/:id/...`), e Configurações é item fixo (não mais escondida). Ver ADR "Dashboard/Categorias/Simulação são workspace por projeto" no vault. Estrutura visual do componente (recolher, cartão de perfil, dropdown) ainda é referência válida.
+
 # Sidebar — ARO-MCS
 
 Componente de navegação lateral presente em todas as telas internas do sistema (Dashboard, Categorias de custo, Simulação, Lançamentos, Revisões, Clientes, Configurações, Ajuda). Estrutura EXATA a reaproveitar em toda tela nova.

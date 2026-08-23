@@ -1,3 +1,5 @@
+> **DESATUALIZADO (2026-08-23)** — "item 'Visão geral' na sidebar" descreve a era pré-migração workspace-por-projeto. Hoje esta tela corresponde a `src/pages/ResumoExecutivo.tsx`, aba "Visão geral" DENTRO do workspace de um projeto (`/projetos/:id/dashboard`), não mais item de sidebar top-level. Não confundir com a rota `/visao-geral` real (global, cross-cliente, feature diferente — ver `dashboard-visao-geral.md`). Layout dos cards/KPIs ainda é referência razoável, mas nem todos os cards descritos existem no código real (ex.: "Desembolso projetado por ano" e fan chart foram removidos por falta de modelo de dado, ver ADR "Dado não disponível: ocultar, nunca mockar").
+
 # Tela: Visão geral / Resumo Executivo (Dashboard principal)
 
 Arquivo: `ARO-MCS Dashboard (Resumo Executivo).dc.html`. É o dashboard principal do sistema (item "Visão geral" na sidebar) — consolida custo esperado, faixa de risco, atualização monetária, desembolso por ano, leque de confiança, riscos, lançamentos recentes e timeline de revisões do projeto ativo.
