@@ -13,8 +13,6 @@ export const loginT: Record<Lang, {
   feature1Desc:  string
   feature2Label: string
   feature2Desc:  string
-  feature3Label: string
-  feature3Desc:  string
 }> = {
   'pt-BR': {
     subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
@@ -28,9 +26,7 @@ export const loginT: Record<Lang, {
     feature1Label:    'Simulação Monte Carlo',
     feature1Desc:     '10.000 iterações por projeto',
     feature2Label:    'Revisões auditáveis',
-    feature2Desc:     'Hash blockchain por versão',
-    feature3Label:    'Portal do cliente',
-    feature3Desc:     'Preenchimento colaborativo',
+    feature2Desc:     'Hash SHA-256 do conteúdo por versão',
   },
   'en': {
     subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
@@ -44,9 +40,7 @@ export const loginT: Record<Lang, {
     feature1Label:    'Monte Carlo Simulation',
     feature1Desc:     '10,000 iterations per project',
     feature2Label:    'Auditable revisions',
-    feature2Desc:     'Blockchain hash per version',
-    feature3Label:    'Client portal',
-    feature3Desc:     'Collaborative data entry',
+    feature2Desc:     'SHA-256 content hash per version',
   },
   'es': {
     subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
@@ -60,8 +54,6 @@ export const loginT: Record<Lang, {
     feature1Label:    'Simulación Monte Carlo',
     feature1Desc:     '10.000 iteraciones por proyecto',
     feature2Label:    'Revisiones auditables',
-    feature2Desc:     'Hash blockchain por versión',
-    feature3Label:    'Portal del cliente',
-    feature3Desc:     'Completado colaborativo',
+    feature2Desc:     'Hash SHA-256 del contenido por versión',
   },
 }
