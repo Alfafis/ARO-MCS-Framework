@@ -8,11 +8,12 @@ import { clientesT } from '@/i18n/clientes'
 import ClienteRow from '@/components/clientes/ClienteRow'
 import NovoClienteModal from '@/components/clientes/NovoClienteModal'
 import { useProjeto } from '@/context/ProjetoContext'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Clientes() {
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos, criarCliente } = useProjeto()
+  const { clientes, projetos, criarCliente, loading } = useProjeto()
 
   const [search, setSearch] = useState('')
   const [modalOpen, setModalOpen] = useState(false)
@@ -51,7 +52,11 @@ export default function Clientes() {
 
         <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
           <div className="min-w-[420px]">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col gap-px p-3">
+                {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="py-12 text-center text-[0.875rem] text-c-text-2">
                 {t.emptyClients}
               </div>

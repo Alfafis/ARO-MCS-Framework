@@ -10,6 +10,7 @@ import ClienteModal from '@/components/clientes/ClienteModal'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useProjetoRowActions } from '@/hooks/useProjetoRowActions'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { FilterTab } from '@/types/clientes'
 
 function initials(name: string): string {
@@ -25,7 +26,7 @@ export default function ClienteProjetos() {
   const { clienteId = '' } = useParams<{ clienteId: string }>()
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos: allProjetos, criarProjeto, tiposProjeto } = useProjeto()
+  const { clientes, projetos: allProjetos, criarProjeto, tiposProjeto, loading } = useProjeto()
 
   const cliente = clientes.find(c => c.id === clienteId)
   const rows = allProjetos.filter(p => p.clienteId === clienteId)
@@ -65,6 +66,15 @@ export default function ClienteProjetos() {
     criarProjeto({ ...form, clienteId })
     setModalOpen(false)
   }, [criarProjeto, clienteId])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full gap-4 p-4 sm:p-8">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
+  }
 
   if (!cliente) {
     return (

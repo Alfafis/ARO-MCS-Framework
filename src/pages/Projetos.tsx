@@ -11,6 +11,7 @@ import ClienteModal from '@/components/clientes/ClienteModal'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useProjetoRowActions } from '@/hooks/useProjetoRowActions'
+import { Skeleton } from '@/components/ui/skeleton'
 import type { FilterTab } from '@/types/clientes'
 
 function initials(name: string): string {
@@ -25,7 +26,7 @@ function initials(name: string): string {
 export default function Projetos() {
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos, criarProjeto, tiposProjeto } = useProjeto()
+  const { clientes, projetos, criarProjeto, tiposProjeto, loading } = useProjeto()
   const { handleAction: sharedHandleAction, linkCopied, codeModalFor, setCodeModalFor } = useProjetoRowActions(projetos)
 
   const FILTER_OPTS: { value: FilterTab; label: string }[] = [
@@ -166,7 +167,11 @@ export default function Projetos() {
             </div>
 
             {/* Rows */}
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col gap-px p-3">
+                {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="py-12 text-center text-[0.875rem] text-c-text-2">
                 {t.empty}
               </div>

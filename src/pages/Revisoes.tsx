@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/LangContext'
 import { revisoesT } from '@/i18n/revisoes'
+import { Skeleton } from '@/components/ui/skeleton'
 import { supabase } from '@/integrations/supabase/client'
 import type { Projeto } from '@/types/clientes'
 import type { RevisaoRow } from '@/types'
@@ -37,6 +38,7 @@ export default function Revisoes() {
   }
 
   const [revisoes,    setRevisoes]    = useState<RevisaoRow[]>([])
+  const [loading,     setLoading]     = useState(true)
   const [editingId,   setEditingId]   = useState<string | null>(null)
   const [editText,    setEditText]    = useState('')
   const [highlightId, setHighlightId] = useState<string | null>(null)
@@ -48,6 +50,7 @@ export default function Revisoes() {
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
     if (!error && data) setRevisoes(data)
+    setLoading(false)
   }, [projeto.id])
 
   useEffect(() => { load() }, [load])
@@ -102,11 +105,17 @@ export default function Revisoes() {
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex-1 overflow-y-auto">
         <div className="card">
-          {revisoes.length === 0 && (
+          {loading && (
+            <div className="flex flex-col gap-3 py-2">
+              {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+            </div>
+          )}
+
+          {!loading && revisoes.length === 0 && (
             <p className="text-[0.8125rem] text-c-text-2 text-center py-8">{t.emptyState}</p>
           )}
 
-          {revisoes.map((rev, i) => {
+          {!loading && revisoes.map((rev, i) => {
             const meta       = STATUS_META[rev.status]
             const published  = rev.status !== 'rascunho'
             const isEditing  = editingId === rev.id

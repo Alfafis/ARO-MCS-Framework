@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Check, Plus, Settings2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
 import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/LangContext'
 import { configuracoesT } from '@/i18n/configuracoes'
@@ -75,7 +76,7 @@ function TipoRow({ tipo, onRename, onRemove }: TipoRowProps) {
 
 export default function Configuracoes() {
   const t = useT(configuracoesT)
-  const { tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto } = useProjeto()
+  const { tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto, loading } = useProjeto()
 
   const [novoNome, setNovoNome] = useState('')
   const [criando, setCriando]   = useState(false)
@@ -117,7 +118,12 @@ export default function Configuracoes() {
           <p className="text-[12px] text-c-text-2 -mt-2">{t.tiposSectionHint}</p>
 
           <div className="flex flex-col">
-            {tiposProjeto.map(tipo => (
+            {loading && (
+              <div className="flex flex-col gap-2 py-1">
+                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+              </div>
+            )}
+            {!loading && tiposProjeto.map(tipo => (
               <TipoRow
                 key={tipo.id}
                 tipo={tipo}

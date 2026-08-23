@@ -42,6 +42,7 @@ interface NovoProjetoForm {
 }
 
 interface ProjetoContextValue {
+  loading:         boolean
   clientes:        Cliente[]
   criarCliente:    (nome: string) => Promise<string>
   tiposProjeto:      TipoProjeto[]
@@ -112,13 +113,16 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
 }
 
 export function ProjetoProvider({ children }: { children: ReactNode }) {
+  const [loading, setLoading] = useState(true)
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [tiposProjeto, setTiposProjeto] = useState<TipoProjeto[]>([])
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
 
+  // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
+  // marca o boot como concluído, não serializa as chamadas em si.
   useEffect(() => {
-    supabase
+    const fetchClientes = supabase
       .from('clientes')
       .select('id, nome')
       .order('nome')
@@ -126,7 +130,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setClientes(data.map(c => ({ id: c.id, nome: c.nome, initials: initials(c.nome) })))
       })
-    supabase
+    const fetchTipos = supabase
       .from('tipos_projeto')
       .select('id, nome')
       .order('nome')
@@ -134,7 +138,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setTiposProjeto(data)
       })
-    supabase
+    const fetchProjetos = supabase
       .from('projetos')
       .select('*, categorias_projeto(*, categorias_catalogo(*), itens_custo(*))')
       .order('criado_em')
@@ -142,7 +146,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setProjetos((data as unknown as ProjetoRowComCategorias[]).map(mapRowToProjeto))
       })
-    supabase
+    const fetchCatalogo = supabase
       .from('categorias_catalogo')
       .select('id, nome')
       .order('nome')
@@ -150,6 +154,9 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setCatalogo(data)
       })
+
+    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo])
+      .then(() => setLoading(false))
   }, [])
 
   const criarCliente = useCallback(async (nome: string): Promise<string> => {
@@ -355,6 +362,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
 
   return (
     <ProjetoContext.Provider value={{
+      loading,
       clientes, criarCliente,
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,

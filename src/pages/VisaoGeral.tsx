@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Users, FolderKanban, DollarSign, Trophy, Activity, FileText, History } from 'lucide-react'
 import PageHeader from '@/components/layout/PageHeader'
 import KpiCard from '@/components/dashboard/KpiCard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/ProjetoContext'
 import { supabase } from '@/integrations/supabase/client'
 import { valorEsperadoNumerico, formatMoedaCompact } from '@/lib/financeiro'
@@ -35,8 +36,9 @@ export default function VisaoGeral() {
   const navigate = useNavigate()
   const t  = useT(visaoGeralT)
   const tc = useT(clientesT)
-  const { clientes, projetos } = useProjeto()
+  const { clientes, projetos, loading } = useProjeto()
   const [atividade, setAtividade] = useState<AtividadeItem[]>([])
+  const [atividadeLoading, setAtividadeLoading] = useState(true)
 
   useEffect(() => {
     let cancelled = false
@@ -77,6 +79,7 @@ export default function VisaoGeral() {
         .slice(0, 10)
 
       setAtividade(merged)
+      setAtividadeLoading(false)
     }
     load()
     return () => { cancelled = true }
@@ -132,26 +135,32 @@ export default function VisaoGeral() {
       <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <KpiCard
-            icon={<Users size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.kpiClientsLabel}
-            value={String(clientes.length)}
-            sub={t.kpiClientsSub}
-          />
-          <KpiCard
-            icon={<FolderKanban size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.kpiProjectsLabel}
-            value={String(projetos.length)}
-            sub={t.kpiProjectsSub(porStatus.andamento, porStatus.aguardando, porStatus.concluido)}
-          />
-          <KpiCard
-            icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
-            label={t.kpiValueLabel}
-            value={valorTotalEsperado > 0 ? formatMoedaCompact(valorTotalEsperado) : '—'}
-            sub={t.kpiValueSub}
-          />
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <KpiCard
+              icon={<Users size={14} strokeWidth={2} aria-hidden="true" />}
+              label={t.kpiClientsLabel}
+              value={String(clientes.length)}
+              sub={t.kpiClientsSub}
+            />
+            <KpiCard
+              icon={<FolderKanban size={14} strokeWidth={2} aria-hidden="true" />}
+              label={t.kpiProjectsLabel}
+              value={String(projetos.length)}
+              sub={t.kpiProjectsSub(porStatus.andamento, porStatus.aguardando, porStatus.concluido)}
+            />
+            <KpiCard
+              icon={<DollarSign size={14} strokeWidth={2} aria-hidden="true" />}
+              label={t.kpiValueLabel}
+              value={valorTotalEsperado > 0 ? formatMoedaCompact(valorTotalEsperado) : '—'}
+              sub={t.kpiValueSub}
+            />
+          </div>
+        )}
 
         {/* Projetos recentes + Ranking por cliente */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -160,7 +169,11 @@ export default function VisaoGeral() {
               <FileText size={14} color="var(--accent)" aria-hidden="true" />
               <span className="font-semibold text-[0.875rem] text-c-text">{t.recentProjectsTitle}</span>
             </div>
-            {projetosRecentes.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              </div>
+            ) : projetosRecentes.length === 0 ? (
               <p className="text-[0.8125rem] text-c-text-2">{t.recentProjectsEmpty}</p>
             ) : (
               <div className="flex flex-col">
@@ -178,7 +191,7 @@ export default function VisaoGeral() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_META[p.status].cls}`}>
                         {STATUS_META[p.status].label}
                       </span>
-                      <span className="font-mono text-[0.8125rem] font-semibold text-c-text w-20 text-right">{p.esperado}</span>
+                      <span className="text-[0.8125rem] font-semibold text-c-text w-20 text-right">{p.esperado}</span>
                     </div>
                   </div>
                 ))}
@@ -191,7 +204,11 @@ export default function VisaoGeral() {
               <Trophy size={14} color="var(--accent)" aria-hidden="true" />
               <span className="font-semibold text-[0.875rem] text-c-text">{t.rankingTitle}</span>
             </div>
-            {rankingClientes.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col gap-3">
+                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-8 w-full" />)}
+              </div>
+            ) : rankingClientes.length === 0 ? (
               <p className="text-[0.8125rem] text-c-text-2">{t.rankingEmpty}</p>
             ) : (
               <div className="flex flex-col gap-3">
@@ -202,7 +219,7 @@ export default function VisaoGeral() {
                         <span className="font-mono text-c-text-2 mr-1.5">{String(i + 1).padStart(2, '0')}</span>
                         {c.nome}
                       </span>
-                      <span className="font-mono text-[0.8125rem] font-semibold text-c-text shrink-0">
+                      <span className="text-[0.8125rem] font-semibold text-c-text shrink-0">
                         {formatMoedaCompact(c.valor)}
                       </span>
                     </div>
@@ -225,7 +242,11 @@ export default function VisaoGeral() {
             <Activity size={14} color="var(--accent)" aria-hidden="true" />
             <span className="font-semibold text-[0.875rem] text-c-text">{t.activityTitle}</span>
           </div>
-          {atividade.length === 0 ? (
+          {atividadeLoading ? (
+            <div className="flex flex-col gap-3">
+              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+            </div>
+          ) : atividade.length === 0 ? (
             <p className="text-[0.8125rem] text-c-text-2">{t.activityEmpty}</p>
           ) : (
             <div className="flex flex-col">

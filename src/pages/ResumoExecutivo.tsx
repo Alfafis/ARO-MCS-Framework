@@ -8,6 +8,7 @@ import RevisionTimeline, { type RevisionTimelineItem } from '@/components/dashbo
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/ProjetoContext'
 import { supabase } from '@/integrations/supabase/client'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
@@ -59,9 +60,11 @@ export default function ResumoExecutivo() {
   const [linkCopied, setLinkCopied] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    supabase.from('simulacoes').select('*')
+    setLoading(true)
+    const fetchSim = supabase.from('simulacoes').select('*')
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
       .limit(1)
@@ -69,13 +72,14 @@ export default function ResumoExecutivo() {
         if (!error && data && data.length > 0) setSimResult(data[0].resultado as unknown as SimResult)
         else setSimResult(null)
       })
-    supabase.from('revisoes').select('*')
+    const fetchRev = supabase.from('revisoes').select('*')
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
       .limit(3)
       .then(({ data, error }) => {
         if (!error && data) setRevisoes([...data].reverse())
       })
+    Promise.allSettled([fetchSim, fetchRev]).then(() => setLoading(false))
   }, [projeto.id])
 
   const categoryParams = useMemo(
@@ -140,6 +144,16 @@ export default function ResumoExecutivo() {
     }
     setLinkCopied(true)
     setTimeout(() => setLinkCopied(false), 2500)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col gap-4 p-4 sm:p-8">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-32 w-full" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    )
   }
 
   return (

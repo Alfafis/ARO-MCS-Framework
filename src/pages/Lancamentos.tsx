@@ -6,6 +6,7 @@ import { useT } from '@/i18n/LangContext'
 import { lancamentosT } from '@/i18n/lancamentos'
 import LancRow from '@/components/lancamentos/LancRow'
 import LancModal from '@/components/lancamentos/LancModal'
+import { Skeleton } from '@/components/ui/skeleton'
 import { supabase } from '@/integrations/supabase/client'
 import type { Projeto } from '@/types/clientes'
 import type { LancamentoRow } from '@/types'
@@ -39,6 +40,7 @@ export default function Lancamentos() {
   ]
 
   const [rows,      setRows]      = useState<LancamentoRow[]>([])
+  const [loading,   setLoading]   = useState(true)
   const [search,    setSearch]    = useState('')
   const [filter,    setFilter]    = useState<FilterTab>('all')
   const [openMenu,  setOpenMenu]  = useState<string | null>(null)
@@ -52,6 +54,7 @@ export default function Lancamentos() {
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
     if (!error && data) setRows(data)
+    setLoading(false)
   }, [projeto.id])
 
   useEffect(() => { load() }, [load])
@@ -178,7 +181,11 @@ export default function Lancamentos() {
               ))}
             </div>
 
-            {filtered.length === 0 ? (
+            {loading ? (
+              <div className="flex flex-col gap-3 p-4">
+                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              </div>
+            ) : filtered.length === 0 ? (
               <div className="py-12 px-6 text-center text-c-text-2 text-[0.875rem]">{t.empty}</div>
             ) : (
               filtered.map(row => (

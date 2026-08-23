@@ -1,6 +1,7 @@
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LayoutDashboard, Tag, Activity, History, FileText } from 'lucide-react'
 import ClientSelector from '@/components/layout/ClientSelector'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useT } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
@@ -12,7 +13,7 @@ export default function ProjetoWorkspace() {
   const { projetoId = '' } = useParams<{ projetoId: string }>()
   const navigate = useNavigate()
   const location = useLocation()
-  const { projetos, clientes } = useProjeto()
+  const { projetos, clientes, loading } = useProjeto()
   const tNav = useT(sidebarT)
   const tCli = useT(clientesT)
   const t    = useT(projetoWorkspaceT)
@@ -29,6 +30,16 @@ export default function ProjetoWorkspace() {
 
   function switchProjeto(novoId: string) {
     navigate(`/projetos/${novoId}/${currentTab}`)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex flex-col h-full gap-4 p-4 sm:p-8">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-40 w-full" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    )
   }
 
   if (!projeto || !cliente) {
