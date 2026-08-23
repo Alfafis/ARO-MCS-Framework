@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
-import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
-import { mapParametroGlobalRow } from '@/types/parametrosGlobais'
+import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
+import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
 import { CATEGORIA_TEMPLATES, type TipoProjeto } from '@/data/categoria-templates'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
@@ -55,6 +55,8 @@ interface ProjetoContextValue {
   renomearCategoriaCatalogo: (catalogoId: string, novoNome: string) => Promise<void>
   parametrosGlobais: ParametroGlobal[]
   atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
+  parametrosAnuais: ParametroAnual[]
+  atualizarParametroAnual: (chave: ParametroAnualChave, ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']) => Promise<void>
   projetos:        Projeto[]
   criarProjeto:    (form: NovoProjetoForm) => Promise<void>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
@@ -122,6 +124,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [tiposProjeto, setTiposProjeto] = useState<TipoProjeto[]>([])
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
   const [parametrosGlobais, setParametrosGlobais] = useState<ParametroGlobal[]>([])
+  const [parametrosAnuais, setParametrosAnuais] = useState<ParametroAnual[]>([])
   const [projetos, setProjetos] = useState<Projeto[]>([])
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
@@ -181,8 +184,15 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setParametrosGlobais(data.map(mapParametroGlobalRow))
       })
+    const fetchParametrosAnuais = supabase
+      .from('parametros_anuais')
+      .select('*')
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setParametrosAnuais(data.map(mapParametroAnualRow))
+      })
 
-    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais])
+    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais, fetchParametrosAnuais])
       .then(() => setLoading(false))
   }
 
@@ -228,11 +238,26 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null
   ) => {
     const { data, error } = await supabase.rpc('atualizar_parametro_global', {
-      p_chave: chave, p_valor: valor, p_fonte: fonte, p_serie_bcb: serieBcb,
+      p_chave: chave, p_valor: valor, p_fonte: fonte, p_serie_bcb: serieBcb ?? undefined,
     })
     if (error || !data) throw error ?? new Error('Falha ao atualizar parâmetro global')
     const atualizado = mapParametroGlobalRow(data)
     setParametrosGlobais(prev => prev.map(p => p.chave === chave ? atualizado : p))
+  }, [])
+
+  const atualizarParametroAnual = useCallback(async (
+    chave: ParametroAnualChave, ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']
+  ) => {
+    // p_valor_min/p_valor_max aceitam NULL em runtime (coluna nullable, sem NOT NULL
+    // na função) mas o gerador de tipos do Supabase não marca args `numeric` simples
+    // como nullable — cast intencional, mesmo padrão já registrado em skills/supabase.md
+    // ("retorno precisa de mapa manual" pra jsonb; aqui é o argumento que precisa).
+    const { data, error } = await supabase.rpc('atualizar_parametro_anual', {
+      p_chave: chave, p_ano: ano, p_valor_min: valorMin as number, p_valor_max: valorMax as number, p_fonte: fonte,
+    })
+    if (error || !data) throw error ?? new Error('Falha ao atualizar parâmetro anual')
+    const atualizado = mapParametroAnualRow(data)
+    setParametrosAnuais(prev => prev.map(p => p.chave === chave && p.ano === ano ? atualizado : p))
   }, [])
 
   const criarProjeto = useCallback(async (form: NovoProjetoForm) => {
@@ -405,6 +430,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
       parametrosGlobais, atualizarParametroGlobal,
+      parametrosAnuais, atualizarParametroAnual,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
       atualizarRevLocal,

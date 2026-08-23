@@ -20,16 +20,22 @@ import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 import type { RevisaoRow } from '@/types'
-import { buscarParametro } from '@/types/parametrosGlobais'
+import { sequenciaMidpoints } from '@/types/parametrosGlobais'
+
+// Horizonte fixo em 10 anos até o Subsistema C (wizard de criação) expor isso
+// como campo do projeto — mesmo valor que já era hardcoded antes da tabela
+// ano-a-ano existir. Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
+const HORIZON_YEARS = 10
 
 // mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
-const pct = (v: number) => v.toFixed(2).replace('.', ',')
+const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
+const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
 
-function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPct: number | null, inflacaoPct: number | null, dataBaseAno: number | null): string {
+function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPorAno: number[] | null, inflacaoPorAno: number[] | null, dataBaseAno: number | null): string {
   switch (metodo) {
-    case 'simples':       return t.method1(pct(selicPct!))
-    case 'compostos':     return t.method2(pct(selicPct!))
-    case 'inflacao':      return t.method3(pct(inflacaoPct!))
+    case 'simples':       return t.method1(pct(media(selicPorAno!)))
+    case 'compostos':     return t.method2(pct(media(selicPorAno!)))
+    case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
     case 'escalonamento': return t.method4(dataBaseAno)
   }
 }
@@ -69,7 +75,7 @@ export default function ResumoExecutivo() {
   const tRel = useT(relatorioClienteT)
   const navigate = useNavigate()
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
-  const { catalogo, parametrosGlobais } = useProjeto()
+  const { catalogo, parametrosAnuais } = useProjeto()
   const [linkCopied, setLinkCopied] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
@@ -123,15 +129,15 @@ export default function ResumoExecutivo() {
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const selicPct    = buscarParametro(parametrosGlobais, 'selic')
-    const inflacaoPct = buscarParametro(parametrosGlobais, 'inflacao_ipca')
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', HORIZON_YEARS)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', HORIZON_YEARS)
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPct, inflacaoPct }).map(({ metodo, valor }) => ({
-      label: labelPorMetodo(metodo, t, selicPct, inflacaoPct, dataBaseAno),
+    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: HORIZON_YEARS }).map(({ metodo, valor }) => ({
+      label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),
       value: fmt(valor),
     }))
-  }, [baseTotal, baseWithProvision, parametrosGlobais, projeto.dataBase, t])
+  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto.dataBase, t])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: tRel.riskMean,       value: simResult.mean       },

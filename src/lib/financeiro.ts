@@ -1,14 +1,18 @@
 import type { Category } from '@/types/categorias'
 
-// Tabela de escalonamento por ano da planilha de referência — fora do escopo do
-// Subsistema A (parâmetros globais só cobrem valor spot, não projeção ano-a-ano
-// vinda de API pública). Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
-const IPCA_RATES     = [0.034, 0.003, 0.028, 0.031, 0.040, 0.042, 0.050, 0.030, 0.0211, 0.034]
-const HORIZON_YEARS  = 10
+// Tabela de escalonamento por ano da planilha de referência ORIGINAL — mantida
+// hardcoded de propósito como cenário de comparação fixo, distinto da tabela
+// ano-a-ano administrável em `parametros_anuais` (Subsistema A2). As duas têm
+// estrutura idêntica (sequência de taxa por ano, composta sequencialmente) mas
+// fontes diferentes: esta é a referência congelada da planilha original: nunca
+// muda; a de `selicPorAno`/`inflacaoPorAno` é editável pelo consultor e reflete
+// a expectativa atual. Ver specs/2026-08-23-parametros-anuais-design.md.
+const IPCA_RATES = [0.034, 0.003, 0.028, 0.031, 0.040, 0.042, 0.050, 0.030, 0.0211, 0.034]
 
 export interface ParametrosCalculo {
-  selicPct:    number | null  // null = parâmetro global não configurado, omite simples/compostos
-  inflacaoPct: number | null  // null = parâmetro global não configurado, omite inflação constante
+  selicPorAno:    number[] | null  // frações (0.14 = 14%), 1 por ano do horizonte — null = algum ano sem parâmetro, omite simples/compostos
+  inflacaoPorAno: number[] | null  // idem, omite inflação constante
+  horizonYears:   number
 }
 
 export interface MetodoAtualizacao {
@@ -16,25 +20,28 @@ export interface MetodoAtualizacao {
   valor:  number
 }
 
+function compostoSequencial(base: number, taxas: number[]): number {
+  let fv = base
+  for (const rate of taxas) fv *= (1 + rate)
+  return fv
+}
+
 // Escalonamento (IPCA_RATES) nunca é omitido — não depende de parâmetro global,
 // por isso está sempre presente no retorno, mesmo se simples/compostos/inflação
-// sumirem por falta de configuração.
+// sumirem por falta de configuração. Usa só os primeiros `horizonYears` anos da
+// tabela original (nunca mais que os 10 anos que ela tem).
 export function computeMonetaryValues(filteredBase: number, params: ParametrosCalculo): MetodoAtualizacao[] {
   const resultados: MetodoAtualizacao[] = []
-  const n = HORIZON_YEARS
 
-  if (params.selicPct !== null) {
-    const rate = params.selicPct / 100
-    resultados.push({ metodo: 'simples',   valor: filteredBase * (1 + rate * n) })
-    resultados.push({ metodo: 'compostos', valor: filteredBase * Math.pow(1 + rate, n) })
+  if (params.selicPorAno !== null) {
+    const media = params.selicPorAno.reduce((a, b) => a + b, 0) / params.selicPorAno.length
+    resultados.push({ metodo: 'simples',   valor: filteredBase * (1 + media * params.horizonYears) })
+    resultados.push({ metodo: 'compostos', valor: compostoSequencial(filteredBase, params.selicPorAno) })
   }
-  if (params.inflacaoPct !== null) {
-    const rate = params.inflacaoPct / 100
-    resultados.push({ metodo: 'inflacao', valor: filteredBase * Math.pow(1 + rate, n) })
+  if (params.inflacaoPorAno !== null) {
+    resultados.push({ metodo: 'inflacao', valor: compostoSequencial(filteredBase, params.inflacaoPorAno) })
   }
-  let ipcaFV = filteredBase
-  for (const rate of IPCA_RATES) ipcaFV *= (1 + rate)
-  resultados.push({ metodo: 'escalonamento', valor: ipcaFV })
+  resultados.push({ metodo: 'escalonamento', valor: compostoSequencial(filteredBase, IPCA_RATES.slice(0, params.horizonYears)) })
 
   return resultados
 }

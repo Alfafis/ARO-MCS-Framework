@@ -19,18 +19,23 @@ import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { Category, CategoriaCatalogo } from '@/types/categorias'
 import type { SimResult } from '@/types/simulacao'
 import type { RelatorioPublicoReturns } from '@/types'
-import { buscarParametro, mapParametroGlobalRow } from '@/types/parametrosGlobais'
+import { sequenciaMidpoints, mapParametroAnualRow } from '@/types/parametrosGlobais'
 
 type ResumoT = typeof resumoT['pt-BR']
 
-// mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
-const pct = (v: number) => v.toFixed(2).replace('.', ',')
+// Horizonte fixo em 10 anos até o Subsistema C (wizard de criação) expor isso
+// como campo do projeto. Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
+const HORIZON_YEARS = 10
 
-function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPct: number | null, inflacaoPct: number | null, dataBaseAno: number | null): string {
+// mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
+const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
+const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
+
+function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPorAno: number[] | null, inflacaoPorAno: number[] | null, dataBaseAno: number | null): string {
   switch (metodo) {
-    case 'simples':       return t.method1(pct(selicPct!))
-    case 'compostos':     return t.method2(pct(selicPct!))
-    case 'inflacao':      return t.method3(pct(inflacaoPct!))
+    case 'simples':       return t.method1(pct(media(selicPorAno!)))
+    case 'compostos':     return t.method2(pct(media(selicPorAno!)))
+    case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
     case 'escalonamento': return t.method4(dataBaseAno)
   }
 }
@@ -126,19 +131,19 @@ export default function PortalClienteRelatorio() {
   const contingenciaPct    = projeto?.contingencia_pct ?? 0
   const baseWithProvision  = baseTotal * (1 + contingenciaPct / 100)
 
-  const parametrosGlobais = useMemo(() => (bundle?.parametrosGlobais ?? []).map(mapParametroGlobalRow), [bundle])
+  const parametrosAnuais = useMemo(() => (bundle?.parametrosAnuais ?? []).map(mapParametroAnualRow), [bundle])
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const selicPct    = buscarParametro(parametrosGlobais, 'selic')
-    const inflacaoPct = buscarParametro(parametrosGlobais, 'inflacao_ipca')
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', HORIZON_YEARS)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', HORIZON_YEARS)
     const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPct, inflacaoPct }).map(({ metodo, valor }) => ({
-      label: labelPorMetodo(metodo, tBase, selicPct, inflacaoPct, dataBaseAno),
+    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: HORIZON_YEARS }).map(({ metodo, valor }) => ({
+      label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
       value: fmt(valor),
     }))
-  }, [baseTotal, baseWithProvision, parametrosGlobais, projeto?.data_base, tBase])
+  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto?.data_base, tBase])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: t.riskMean,       value: simResult.mean       },

@@ -259,6 +259,44 @@ export type Database = {
           },
         ]
       }
+      parametros_anuais: {
+        Row: {
+          ano: number
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          fonte: string
+          valor_max: number | null
+          valor_min: number | null
+        }
+        Insert: {
+          ano: number
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave: string
+          fonte?: string
+          valor_max?: number | null
+          valor_min?: number | null
+        }
+        Update: {
+          ano?: number
+          atualizado_em?: string
+          atualizado_por?: string | null
+          chave?: string
+          fonte?: string
+          valor_max?: number | null
+          valor_min?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parametros_anuais_atualizado_por_fkey"
+            columns: ["atualizado_por"]
+            isOneToOne: false
+            referencedRelation: "perfis"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       parametros_globais: {
         Row: {
           atualizado_em: string
@@ -532,6 +570,30 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "perfis"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      atualizar_parametro_anual: {
+        Args: {
+          p_ano: number
+          p_chave: string
+          p_fonte?: string
+          p_valor_max: number
+          p_valor_min: number
+        }
+        Returns: {
+          ano: number
+          atualizado_em: string
+          atualizado_por: string | null
+          chave: string
+          fonte: string
+          valor_max: number | null
+          valor_min: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "parametros_anuais"
           isOneToOne: true
           isSetofReturn: false
         }

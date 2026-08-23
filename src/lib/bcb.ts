@@ -1,11 +1,17 @@
-import type { ParametroGlobalChave } from '@/types/parametrosGlobais'
+import type { ParametroGlobalChave, ParametroAnualChave } from '@/types/parametrosGlobais'
 
 // Séries do SGS (Banco Central) — 433 é IPCA MENSAL, não usar: 0,07% em
 // julho/2026 é 60x menor que a taxa anual real (13522 devolveu 4,44% no
 // mesmo mês). Confirmado com chamada real à API antes de escrever esta spec.
 export const SERIE_BCB: Record<ParametroGlobalChave, number> = {
+  cambio_usd_brl: 1, // PTAX dólar venda
+}
+
+// API do BCB só devolve valor spot/histórico, nunca projeção futura — "atualizar
+// da API" pros parâmetros anuais preenche só o ano 1 (min=max=spot); anos 2-20
+// são sempre entrada manual (mesma decisão já registrada na spec de A2).
+export const SERIE_BCB_ANUAL: Record<ParametroAnualChave, number> = {
   inflacao_ipca: 13522, // IPCA acumulado 12 meses
-  cambio_usd_brl: 1,    // PTAX dólar venda
   selic: 432,           // Meta Selic vigente
 }
 

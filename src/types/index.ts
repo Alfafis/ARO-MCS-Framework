@@ -19,6 +19,7 @@ export type SimulacaoRow           = PublicTables['simulacoes']['Row']
 export type RevisaoRow             = PublicTables['revisoes']['Row']
 export type LancamentoRow          = PublicTables['lancamentos']['Row']
 export type ParametroGlobalRow     = PublicTables['parametros_globais']['Row']
+export type ParametroAnualRow      = PublicTables['parametros_anuais']['Row']
 
 export type Papel = PerfilRow['papel']
 
@@ -46,4 +47,5 @@ export interface RelatorioPublicoReturns {
   categorias:        CarregarTemplateExemploItem[]
   simulacao:         SimulacaoRow
   parametrosGlobais: ParametroGlobalRow[]
+  parametrosAnuais:  ParametroAnualRow[]
 }

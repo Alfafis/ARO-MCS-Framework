@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Check, Plus, RefreshCw, Settings2, Trash2, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -8,9 +8,9 @@ import { useT } from '@/i18n/LangContext'
 import { configuracoesT } from '@/i18n/configuracoes'
 import { useProjeto } from '@/context/ProjetoContext'
 import type { TipoProjeto } from '@/data/categoria-templates'
-import type { ParametroGlobal, ParametroGlobalChave } from '@/types/parametrosGlobais'
+import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { isNaoConfigurado } from '@/types/parametrosGlobais'
-import { SERIE_BCB, buscarValorBcb } from '@/lib/bcb'
+import { SERIE_BCB, SERIE_BCB_ANUAL, buscarValorBcb } from '@/lib/bcb'
 import { formatRelativeTime } from '@/lib/utils'
 
 interface TipoRowProps {
@@ -78,7 +78,9 @@ function TipoRow({ tipo, onRename, onRemove }: TipoRowProps) {
   )
 }
 
-const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['inflacao_ipca', 'cambio_usd_brl', 'selic']
+const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['cambio_usd_brl']
+const PARAMETRO_ANUAL_ORDEM: ParametroAnualChave[] = ['inflacao_ipca', 'selic']
+const ANOS_TABELA = Array.from({ length: 20 }, (_, i) => i + 1)
 
 // Formato de exibição: câmbio é preço (R$ por USD), inflação/Selic são taxa —
 // mesmo valor bruto do banco (4.44 = 4,44%), só muda o sufixo.
@@ -192,16 +194,131 @@ function ParametroRow({ parametro, label, t, onSalvar, onValorInvalido, onBuscaF
 }
 
 const PARAMETRO_LABEL_KEY: Record<ParametroGlobalChave, keyof typeof configuracoesT['pt-BR']> = {
-  inflacao_ipca: 'parametroInflacao',
   cambio_usd_brl: 'parametroCambio',
+}
+const PARAMETRO_ANUAL_LABEL_KEY: Record<ParametroAnualChave, keyof typeof configuracoesT['pt-BR']> = {
+  inflacao_ipca: 'parametroInflacao',
   selic: 'parametroSelic',
+}
+
+interface ParametroAnualTableProps {
+  chave: ParametroAnualChave
+  label: string
+  linhas: ParametroAnual[]
+  t: typeof configuracoesT['pt-BR']
+  onSalvar: (ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']) => Promise<void>
+  onValorInvalido: () => void
+  onBuscaFalhou: () => void
+}
+
+// Grade de 20 anos (min/max) — salva no blur de cada célula, mesmo padrão já
+// usado pros custos de item em CategoryBlock.tsx (dado tabular numérico
+// repetitivo, não identidade/nome como TipoRow — não precisa de confirmar/
+// cancelar explícito). "Ano 1" ganha botão de API (spot); anos 2-20 são
+// sempre manuais (planilha de referência não publica projeção futura).
+//
+// Estado local (`edicoes`) é necessário, não só decorativo: min/max da mesma
+// linha são 2 inputs/2 saves independentes, e a RPC grava os dois campos
+// juntos a cada chamada. Sem estado local, editar min e blurar, depois editar
+// max e blurar (rápido, antes do primeiro RPC+setState do context terminar)
+// faz o segundo save ler `linha` ainda desatualizada via prop e sobrescrever o
+// min recém-salvo com null — reproduzido e confirmado ao vivo antes deste fix.
+function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalido, onBuscaFalhou }: ParametroAnualTableProps) {
+  const porAno = new Map(linhas.map(l => [l.ano, l]))
+  const [buscandoAno1, setBuscandoAno1] = useState(false)
+  const [edicoes, setEdicoes] = useState<Record<number, { min?: string, max?: string }>>({})
+  const configurados = linhas.filter(l => l.valorMin !== null && l.valorMax !== null).length
+
+  function parseCell(raw: string): number | null {
+    const trimmed = raw.trim()
+    if (trimmed === '') return null
+    const valor = Number(trimmed.replace(',', '.'))
+    return Number.isFinite(valor) ? valor : NaN
+  }
+
+  function valorAtual(ano: number, campo: 'min' | 'max'): string {
+    const local = edicoes[ano]?.[campo]
+    if (local !== undefined) return local
+    const linha = porAno.get(ano)
+    const valor = campo === 'min' ? linha?.valorMin : linha?.valorMax
+    return valor === null || valor === undefined ? '' : String(valor)
+  }
+
+  async function salvarCelula(ano: number, campo: 'min' | 'max', raw: string) {
+    setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], [campo]: raw } }))
+    const novoValor = parseCell(raw)
+    if (Number.isNaN(novoValor)) { onValorInvalido(); return }
+    const outroCampo = campo === 'min' ? 'max' : 'min'
+    const outroValor = parseCell(valorAtual(ano, outroCampo))
+    const valorMin = campo === 'min' ? novoValor : outroValor
+    const valorMax = campo === 'max' ? novoValor : outroValor
+    await onSalvar(ano, Number.isNaN(valorMin) ? null : valorMin, Number.isNaN(valorMax) ? null : valorMax, 'manual')
+  }
+
+  async function atualizarAno1DaApi() {
+    setBuscandoAno1(true)
+    try {
+      const serie = SERIE_BCB_ANUAL[chave]
+      let valor: number
+      try {
+        valor = await buscarValorBcb(serie)
+      } catch {
+        onBuscaFalhou()
+        return
+      }
+      await onSalvar(1, valor, valor, 'bcb-sgs')
+    } finally {
+      setBuscandoAno1(false)
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2 py-2 border-b border-[rgba(20,21,26,.04)] last:border-b-0">
+      <div className="flex items-center justify-between">
+        <span className="text-[13px] font-medium text-c-text">{label}</span>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-c-text-2">{configurados}/20</span>
+          <Button variant="icon-btn" disabled={buscandoAno1} onClick={atualizarAno1DaApi} aria-label={t.atualizarDaApi} title={t.atualizarAno1Title}>
+            <RefreshCw size={14} className={buscandoAno1 ? 'animate-spin' : ''} aria-hidden="true" />
+          </Button>
+        </div>
+      </div>
+      <div className="max-h-64 overflow-y-auto rounded-[11px] bg-[#f6f5f3]">
+        <div className="grid grid-cols-[64px_1fr_1fr] gap-x-2 gap-y-1 p-2 text-[11.5px]">
+          <span className="text-c-text-2 font-medium">{t.colAno}</span>
+          <span className="text-c-text-2 font-medium">{t.colMinPct}</span>
+          <span className="text-c-text-2 font-medium">{t.colMaxPct}</span>
+          {ANOS_TABELA.map(ano => (
+            <Fragment key={ano}>
+              <span className="flex items-center text-c-text">{ano}</span>
+              <input
+                className="row-input"
+                value={valorAtual(ano, 'min')}
+                onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
+                onBlur={e => void salvarCelula(ano, 'min', e.target.value)}
+                aria-label={`${label} ano ${ano} mínimo`}
+              />
+              <input
+                className="row-input"
+                value={valorAtual(ano, 'max')}
+                onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
+                onBlur={e => void salvarCelula(ano, 'max', e.target.value)}
+                aria-label={`${label} ano ${ano} máximo`}
+              />
+            </Fragment>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 export default function Configuracoes() {
   const t = useT(configuracoesT)
   const {
     tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
-    parametrosGlobais, atualizarParametroGlobal, loading,
+    parametrosGlobais, atualizarParametroGlobal,
+    parametrosAnuais, atualizarParametroAnual, loading,
   } = useProjeto()
 
   const [novoNome, setNovoNome] = useState('')
@@ -317,6 +434,25 @@ export default function Configuracoes() {
                 />
               )
             })}
+            {!loading && PARAMETRO_ANUAL_ORDEM.map(chave => (
+              <ParametroAnualTable
+                key={chave}
+                chave={chave}
+                label={t[PARAMETRO_ANUAL_LABEL_KEY[chave]]}
+                linhas={parametrosAnuais.filter(p => p.chave === chave)}
+                t={t}
+                onValorInvalido={() => showToast(t.valorInvalidoToast)}
+                onBuscaFalhou={() => showToast(t.buscarErroToast)}
+                onSalvar={async (ano, valorMin, valorMax, fonte) => {
+                  try {
+                    await atualizarParametroAnual(chave, ano, valorMin, valorMax, fonte)
+                    showToast(t.atualizadoToast)
+                  } catch {
+                    showToast(t.atualizarErroToast)
+                  }
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
