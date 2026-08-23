@@ -352,8 +352,8 @@ export default function Configuracoes() {
     <div className="flex flex-col h-full">
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
-      <div className="flex flex-col gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1 max-w-[560px]">
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-start gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
+        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4 max-w-[560px]">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <Settings2 size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.tiposSectionTitle}</span>
@@ -399,7 +399,7 @@ export default function Configuracoes() {
           </div>
         </div>
 
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4 max-w-[560px]">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <Settings2 size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.parametrosSectionTitle}</span>
