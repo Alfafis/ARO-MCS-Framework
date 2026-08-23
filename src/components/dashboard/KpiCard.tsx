@@ -14,12 +14,14 @@ interface KpiCardProps {
 export default function KpiCard({ icon, label, value, sub, delta, deltaPositive, highlight }: KpiCardProps) {
   return (
     <div className={`card transition-[box-shadow,border-color] duration-500${highlight ? ' ring-2 ring-accent/30' : ''}`}>
-      <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 text-accent-700 flex items-center justify-center mb-3">
-        {icon}
+      <div className="flex items-center gap-2 mb-2">
+        <div className="w-[22px] h-[22px] rounded-[7px] bg-accent-100 text-accent-700 flex items-center justify-center shrink-0">
+          {icon}
+        </div>
+        <p className="text-sm font-semibold text-c-text-2">{label}</p>
       </div>
-      <p className="text-sm font-semibold text-c-text-2 mb-1.5">{label}</p>
       <div className="flex items-center gap-2">
-        <span className="text-[28px] font-bold text-c-text tracking-tight font-mono">{value}</span>
+        <span className="text-[28px] font-bold text-c-text tracking-tight">{value}</span>
         {delta && (
           <Badge variant={deltaPositive ? 'success' : 'accent'}>{delta}</Badge>
         )}
