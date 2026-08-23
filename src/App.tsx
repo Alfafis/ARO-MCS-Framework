@@ -21,7 +21,9 @@ import VisaoGeral from './pages/VisaoGeral'
 import Lancamentos from './pages/Lancamentos'
 import Revisoes from './pages/Revisoes'
 import Perfil from './pages/Perfil'
-import Configuracoes from './pages/Configuracoes'
+import TiposProjeto from './pages/TiposProjeto'
+import CategoriasCusto from './pages/CategoriasCusto'
+import ParametrosGlobais from './pages/ParametrosGlobais'
 import Clientes from './pages/Clientes'
 import ClienteProjetos from './pages/ClienteProjetos'
 import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
@@ -210,10 +212,26 @@ export default function App() {
           }
         />
         <Route
-          path="/configuracoes"
+          path="/tipos-projeto"
           element={
             <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Configuracoes />
+              <TiposProjeto />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/categorias-custo"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <CategoriasCusto />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/parametros-globais"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <ParametrosGlobais />
             </ProtectedLayout>
           }
         />

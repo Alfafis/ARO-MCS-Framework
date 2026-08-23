@@ -23,7 +23,7 @@ import { sequenciaMidpoints, mapParametroAnualRow } from '@/types/parametrosGlob
 
 type ResumoT = typeof resumoT['pt-BR']
 
-// mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
+// mesmo formato já usado em ParametroRow (ParametrosGlobais.tsx): "14" → "14,00"
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
 const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
 

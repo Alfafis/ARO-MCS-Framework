@@ -3,8 +3,8 @@ import { createPortal } from 'react-dom'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard, FolderKanban,
-  Users, ChevronsLeft, MoreHorizontal, User, Settings, LogOut,
-  Globe, ChevronDown,
+  Users, ChevronsLeft, MoreHorizontal, User, LogOut,
+  Globe, ChevronDown, Tag, FolderTree, SlidersHorizontal,
 } from 'lucide-react'
 import { useLang, useT, type Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
@@ -64,7 +64,9 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
     // dentro, perder o highlight nesse momento deixa a sidebar parecendo sem
     // nada selecionado (2026-08-22).
     { to: '/projetos',    label: t.projects,  Icon: FolderKanban, matchExact: false },
-    { to: '/configuracoes', label: t.settings, Icon: Settings,    matchExact: false },
+    { to: '/tipos-projeto',    label: t.projectTypes,   Icon: Tag,               matchExact: false },
+    { to: '/categorias-custo', label: t.costCategoriesModule, Icon: FolderTree,  matchExact: false },
+    { to: '/parametros-globais', label: t.globalParams, Icon: SlidersHorizontal, matchExact: false },
   ]
 
   async function fetchPerfil(userId: string) {

@@ -5,7 +5,9 @@ import { sidebarT } from '@/i18n/sidebar'
 import { loginT } from '@/i18n/login'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import { perfilT } from '@/i18n/perfil'
-import { configuracoesT } from '@/i18n/configuracoes'
+import { tiposProjetoT } from '@/i18n/tipos-projeto'
+import { categoriasCustoT } from '@/i18n/categorias-custo'
+import { parametrosGlobaisT } from '@/i18n/parametros-globais'
 
 const APP_NAME = 'ARO-MCS Framework'
 
@@ -17,7 +19,9 @@ export default function DocumentTitle() {
   const tLogin = useT(loginT)
   const tRel = useT(relatorioClienteT)
   const tPerfil = useT(perfilT)
-  const tConfig = useT(configuracoesT)
+  const tTipos = useT(tiposProjetoT)
+  const tCatCusto = useT(categoriasCustoT)
+  const tParamGlobais = useT(parametrosGlobaisT)
 
   useEffect(() => {
     const [, root, , tab] = location.pathname.split('/')
@@ -30,11 +34,13 @@ export default function DocumentTitle() {
         : tNav.projects,
       relatorio:  tRel.reportTitle,
       perfil:     tPerfil.headerTitle,
-      configuracoes: tConfig.headerTitle,
+      'tipos-projeto':    tTipos.headerTitle,
+      'categorias-custo': tCatCusto.headerTitle,
+      'parametros-globais': tParamGlobais.headerTitle,
     }[root]
 
     document.title = label ? `${label} | ${APP_NAME}` : APP_NAME
-  }, [location.pathname, tNav, tLogin, tRel, tPerfil, tConfig])
+  }, [location.pathname, tNav, tLogin, tRel, tPerfil, tTipos, tCatCusto, tParamGlobais])
 
   return null
 }

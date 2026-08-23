@@ -8,6 +8,9 @@ export const sidebarT: Record<Lang, {
   revisions:      string
   clients:        string
   projects:       string
+  projectTypes:   string
+  costCategoriesModule: string
+  globalParams:   string
   expand:         string
   collapse:       string
   selectLang:     string
@@ -25,6 +28,9 @@ export const sidebarT: Record<Lang, {
     revisions:      'Revisões',
     clients:        'Clientes',
     projects:       'Projetos',
+    projectTypes:   'Tipos de Projeto',
+    costCategoriesModule: 'Categorias de Custo',
+    globalParams:   'Parâmetros Globais',
     expand:         'Expandir menu lateral',
     collapse:       'Recolher menu lateral',
     selectLang:     'Selecionar idioma',
@@ -42,6 +48,9 @@ export const sidebarT: Record<Lang, {
     revisions:      'Revisions',
     clients:        'Clients',
     projects:       'Projects',
+    projectTypes:   'Project Types',
+    costCategoriesModule: 'Cost Categories',
+    globalParams:   'Global Parameters',
     expand:         'Expand sidebar',
     collapse:       'Collapse sidebar',
     selectLang:     'Select language',
@@ -59,6 +68,9 @@ export const sidebarT: Record<Lang, {
     revisions:      'Revisiones',
     clients:        'Clientes',
     projects:       'Proyectos',
+    projectTypes:   'Tipos de Proyecto',
+    costCategoriesModule: 'Categorías de Costo',
+    globalParams:   'Parámetros Globales',
     expand:         'Expandir menú lateral',
     collapse:       'Contraer menú lateral',
     selectLang:     'Seleccionar idioma',
