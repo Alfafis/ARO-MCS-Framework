@@ -23,6 +23,7 @@ export interface Projeto {
   tipoProjetoId:   string
   moeda:           string
   dataBase:        string
+  horizonteAnos:   number
   metodoAtualizacao: string
   contingenciaPct: number
   categorias:      Category[]

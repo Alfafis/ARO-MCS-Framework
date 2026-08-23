@@ -43,6 +43,14 @@ interface NovoProjetoForm {
   tipoProjetoId: string
 }
 
+export interface ConfigFinanceiraForm {
+  moeda:              string
+  dataBase:           string
+  horizonteAnos:      number
+  metodoAtualizacao:  string
+  contingenciaPct:    number
+}
+
 interface ProjetoContextValue {
   loading:         boolean
   clientes:        Cliente[]
@@ -58,10 +66,11 @@ interface ProjetoContextValue {
   parametrosAnuais: ParametroAnual[]
   atualizarParametroAnual: (chave: ParametroAnualChave, ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']) => Promise<void>
   projetos:        Projeto[]
-  criarProjeto:    (form: NovoProjetoForm) => Promise<void>
+  criarProjeto:    (form: NovoProjetoForm) => Promise<string>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
   arquivarProjeto: (id: string) => Promise<void>
   concluirProjeto: (id: string) => Promise<void>
+  atualizarConfigFinanceira: (projetoId: string, form: ConfigFinanceiraForm) => Promise<void>
   addCategoria:    (projetoId: string) => Promise<void>
   removeCategoria: (projetoId: string, catId: string) => Promise<void>
   updateCategoria: (projetoId: string, catId: string, field: keyof Category, value: string | boolean) => Promise<void>
@@ -112,6 +121,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
     tipoProjetoId: row.tipo_projeto_id,
     moeda: row.moeda,
     dataBase: row.data_base,
+    horizonteAnos: row.horizonte_anos,
     metodoAtualizacao: row.metodo_atualizacao,
     contingenciaPct: row.contingencia_pct,
     categorias,
@@ -274,6 +284,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     setTimeout(() => {
       setProjetos(prev => prev.map(p => p.id === novo.id ? { ...p, highlight: false } : p))
     }, 900)
+    return novo.id
   }, [])
 
   const arquivarProjeto = useCallback(async (id: string) => {
@@ -286,6 +297,23 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.rpc('concluir_projeto', { p_id: id })
     if (error) throw error
     setProjetos(prev => prev.map(p => p.id === id ? { ...p, status: 'concluido' } : p))
+  }, [])
+
+  const atualizarConfigFinanceira = useCallback(async (projetoId: string, form: ConfigFinanceiraForm) => {
+    const { data, error } = await supabase.rpc('atualizar_config_financeira', {
+      p_projeto_id: projetoId,
+      p_moeda: form.moeda,
+      p_data_base: form.dataBase,
+      p_horizonte_anos: form.horizonteAnos,
+      p_metodo_atualizacao: form.metodoAtualizacao,
+      p_contingencia_pct: form.contingenciaPct,
+    })
+    if (error || !data) throw error ?? new Error('Falha ao atualizar configuração financeira')
+    setProjetos(prev => prev.map(p => p.id === projetoId ? {
+      ...p,
+      moeda: data.moeda, dataBase: data.data_base, horizonteAnos: data.horizonte_anos,
+      metodoAtualizacao: data.metodo_atualizacao, contingenciaPct: data.contingencia_pct,
+    } : p))
   }, [])
 
   const mapCategorias = useCallback((projetoId: string, fn: (categorias: Category[]) => Category[]) => {
@@ -432,6 +460,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       parametrosGlobais, atualizarParametroGlobal,
       parametrosAnuais, atualizarParametroAnual,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
+      atualizarConfigFinanceira,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
       atualizarRevLocal,
     }}>

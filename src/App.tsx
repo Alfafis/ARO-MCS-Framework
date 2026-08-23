@@ -13,6 +13,9 @@ import ResumoExecutivo from './pages/ResumoExecutivo'
 import Categorias from './pages/Categorias'
 import Simulacao from './pages/Simulacao'
 import ProjetoWorkspace from './pages/ProjetoWorkspace'
+import ProjetoNovo from './pages/ProjetoNovo'
+import ProjetoConfigInicial from './pages/ProjetoConfigInicial'
+import ProjetoConfiguracoes from './pages/ProjetoConfiguracoes'
 import Projetos from './pages/Projetos'
 import VisaoGeral from './pages/VisaoGeral'
 import Lancamentos from './pages/Lancamentos'
@@ -167,6 +170,22 @@ export default function App() {
           }
         />
         <Route
+          path="/projetos/novo"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <ProjetoNovo />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/projetos/:projetoId/config-inicial"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <ProjetoConfigInicial />
+            </ProtectedLayout>
+          }
+        />
+        <Route
           path="/projetos/:projetoId"
           element={
             <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
@@ -180,6 +199,7 @@ export default function App() {
           <Route path="simulacao" element={<Simulacao />} />
           <Route path="revisoes" element={<Revisoes />} />
           <Route path="lancamentos" element={<Lancamentos />} />
+          <Route path="config" element={<ProjetoConfiguracoes />} />
         </Route>
         <Route
           path="/perfil"

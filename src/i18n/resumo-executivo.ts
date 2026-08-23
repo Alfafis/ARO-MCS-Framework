@@ -6,7 +6,7 @@ export const resumoT: Record<Lang, {
   exportPdf:      string
   runSimulation:  string
   // MonetaryMethodsCard
-  monetaryTitle:  (base: string) => string
+  monetaryTitle:  (base: string, anos: number) => string
   method1:        (pct: string) => string
   method2:        (pct: string) => string
   method3:        (pct: string) => string
@@ -61,7 +61,7 @@ export const resumoT: Record<Lang, {
     headerTitle:    'Resumo Executivo',
     exportPdf:      'Exportar PDF',
     runSimulation:  'Rodar simulação',
-    monetaryTitle:  (base) => `Métodos de atualização monetária (10 anos, sobre ${base})`,
+    monetaryTitle:  (base, anos) => `Métodos de atualização monetária (${anos} anos, sobre ${base})`,
     method1:        (pct) => `Juros simples — ${pct}%/ano`,
     method2:        (pct) => `Juros compostos — ${pct}%/ano`,
     method3:        (pct) => `Inflação constante — ${pct}%/ano`,
@@ -108,7 +108,7 @@ export const resumoT: Record<Lang, {
     headerTitle:    'Executive Summary',
     exportPdf:      'Export PDF',
     runSimulation:  'Run simulation',
-    monetaryTitle:  (base) => `Monetary update methods (10 years, on ${base})`,
+    monetaryTitle:  (base, anos) => `Monetary update methods (${anos} years, on ${base})`,
     method1:        (pct) => `Simple interest — ${pct}%/yr`,
     method2:        (pct) => `Compound interest — ${pct}%/yr`,
     method3:        (pct) => `Constant inflation — ${pct}%/yr`,
@@ -155,7 +155,7 @@ export const resumoT: Record<Lang, {
     headerTitle:    'Resumen Ejecutivo',
     exportPdf:      'Exportar PDF',
     runSimulation:  'Ejecutar simulación',
-    monetaryTitle:  (base) => `Métodos de actualización monetaria (10 años, sobre ${base})`,
+    monetaryTitle:  (base, anos) => `Métodos de actualización monetaria (${anos} años, sobre ${base})`,
     method1:        (pct) => `Interés simple — ${pct}%/año`,
     method2:        (pct) => `Interés compuesto — ${pct}%/año`,
     method3:        (pct) => `Inflación constante — ${pct}%/año`,

@@ -4,19 +4,20 @@ import { resumoT } from '@/i18n/resumo-executivo'
 import type { MonetaryMethod } from '@/types/relatorio'
 
 interface Props {
-  methods:    MonetaryMethod[]
-  baseLabel:  string
-  className?: string
+  methods:     MonetaryMethod[]
+  baseLabel:   string
+  horizonYears: number
+  className?:  string
 }
 
-export default function MonetaryMethodsCard({ methods, baseLabel, className = '' }: Props) {
+export default function MonetaryMethodsCard({ methods, baseLabel, horizonYears, className = '' }: Props) {
   const t = useT(resumoT)
 
   return (
     <div className={`card ${className}`.trimEnd()}>
       <div className="flex items-center gap-1.5 mb-4">
         <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">{t.monetaryTitle(baseLabel)}</span>
+        <span className="font-semibold text-[0.875rem] text-c-text">{t.monetaryTitle(baseLabel, horizonYears)}</span>
       </div>
 
       <div className="flex flex-col">

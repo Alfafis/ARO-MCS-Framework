@@ -53,6 +53,13 @@ export const clientesT: Record<Lang, {
   cancel:            string
   create:            string
   justNow:           string
+  // Wizard de criação (/projetos/novo, /projetos/:id/config-inicial)
+  wizardStep1Title:  string
+  wizardStep2Title:  string
+  avancar:           string
+  voltar:            string
+  pularPorAgora:     string
+  concluir:          string
   // Lista global de projetos (/projetos)
   projetosHeaderTitle:    string
   projetosHeaderSubtitle: string
@@ -109,6 +116,12 @@ export const clientesT: Record<Lang, {
     cancel:            'Cancelar',
     create:            'Criar projeto',
     justNow:           'agora mesmo',
+    wizardStep1Title:  'Novo projeto — Identificação',
+    wizardStep2Title:  'Novo projeto — Configuração financeira',
+    avancar:           'Avançar',
+    voltar:            '← Voltar',
+    pularPorAgora:     'Pular por agora',
+    concluir:          'Concluir',
     projetosHeaderTitle:    'Projetos',
     projetosHeaderSubtitle: 'Todos os projetos de todos os clientes',
     searchAllPlaceholder:   'Buscar por projeto ou cliente...',
@@ -164,6 +177,12 @@ export const clientesT: Record<Lang, {
     cancel:            'Cancel',
     create:            'Create project',
     justNow:           'just now',
+    wizardStep1Title:  'New project — Identification',
+    wizardStep2Title:  'New project — Financial configuration',
+    avancar:           'Continue',
+    voltar:            '← Back',
+    pularPorAgora:     'Skip for now',
+    concluir:          'Finish',
     projetosHeaderTitle:    'Projects',
     projetosHeaderSubtitle: 'All projects across all clients',
     searchAllPlaceholder:   'Search by project or client...',
@@ -219,6 +238,12 @@ export const clientesT: Record<Lang, {
     cancel:            'Cancelar',
     create:            'Crear proyecto',
     justNow:           'ahora mismo',
+    wizardStep1Title:  'Nuevo proyecto — Identificación',
+    wizardStep2Title:  'Nuevo proyecto — Configuración financiera',
+    avancar:           'Continuar',
+    voltar:            '← Volver',
+    pularPorAgora:     'Omitir por ahora',
+    concluir:          'Finalizar',
     projetosHeaderTitle:    'Proyectos',
     projetosHeaderSubtitle: 'Todos los proyectos de todos los clientes',
     searchAllPlaceholder:   'Buscar por proyecto o cliente...',

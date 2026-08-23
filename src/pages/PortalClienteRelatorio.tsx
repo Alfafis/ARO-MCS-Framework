@@ -23,10 +23,6 @@ import { sequenciaMidpoints, mapParametroAnualRow } from '@/types/parametrosGlob
 
 type ResumoT = typeof resumoT['pt-BR']
 
-// Horizonte fixo em 10 anos até o Subsistema C (wizard de criação) expor isso
-// como campo do projeto. Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
-const HORIZON_YEARS = 10
-
 // mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
 const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
@@ -135,15 +131,16 @@ export default function PortalClienteRelatorio() {
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', HORIZON_YEARS)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', HORIZON_YEARS)
+    const horizonYears   = projeto?.horizonte_anos ?? 10
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', horizonYears)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', horizonYears)
     const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: HORIZON_YEARS }).map(({ metodo, valor }) => ({
+    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears }).map(({ metodo, valor }) => ({
       label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
       value: fmt(valor),
     }))
-  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto?.data_base, tBase])
+  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto?.data_base, projeto?.horizonte_anos, tBase])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: t.riskMean,       value: simResult.mean       },
@@ -365,7 +362,7 @@ export default function PortalClienteRelatorio() {
           </div>
 
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} />
+            <MonetaryMethodsCard methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
           )}
 
         </div>

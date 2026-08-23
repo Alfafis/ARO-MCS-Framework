@@ -22,11 +22,6 @@ import type { SimResult } from '@/types/simulacao'
 import type { RevisaoRow } from '@/types'
 import { sequenciaMidpoints } from '@/types/parametrosGlobais'
 
-// Horizonte fixo em 10 anos até o Subsistema C (wizard de criação) expor isso
-// como campo do projeto — mesmo valor que já era hardcoded antes da tabela
-// ano-a-ano existir. Ver specs/2026-08-23-motor-calculo-atualizacao-design.md.
-const HORIZON_YEARS = 10
-
 // mesmo formato já usado em ParametroRow (Configuracoes.tsx): "14" → "14,00"
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
 const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
@@ -129,15 +124,15 @@ export default function ResumoExecutivo() {
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', HORIZON_YEARS)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', HORIZON_YEARS)
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', projeto.horizonteAnos)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', projeto.horizonteAnos)
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: HORIZON_YEARS }).map(({ metodo, valor }) => ({
+    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: projeto.horizonteAnos }).map(({ metodo, valor }) => ({
       label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),
       value: fmt(valor),
     }))
-  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto.dataBase, t])
+  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto.dataBase, projeto.horizonteAnos, t])
 
   const riskMetrics: RiskMetric[] = simResult ? [
     { label: tRel.riskMean,       value: simResult.mean       },
@@ -208,7 +203,7 @@ export default function ResumoExecutivo() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} />
+            <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} horizonYears={projeto.horizonteAnos} />
           )}
           <RevisionTimeline
             className={monetaryMethods.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'}

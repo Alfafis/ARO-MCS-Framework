@@ -6,7 +6,6 @@ import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/LangContext'
 import { clientesT } from '@/i18n/clientes'
 import CltRow, { ROW_COLS } from '@/components/clientes/CltRow'
-import ClienteModal from '@/components/clientes/ClienteModal'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import { useProjeto } from '@/context/ProjetoContext'
 import { useProjetoRowActions } from '@/hooks/useProjetoRowActions'
@@ -26,7 +25,7 @@ export default function ClienteProjetos() {
   const { clienteId = '' } = useParams<{ clienteId: string }>()
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos: allProjetos, criarProjeto, tiposProjeto, loading } = useProjeto()
+  const { clientes, projetos: allProjetos, tiposProjeto, loading } = useProjeto()
 
   const cliente = clientes.find(c => c.id === clienteId)
   const rows = allProjetos.filter(p => p.clienteId === clienteId)
@@ -42,7 +41,6 @@ export default function ClienteProjetos() {
   const [search,      setSearch]      = useState('')
   const [filter,      setFilter]      = useState<FilterTab>('all')
   const [openMenu,    setOpenMenu]    = useState<string | null>(null)
-  const [modalOpen,   setModalOpen]   = useState(false)
 
   useEffect(() => {
     function onMouseDown() { setOpenMenu(null) }
@@ -61,11 +59,6 @@ export default function ClienteProjetos() {
     setOpenMenu(null)
     sharedHandleAction(id, action)
   }, [sharedHandleAction])
-
-  const confirmAdd = useCallback((form: { projeto: string; tipoProjetoId: string }) => {
-    criarProjeto({ ...form, clienteId })
-    setModalOpen(false)
-  }, [criarProjeto, clienteId])
 
   if (loading) {
     return (
@@ -99,7 +92,7 @@ export default function ClienteProjetos() {
         title={cliente.nome}
         badge={t.activesBadge(ativos)}
         subtitle={t.headerSubtitle}
-        actions={<Button variant="primary" onClick={() => setModalOpen(true)}>{t.newProject}</Button>}
+        actions={<Button variant="primary" onClick={() => navigate(`/projetos/novo?clienteId=${clienteId}`)}>{t.newProject}</Button>}
       />
 
       <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
@@ -174,8 +167,6 @@ export default function ClienteProjetos() {
         </div>
 
       </div>
-
-      {modalOpen && <ClienteModal onConfirm={confirmAdd} onCancel={() => setModalOpen(false)} />}
 
       {codeModalFor && (
         <CodigoAcessoModal

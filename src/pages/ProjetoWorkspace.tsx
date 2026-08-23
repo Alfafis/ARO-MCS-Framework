@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { LayoutDashboard, Tag, Activity, History, FileText } from 'lucide-react'
+import { LayoutDashboard, Tag, Activity, History, FileText, Settings2 } from 'lucide-react'
 import ClientSelector from '@/components/layout/ClientSelector'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/ProjetoContext'
@@ -67,6 +67,7 @@ export default function ProjetoWorkspace() {
     { to: 'simulacao',  label: tNav.simulation,     Icon: Activity        },
     { to: 'revisoes',   label: tNav.revisions,      Icon: History         },
     { to: 'lancamentos', label: tNav.launches,      Icon: FileText        },
+    { to: 'config',      label: tNav.settings,      Icon: Settings2       },
   ]
 
   return (

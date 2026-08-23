@@ -369,6 +369,7 @@ export type Database = {
           contingencia_pct: number
           criado_em: string
           data_base: string
+          horizonte_anos: number
           id: string
           metodo_atualizacao: string
           moeda: string
@@ -383,6 +384,7 @@ export type Database = {
           contingencia_pct?: number
           criado_em?: string
           data_base: string
+          horizonte_anos?: number
           id?: string
           metodo_atualizacao?: string
           moeda?: string
@@ -397,6 +399,7 @@ export type Database = {
           contingencia_pct?: number
           criado_em?: string
           data_base?: string
+          horizonte_anos?: number
           id?: string
           metodo_atualizacao?: string
           moeda?: string
@@ -552,6 +555,37 @@ export type Database = {
         }
       }
       arquivar_projeto: { Args: { p_id: string }; Returns: undefined }
+      atualizar_config_financeira: {
+        Args: {
+          p_contingencia_pct: number
+          p_data_base: string
+          p_horizonte_anos: number
+          p_metodo_atualizacao: string
+          p_moeda: string
+          p_projeto_id: string
+        }
+        Returns: {
+          atualizado_em: string
+          cliente_id: string
+          contingencia_pct: number
+          criado_em: string
+          data_base: string
+          horizonte_anos: number
+          id: string
+          metodo_atualizacao: string
+          moeda: string
+          nome: string
+          rev: string
+          status: string
+          tipo_projeto_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "projetos"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       atualizar_foto_perfil: {
         Args: { p_foto_url: string }
         Returns: undefined
@@ -655,6 +689,7 @@ export type Database = {
           contingencia_pct: number
           criado_em: string
           data_base: string
+          horizonte_anos: number
           id: string
           metodo_atualizacao: string
           moeda: string
