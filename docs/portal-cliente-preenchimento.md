@@ -1,3 +1,5 @@
+> **NÃO IMPLEMENTADO** — nenhuma rota ou arquivo desta spec existe no código atual (verificado 2026-08-24, sem rota de "preenchimento" em `App.tsx` nem qualquer página correspondente em `src/pages`). Este documento descreve uma tela que nunca foi construída. A única rota pública real do Portal do Cliente hoje é `/relatorio/:id` (ver `docs/portal-cliente-relatorio.md`).
+
 # Tela: Portal do cliente — Preenchimento (onboarding)
 
 Arquivo: `ARO-MCS Cliente (Preenchimento).dc.html`. Fluxo standalone (sem sidebar do sistema) para o CLIENTE completar dados da operação que o consultor não preencheu.

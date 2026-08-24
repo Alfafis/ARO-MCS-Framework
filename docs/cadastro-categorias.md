@@ -1,47 +1,38 @@
-# Tela: Categorias de custo (Cadastro)
+# Tela: Categorias de custo (do projeto)
 
-Arquivo: `ARO-MCS Projeto (Cadastro).dc.html`. Onde consultor/cliente cadastram as categorias de custo do projeto e os itens (min/max/fonte) de cada uma.
+> **Reescrito em 2026-08-24** — a spec antiga descrevia array local `{id, name, preenche, tagClass, expanded, items[]}` por projeto, com card "Dados do projeto" (Cliente/Tipo/Moeda/Método de atualização) embutido na mesma tela e dropdowns próprios pra essas configurações. Nada disso está aqui hoje: as configurações do projeto migraram pra fora desta tela (`ProjetoConfigInicial`/`ProjetoConfiguracoes`, wizard/config do projeto), e categoria deixou de ser array local — é catálogo compartilhado, persistido via RPC.
+
+Arquivo real: `src/pages/Categorias.tsx` (rota `/projetos/:id/categorias`) + `src/components/categorias/CategoryBlock.tsx`.
+
+## Modelo de dado — catálogo compartilhado, não array por projeto
+
+Cada categoria de um projeto referencia uma entrada em `catalogo` (`catalogoId`) — o **nome** da categoria vive no catálogo, compartilhado entre TODOS os projetos que usam aquele nome. Renomear uma categoria (`renomearCategoriaCatalogo`) afeta qualquer outro projeto que já usa esse nome — a tela avisa isso explicitamente no toast ("Categoria renomeada — vale pra todos os projetos que usam esse nome"). A categoria em si (`preenche`, `expanded`, lista de itens) é dado por-projeto; só o nome é compartilhado.
 
 ## Layout
-Sidebar + `.topbar` (título + tag "Rev0" + botões "Salvar rascunho" / "Salvar e continuar" — este último é um `<a>` que navega para `ARO-MCS Simulacao.dc.html`) + `.content` (flex column, gap 16px).
+
+Header simples: título + botão "+ Nova categoria" (`addCategoria`). Sem tag de revisão, sem "Salvar rascunho"/"Salvar e continuar" — esses dois botões não existem mais nesta tela (salvar é sempre incremental por campo, ver abaixo; navegação pra Simulação é pela sidebar de abas do workspace de projeto).
 
 ## Componentes
 
-### Card "Dados do projeto"
-Grid 3 colunas × 2 linhas de campos: Cliente (input), **Tipo de projeto** (dropdown custom — 4 opções), Data-base (input), Moeda (dropdown custom — BRL/USD), **Método de atualização** (dropdown custom — 5 opções: A definir/Escalonamento/Juros simples/Juros compostos/Inflação constante), Contingência aplicada (input).
+### Card "Categorias" — único card da tela
 
-### Card "Categorias de custo" — o componente central da tela
-Botão "+ Nova categoria" no cabeçalho e outro "+ Nova categoria de custo" no rodapé do card (ambos chamam a mesma ação).
+- **Estado vazio**: se o projeto não tem nenhuma categoria ainda, mostra mensagem + um botão "Carregar exemplo de {tipo}" por cada tipo de projeto que tem template cadastrado (`tiposComTemplate`, ver `docs/configuracoes.md` — editor de template em `/categorias-custo`). Carrega via `carregarTemplateExemplo`, que lê o template do servidor (não aceita payload arbitrário do client — RPC endurecida nessa mesma sessão, ver ADR "Template de categoria administrável" no vault).
+- **Lista de `CategoryBlock`**, um por categoria do projeto (`projeto.categorias`).
 
-Cada categoria é um `.cat-block` (borda `--c-line`, radius 16px):
-- **Cabeçalho** (`.cat-head`, fundo `#faf9f8`): número de ordem (01, 02...), **nome editável inline** (input sem borda, hover cinza, focus com `box-shadow` accent — nunca outline padrão), tag "Preenche: Consultor/Ambos", botão de expandir/recolher (chevron gira 180°), botão de excluir categoria (hover vermelho).
-- **Corpo** (só quando expandido, `sc-if`): cabeçalho de colunas (Item/Unidade/Custo Min/Custo Max/Fonte) + linhas de item, cada campo é um `input` inline editável (`.row-input`, mesmo padrão visual do nome de categoria) + botão de excluir item por linha. Rodapé: "+ Adicionar item".
+### `CategoryBlock` — cada categoria
 
-## Interatividade (component state)
-- **Categorias**: array de objetos `{id, name, preenche, tagClass, expanded, items[]}` em `state.categories`.
-  - Editar nome inline (`onChange`).
-  - Expandir/recolher (`toggleExpand`).
-  - Remover categoria (`remove`).
-  - **Adicionar categoria** (`addCategory`): insere no **TOPO** da lista (nunca no final), com `justAdded:true` → aplica animação de entrada (`@keyframes catIn`, fade+slide 420ms) + destaque de borda `--accent` que decai em 900ms (via `setTimeout`) + **scroll automático** até o novo bloco (`ref` callback + `scrollIntoView`).
-- **Itens de cada categoria**: array `items[]` por categoria, cada um com campos editáveis (item, unidade, min, max, fonte) e botão de remover; `addItem(catId)` cria um "Novo item" vazio no final da lista de itens da categoria.
-- **3 dropdowns custom** (Tipo de projeto, Moeda, Método de atualização): cada um com `state.xOpen` (boolean) + `state.x` (índice selecionado); abrir um fecha os outros dois; menu com `menuStyle(open)` (opacity+scale, 140ms).
-- Sidebar: recolher/expandir, dropdown de perfil.
+- **Cabeçalho** (fundo `#faf9f8`): nome editável inline (mesmo padrão confirmar/cancelar do resto do app — nunca salva sozinho no blur), badge "Preenche: {Consultor/Cliente/Ambos}" clicável (abre menu portal com as 3 opções), botão expandir/recolher, botão excluir categoria.
+- **Corpo** (só expandido): tabela de itens com **7 colunas**, não 5 como a spec antiga — Item, Unidade, Custo Min, Custo Max, Fonte, **Aplicabilidade**, **Ano previsto** (as 2 últimas não existiam na spec original). Cada célula salva no blur via `onSaveItem` (RPC), estado local (`onUpdateItem`) só pro valor digitado antes do blur. Botão "+ Adicionar item" no rodapé.
+- Categoria recém-criada: mesmo efeito visual da spec antiga (entra no topo, scroll automático, destaque de borda que decai) — isso continua igual, só o dado por trás mudou.
 
-## Regras de negócio observadas
-- Numeração de categoria reflete a ordem na síntese/relatório final (ex.: "01. Estudos", "04. Barragem", "08. Monitoramento").
-- "Salvar e continuar" é o próximo passo do fluxo → leva à tela de Simulação.
+## Interatividade
 
+- **Adicionar categoria** (`addCategoria`): RPC via `ProjetoContext`, insere no topo do array local após confirmar no servidor.
+- **Renomear categoria** (`renomearCategoriaCatalogo`): edita o catálogo compartilhado, não um campo local — erro de nome duplicado vira toast ("Já existe uma categoria com esse nome").
+- **Alterar "Preenche"**: `onChange('preenche', ...)` — RPC de update, não estado local puro.
+- **Itens**: `addItem`/`removeItem`/`updateItem` (estado local, digitação) + `saveItem` (RPC, no blur de cada campo) — mesmo padrão de outras telas do sistema (salvar incremental por campo, nunca um botão "Salvar" único pra tudo).
+- Sidebar/dropdown de perfil: herdados do layout global, não específicos desta tela.
 
-## Prompts dos componentes internos
+## O que NÃO existe mais nesta tela
 
-**Card "Dados do projeto"**
-> Card branco com título + ícone de calendário/prancheta. Grid responsivo de 3 colunas x 2 linhas de campos de formulário: cada campo tem um rótulo pequeno cinza (12.5px, peso 600) acima e, abaixo, ou um input de texto simples (fundo cinza claro, sem borda visível, radius 11px, sem outline de foco) ou um dropdown customizado (ver prompt abaixo). Campos: Cliente, Tipo de projeto, Data-base, Moeda, Método de atualização, Contingência aplicada.
-
-**Dropdown customizado (Tipo de projeto / Moeda / Método de atualização)**
-> Nunca um select nativo. Um botão do mesmo visual do input de texto (fundo cinza claro, radius 11px, padding 9-13px) com o valor selecionado à esquerda e um chevron para baixo à direita que gira 180° quando aberto. Ao clicar, revela — ancorado logo abaixo, com uma pequena distância — um menu flutuante branco (radius 14px, sombra pronunciada, padding 6px) listando as opções como linhas clicáveis (radius 9px, hover cinza claro); a opção atualmente selecionada tem fundo vermelho bem claro e texto vermelho escuro em negrito. Abertura/fechamento sempre animados via opacidade + escala (nunca desmontar abruptamente); abrir um dropdown fecha qualquer outro que esteja aberto na mesma tela.
-
-**Bloco de categoria de custo expansível**
-> Um contêiner com borda fina cinza e cantos arredondados (16px) representando uma categoria de custo cadastrada. Cabeçalho com fundo levemente acinzentado contendo, em linha: um chip numérico (01, 02...) indicando a ordem, o nome da categoria como um campo de texto editável inline (sem borda visível até o hover/foco — no hover ganha fundo cinza claro, no foco ganha um contorno fino vermelho), uma pill indicando quem deve preencher aquela categoria ("Preenche: Consultor" neutro ou "Preenche: Ambos" em tom vermelho claro), um botão de ícone para expandir/recolher (seta que gira) e um botão de ícone para excluir a categoria inteira (fica vermelho no hover). Quando expandido, revela: um cabeçalho de colunas em maiúsculas pequenas cinza (Item / Unidade / Custo Min / Custo Max / Fonte) seguido de uma linha por item cadastrado — cada célula é também um campo de texto editável inline no mesmo padrão do nome da categoria, os valores monetários em fonte monoespaçada, e um botão de excluir por linha. Ao final, um link "+ Adicionar item". Uma categoria recém-criada deve aparecer no topo da lista (nunca no final), entrando com uma animação suave de opacidade+deslize (de cima para baixo, ~420ms) e um contorno vermelho temporário que desaparece gradualmente em menos de 1 segundo, com a página rolando automaticamente até ela ficar visível.
-
-**Botão "+ Nova categoria de custo" (rodapé da lista)**
-> Uma faixa de largura total, centralizada, com fundo levemente acinzentado e cantos arredondados, texto cinza que fica vermelho no hover — convida a criar mais uma categoria sem competir visualmente com o botão de ação principal do cabeçalho do card.
+Card "Dados do projeto" (Cliente/Tipo de projeto/Data-base/Moeda/Método de atualização/Contingência) e os 3 dropdowns custom associados — migraram pra fora de Categorias (config do projeto, wizard de criação). Botões "Salvar rascunho"/"Salvar e continuar" como ações explícitas de tela inteira — tudo salva incremental por campo.

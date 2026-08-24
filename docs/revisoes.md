@@ -1,4 +1,4 @@
-> **DESATUALIZADO (2026-08-23)** — "hash de ancoragem (OpenTimestamps)" abaixo é overclaim corrigido no código real: é hash SHA-256 de conteúdo, nunca houve integração com OpenTimestamps. Ver ADR "Revisões virou por-projeto" no vault. Layout/interatividade geral ainda são referência válida; a alegação de ancoragem blockchain, não.
+> **DESATUALIZADO (2026-08-23), complementado 2026-08-24** — "hash de ancoragem (OpenTimestamps)" abaixo é overclaim: é hash SHA-256 de conteúdo, calculado no servidor, nunca houve integração com OpenTimestamps. A correção de 2026-08-23 tinha corrigido só essa alegação — mas a seção "Interatividade" abaixo (`addRevision`/`toggleEdit`/`saveDraft`/`publish` como estado local em array) também está errada: a tela real (`src/pages/Revisoes.tsx`, rota `/projetos/:id/revisoes`) é 100% via RPC Supabase. Layout visual (timeline, cards, textarea) segue igual.
 
 # Tela: Revisões do relatório
 
@@ -18,13 +18,15 @@ Cada `.rev-card` (borda `--c-line`, radius 16px, borda `--accent-100` quando é 
 - **Hash de ancoragem** (`.hash`, só quando publicado): ícone de cadeado + hash mono (`0x8f2a...c194`) + "ancorado via OpenTimestamps".
 
 ## Interatividade
-- **Gerar nova revisão** (`addRevision`): cria uma revisão `{status:'rascunho', editing:true, changes:[]}` no **TOPO** da lista, com `justAdded:true` → animação de entrada (`.rev-anim`, fade+slide 420ms) + destaque de borda que decai em 900ms; abre automaticamente em modo de edição.
-- **Editar rascunho**: `toggleEdit` abre/fecha o textarea (populado com as mudanças atuais, uma por linha); `saveDraft` grava o texto do textarea como novo array de `changes` (split por linha) e fecha a edição.
-- **Publicar revisão** (`publish`): muda `status` para `'vigente'`, remove o estado `pending`, atualiza a data para "Publicada agora mesmo" e gera um hash aleatório mock.
-- Sidebar: recolher/expandir, dropdown de perfil.
+- **Carga inicial**: `load()` busca `revisoes` via `.from('revisoes').select('*').eq('projeto_id', projeto.id)` (RLS, não RPC).
+- **Gerar nova revisão** (`handleNovaRevisao`): chama RPC `criar_revisao_rascunho(p_projeto_id)`, insere o registro retornado no topo da lista, abre em modo de edição (`editingId`) e aplica destaque (`highlightId`, decai em 900ms) — mesmo efeito visual do protótipo, dado real.
+- **Editar rascunho**: `toggleEditor` abre/fecha o textarea local (populado com `rev.itens.join('\n')`), sem chamada de rede até salvar.
+- **Salvar rascunho** (`handleSalvar`): RPC `salvar_rascunho_revisao(p_id, p_itens)` — `p_itens` é o texto do textarea, split por linha e filtrado; substitui a revisão local pelo retorno da RPC.
+- **Publicar revisão** (`handlePublicar`): RPC `publicar_revisao(p_id, p_itens)` — servidor calcula o hash SHA-256 real de conteúdo, muda `status` pra `'vigente'`, e o client rebaixa localmente qualquer outra revisão que estava `'vigente'` para `'substituida'`. Também chama `atualizarRevLocal` no `ProjetoContext` pra sincronizar o badge `projetos.rev` mostrado em outras telas.
+- Sidebar: recolher/expandir, dropdown de perfil (herdado do layout global).
 
 ## Dados mock iniciais
-Rev2 (planejada/rascunho, 2 mudanças pendentes), Rev1 (vigente, 3 mudanças, hash), Rev0 (substituída, 1 mudança, hash).
+Não existe mais — removido. A tela carrega as revisões reais do projeto ativo; lista vazia mostra `t.emptyState`.
 
 
 ## Prompts dos componentes internos

@@ -1,62 +1,34 @@
-> **DESATUALIZADO (2026-08-23)** — este doc descreve a spec original (abas Perfil/Notificações/Equipe). A tela real hoje (`src/pages/Configuracoes.tsx`) é CRUD de tipos de projeto — feature completamente diferente. Perfil virou rota própria (`/perfil`). Ver ADR "Tipos de projeto saem de array hardcoded" no vault. Mantido por referência histórica, não usar como spec vigente.
+> **Reescrito em 2026-08-24** — este doc já tinha sido marcado "DESATUALIZADO" em 2026-08-23 (dizia que a tela real era CRUD único de tipos de projeto em `src/pages/Configuracoes.tsx`). Isso também ficou obsoleto: o commit `f5b3030` desmembrou aquele CRUD único em **3 rotas/páginas independentes**, cada uma na sidebar global (não mais escondidas em "Configurações"). Não existe mais nenhuma tela nem rota `/configuracoes` — quem navegar até lá cai no fallback `*` → `/visao-geral`.
 
-# Tela: Configurações
+# Telas: Tipos de Projeto, Categorias de Custo, Parâmetros Globais
 
-Arquivo: `ARO-MCS Configuracoes.dc.html`. Gestão de perfil, notificações e equipe do consultor logado. Não aparece na sidebar (acessível via dropdown de perfil).
+Três páginas irmãs, cada uma um card branco único dentro de `PageHeader`, com toast de confirmação no canto inferior direito (`#14151a`, fade+slide, ~2.5s) — mesmo padrão visual nas três. Todas leem/escrevem via `ProjetoContext` (Supabase, RLS `is_consultor()`), sem mock.
 
-## Layout
-Sidebar + `.topbar` (título "Configurações" + subtítulo) + `.content` (max-width 760px): navegação por abas + card do conteúdo da aba ativa.
+## `/tipos-projeto` — `src/pages/TiposProjeto.tsx`
 
-## Componentes
+CRUD simples de `tiposProjeto` (`criarTipoProjeto`/`renomearTipoProjeto`/`removerTipoProjeto` do `ProjetoContext`). Card único, max-width 560px.
 
-### Abas (`.tabs`, pill container cinza)
-3 abas: **Perfil**, **Notificações**, **Equipe** — aba ativa com fundo branco + `--shadow-1`.
+- Lista de `TipoRow`: input sempre editável (`variant="filled"`), ícones de confirmar/cancelar só aparecem com edição em andamento (clique fora cancela, nunca salva sozinho no blur), botão de remover sempre visível.
+- Rodapé do card: input + botão "+ Adicionar" para criar tipo novo.
+- Delete é bloqueado pelo FK `RESTRICT` do Postgres se algum projeto usa o tipo — erro do backend vira toast (`err.message`).
+- `id` (slug) nunca é editável depois de criado.
 
-### Aba Perfil
-Grid 2×2 de campos: Nome, Cargo, E-mail (inputs de texto) e Fuso horário (dropdown custom — Brasília/Manaus/UTC). Botão "Salvar alterações".
+## `/categorias-custo` — `src/pages/CategoriasCusto.tsx`
 
-### Aba Notificações
-3 linhas de toggle (`.toggle-row`, separadas por `border-top`): "Nova revisão publicada", "Lançamento pendente de evidência", "Resumo semanal por e-mail" — cada uma com switch (`.switch`, 40×24px, bolinha desliza, fundo `--accent` quando "on"). Botão "Salvar alterações".
+Editor do **template de categoria por tipo de projeto** (`categorias_template`/`itens_template`) — não é a categoria de um projeto real, é o blueprint que `carregar_template_exemplo` usa pra popular um projeto novo daquele tipo.
 
-### Aba Equipe
-Botão "+ Convidar membro" no cabeçalho + lista de membros (`.member-row`): nome+email, tag de papel (Admin verde / Consultor neutro / Cliente laranja), botão de remover (hover vermelho).
+- Chips de tipo de projeto no topo (`tiposProjeto` do context); selecionar um busca sob demanda (`fetchTemplateCategorias`) e cacheia em `templates[tipoId]` — trocar de tipo e voltar não rebusca.
+- Corpo reaproveita `CategoryBlock` (mesmo componente usado em `Categorias.tsx` pra categoria de projeto real) via `TemplateEditor`, trocando as mutações pelas `template*` do context (`templateAddCategoria`/`templateRemoveCategoria`/`templateUpdateCategoria`/`templateAddItem`/`templateRemoveItem`/`templateUpdateItem`/`templateSaveItem`).
+- Renomear a categoria (`onRename`) chama `renomearCategoriaCatalogo` — o nome é do **catálogo compartilhado**, então renomear aqui afeta qualquer projeto que já usa aquela categoria (ver `docs/cadastro-categorias.md`).
 
-### Toast de confirmação
-Aparece por ~2.4s (`@keyframes toast`: fade in → permanece → fade out) após clicar em "Salvar alterações" em qualquer aba.
+## `/parametros-globais` — `src/pages/ParametrosGlobais.tsx`
 
-### Modal "Convidar membro"
-Campos Nome/E-mail. Botões Cancelar/Enviar convite.
+Dois tipos de parâmetro, ambos com botão de atualização via API do BCB (`buscarValorBcb`) e edição manual:
 
-## Interatividade
-- **Navegação de abas**: troca `state.tab`, só uma aba de conteúdo visível por vez (`sc-if`).
-- **Campos de perfil**: editáveis, controlados.
-- **Fuso horário**: dropdown custom padrão do sistema.
-- **3 toggles de notificação**: cada um alterna independentemente entre `''`/`'on'`.
-- **Salvar alterações** (`save`, compartilhado pelas 3 abas): dispara o toast (reseta e re-mostra via `requestAnimationFrame` para garantir a animação de entrada mesmo se já estava visível).
-- **Convidar membro** (`confirmInvite`): valida nome não vazio, adiciona ao array de membros com papel "Consultor" por padrão.
-- **Remover membro**: remove do array.
-- Sidebar: recolher/expandir, dropdown de perfil.
+- **Parâmetro spot único** (`PARAMETRO_ORDEM`: só `cambio_usd_brl` hoje) — `ParametroRow`: valor formatado (R$ ou %), fonte (`bcb-sgs`/`manual`) + tempo relativo desde a última atualização, clique no valor abre edição inline.
+- **Parâmetro ano-a-ano** (`PARAMETRO_ANUAL_ORDEM`: `inflacao_ipca`, `selic`) — `ParametroAnualTable`: grade de 20 anos com min/max por ano, salva no blur de cada célula. "Ano 1" tem botão de API (spot do BCB); anos 2-20 são sempre manuais — não existe API pública de projeção futura. Estado local (`edicoes`) evita que salvar min e max em sequência rápida sobrescreva um com o outro via prop desatualizada (bug reproduzido e corrigido, ver comentário no arquivo).
+- `inflacao_ipca`/`selic` NÃO são mais valor spot fixo — reabertura registrada como ADR "Inflação e Selic viram tabela ano-a-ano" (Subsistema A2, `c8fbfcc`).
 
-## Dados mock iniciais
-Perfil: Cesar Aro / Consultor / cesar@aromcs.com. Equipe: Cesar Aro (Admin), Bruna Lima (Consultor), NX Gold — Marcos (Cliente).
+## O que NÃO existe mais
 
-
-## Prompts dos componentes internos
-
-**Navegação por abas**
-> Um seletor compacto de 3 abas (Perfil / Notificações / Equipe) dentro de uma trilha de fundo cinza claro com cantos arredondados — a aba ativa tem fundo branco e uma sombra suave, as inativas são apenas texto cinza sem fundo. Só o conteúdo da aba selecionada é exibido por vez.
-
-**Formulário de perfil**
-> Um card branco com um grid de campos (Nome, Cargo, E-mail — inputs de texto simples de fundo cinza claro — e Fuso horário, um dropdown customizado com opções Brasília/Manaus/UTC, mesmo padrão visual dos dropdowns do resto do sistema). Botão "Salvar alterações" alinhado à direita no rodapé do card.
-
-**Linha de toggle de notificação**
-> Uma linha horizontal com, à esquerda, o nome da notificação em negrito e uma descrição menor em cinza abaixo, e à direita um interruptor (switch) de pílula — 40px de largura, fundo cinza quando desligado e vermelho quando ligado, com uma bolinha branca que deslila de um lado para o outro suavemente. Linhas separadas por uma regra fina horizontal.
-
-**Lista de membros da equipe**
-> Um card com o título "Equipe" e um botão secundário "+ Convidar membro" no cabeçalho. Corpo: uma linha por membro — nome em destaque com e-mail em texto secundário cinza abaixo, uma pill de papel à direita (verde para "Admin", neutra para "Consultor", laranja para "Cliente") e um botão de ícone de excluir que fica vermelho no hover. Linhas separadas por regra fina.
-
-**Toast de confirmação**
-> Uma pequena etiqueta verde de pílula ("Alterações salvas com sucesso") que aparece suavemente ao lado do botão de salvar, permanece visível por cerca de 2 segundos e depois desaparece suavemente sozinha, sem precisar ser fechada manualmente.
-
-**Modal "Convidar membro"**
-> Janela modal centralizada com dois campos (Nome, E-mail) no mesmo padrão visual dos formulários do sistema, e botões "Cancelar"/"Enviar convite" no rodapé.
+Perfil (`/perfil`), Notificações e Equipe do doc original não têm equivalente nestas 3 páginas — `/perfil` é rota própria e separada (ver `Perfil.tsx`), Notificações/Equipe/convite de membro nunca foram reimplementados fora do protótipo estático original.

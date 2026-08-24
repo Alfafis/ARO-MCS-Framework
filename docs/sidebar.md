@@ -1,8 +1,8 @@
-> **DESATUALIZADO (2026-08-23)** — a lista de 6 itens abaixo (Categorias/Simulação/Lançamentos/Revisões top-level) é pré-migração workspace-por-projeto. Sidebar real hoje tem 4 itens: Visão geral, Clientes, Projetos, Configurações — as 4 telas antigas viraram abas dentro do workspace de projeto (`/projetos/:id/...`), e Configurações é item fixo (não mais escondida). Ver ADR "Dashboard/Categorias/Simulação são workspace por projeto" no vault. Estrutura visual do componente (recolher, cartão de perfil, dropdown) ainda é referência válida.
+> **Corrigido em 2026-08-24** — a correção anterior (2026-08-23, "sidebar tem 4 itens: Visão geral/Clientes/Projetos/Configurações") já ficou obsoleta pelo commit `f5b3030`: "Configurações" não existe mais como item único, foi desmembrada em 3 rotas próprias. Sidebar real hoje (`src/components/layout/Sidebar.tsx`) tem 6 itens fixos: Visão Geral, Clientes, Projetos, Tipos de Projeto, Categorias de Custo, Parâmetros Globais — todos top-level, nenhum escondido em dropdown. Dashboard/Categorias/Simulação/Lançamentos/Revisões são abas dentro do workspace de projeto (`/projetos/:id/...`), não itens da sidebar global. Estrutura visual do componente (recolher, cartão de perfil, dropdown de idioma) ainda é referência válida.
 
 # Sidebar — ARO-MCS
 
-Componente de navegação lateral presente em todas as telas internas do sistema (Dashboard, Categorias de custo, Simulação, Lançamentos, Revisões, Clientes, Configurações, Ajuda). Estrutura EXATA a reaproveitar em toda tela nova.
+Componente de navegação lateral presente em todas as telas internas do sistema (Visão Geral, Clientes, Projetos, Tipos de Projeto, Categorias de Custo, Parâmetros Globais, e — dentro do workspace de um projeto — Dashboard, Categorias, Simulação, Lançamentos, Revisões, Configurações do projeto). Estrutura EXATA a reaproveitar em toda tela nova.
 
 ## Estrutura DOM
 
@@ -36,19 +36,19 @@ Componente de navegação lateral presente em todas as telas internas do sistema
 
 `.bsidebar-scroll { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:4px }` — cresce para ocupar o espaço disponível e rola independentemente se a lista crescer.
 
-Ordem fixa dos 6 itens (sempre os mesmos, em todas as telas):
-1. Visão geral → `ARO-MCS Dashboard (Full).dc.html`
-2. Categorias de custo → `ARO-MCS Projeto (Cadastro).dc.html`
-3. Simulação → `ARO-MCS Simulacao.dc.html`
-4. Lançamentos → `ARO-MCS Lancamentos.dc.html`
-5. Revisões → `ARO-MCS Revisoes.dc.html`
-6. Clientes → `ARO-MCS Clientes.dc.html`
+Ordem fixa dos 6 itens (sempre os mesmos, em todas as telas — `NAV_ITEMS` em `Sidebar.tsx`):
+1. Visão Geral → `/visao-geral`
+2. Clientes → `/clientes`
+3. Projetos → `/projetos` (destaque também ativo dentro de `/projetos/:id/*`, o workspace de projeto)
+4. Tipos de Projeto → `/tipos-projeto`
+5. Categorias de Custo → `/categorias-custo`
+6. Parâmetros Globais → `/parametros-globais`
 
 Cada link (`.bsidebar-link`): ícone Lucide 14px dentro de um chip `.ico` (28×28px, radius 9px, fundo `#f0eeec`) + label de texto (escondido quando recolhida, `title` no `<a>` serve de tooltip nesse estado).
 - **Ativo** (`.bsidebar-link.active`): o chip `.ico` fica com fundo `var(--accent)` e ícone branco + `box-shadow: var(--shadow-1)` — a linha inteira NÃO muda de fundo, só o chip do ícone.
 - **Hover** (não ativo): chip `.ico` vai para `#e7e4e1`, texto para `var(--c-text)`.
 
-Configurações e Ajuda existem como telas (`ARO-MCS Configuracoes.dc.html`, `ARO-MCS Ajuda.dc.html`) mas foram removidas da lista de navegação por decisão do usuário — acessíveis só via link direto ou pelo item "Configurações" dentro do dropdown de perfil.
+Não existe mais um item único "Configurações" nem na sidebar nem no dropdown de perfil — as 3 rotas que a substituíram (Tipos de Projeto, Categorias de Custo, Parâmetros Globais) são top-level, ao lado das demais. `Ajuda` segue sem rota nem arquivo no código (ver `docs/ajuda.md`).
 
 ## Cartão de perfil (rodapé fixo)
 
@@ -60,7 +60,7 @@ Container: `flex:none; padding:8px 0 20px` (fora do scroll, colado na base real 
 - `state.profileOpen` (boolean) — toggla ao clicar no cartão.
 - Dropdown (`profileMenuStyle`) ancorado ACIMA do cartão: `position:absolute; bottom:calc(100% + 8px); left:0; right:0`, fundo `--c-card`, radius 14px, `box-shadow: var(--shadow-2)`, padding 6px.
 - Animação de abrir/fechar: **nunca desmontado via `sc-if`** — sempre presente no DOM, controlado por `opacity` (0→1) + `transform: translateY(6px) scale(0.96)` → `translateY(0) scale(1)`, `transition: opacity 160ms ease, transform 160ms ease`, `pointerEvents: 'none'` quando fechado (evita cliques fantasmas).
-- Itens do menu (`.profile-menu-item`, hover `#f0eeec`): "Meu perfil" (sem link real), "Configurações" (link para `ARO-MCS Configuracoes.dc.html`), divisor fino, "Sair" (cor `--accent-700`, ícone de logout).
+- Itens do menu (`.profile-menu-item`, hover `#f0eeec`): "Meu perfil" (navega para `/perfil`), divisor fino, "Sair" (cor `--accent-700`, ícone de logout). Sem item "Configurações" — removido do dropdown.
 
 ## Prompt do componente — Logo/marca (\`.bsidebar-topline\`)
 

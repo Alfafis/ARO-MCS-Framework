@@ -1,6 +1,8 @@
+> **Corrigido em 2026-08-24** — as seções "Interatividade" e "Dados mock iniciais" abaixo descreviam o protótipo estático original (array em memória, `confirmAddRow`). Tela real hoje é `src/pages/Lancamentos.tsx`, rota `/projetos/:id/lancamentos`, 100% via RPC Supabase — sem array local nem dado mock. Layout/visual (KPIs, toolbar, tabela, modal) continua igual ao descrito.
+
 # Tela: Lançamentos realizados
 
-Arquivo: `ARO-MCS Lancamentos.dc.html`. Registro dos custos efetivamente realizados por categoria/período, usado como base do comparativo expectativa vs. realidade.
+Arquivo real: `src/pages/Lancamentos.tsx`. Registro dos custos efetivamente realizados por categoria/período de um projeto, usado como base do comparativo expectativa vs. realidade.
 
 ## Layout
 Sidebar + `.topbar` (título + botão primário "+ Novo lançamento") + `.content`: 3 KPI cards no topo, toolbar de busca/filtro, card de lista.
@@ -24,14 +26,15 @@ Estado vazio: `.empty-state` centralizado quando a busca/filtro não retorna nad
 Campos: Categoria, Período, Valor real (R$) — todos texto livre. Botões Cancelar/Adicionar.
 
 ## Interatividade
-- **Busca**: filtra `rows` por `categoria.toLowerCase().includes(search)`.
-- **Filtros**: filtram por `status` (validado/revisao/pendente).
-- **Menu de linha**: `toggleMenu` fecha todos os outros menus abertos antes de abrir o clicado (`closeAllMenus`); as 3 ações mudam `status` do lançamento ou removem a linha do array.
-- **Adicionar lançamento** (`confirmAddRow`): valida que `categoria` não está vazio, converte o texto do valor (formato BR "350.000" → número), insere a nova linha no **topo** do array com `status:'pendente'`, `iconKey:'default'` e `justAdded:true` → aplica `.highlight` (fundo `--accent-100` que decai em 900ms via `setTimeout`); fecha o modal.
-- Sidebar: recolher/expandir, dropdown de perfil.
+- **Carga inicial**: `load()` busca `lancamentos` via `.from('lancamentos').select('*').eq('projeto_id', projeto.id)` (RLS, não RPC) — não array local nem mock.
+- **Busca**: filtra `rows` em memória por `categoria.toLowerCase().includes(search)` (cliente-side, sobre o dado já carregado).
+- **Filtros**: filtram por `status` (validado/revisao/pendente), também client-side.
+- **Menu de linha**: fecha ao clicar fora (`mousedown` no documento); as 2 ações reais chamam RPC — **excluir** (`remover_lancamento`) e **mudar status** (`atualizar_status_lancamento`, usada tanto pra "Marcar como validado" quanto "Marcar em revisão") — sucesso atualiza o array local só depois da RPC confirmar.
+- **Adicionar lançamento** (`confirmAdd`): chama RPC `criar_lancamento` (`p_projeto_id`, `p_categoria`, `p_periodo`, `p_valor` já convertido de string BR "350.000" pra número via `parseValor`); insere o registro retornado pela RPC no topo do array, aplica `highlightId` (fundo destacado que decai em 900ms) e fecha o modal.
+- Sidebar: recolher/expandir, dropdown de perfil (herdado do layout global, não específico desta tela).
 
 ## Dados mock iniciais
-4 lançamentos: Barragem (R$612.000, validado), Monitoramento (R$218.000, em revisão), Cavas (R$940.000, validado), Áreas de apoio (R$87.000, pendente).
+Não existe mais — removido. A tela carrega os lançamentos reais do projeto ativo via Supabase; lista vazia mostra o estado vazio (`.empty-state`), não dado de exemplo.
 
 
 ## Prompts dos componentes internos

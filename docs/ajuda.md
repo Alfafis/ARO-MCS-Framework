@@ -1,3 +1,5 @@
+> **NÃO IMPLEMENTADO** — nenhuma rota ou arquivo desta spec existe no código atual (verificado 2026-08-24, sem `/ajuda` em `App.tsx` nem qualquer página correspondente em `src/pages`). Este documento descreve uma tela que nunca foi construída.
+
 # Tela: Central de ajuda
 
 Arquivo: `ARO-MCS Ajuda.dc.html`. Guias, FAQ e formulário de contato com suporte. Não aparece na sidebar (acessível via link direto).
