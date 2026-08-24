@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { Target } from 'lucide-react'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import { categoryStddev, categoryMean, type CategoryParam } from '@/lib/monteCarlo'
 import type { Distribution, SimResult } from '@/types/simulacao'

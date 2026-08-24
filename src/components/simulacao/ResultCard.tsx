@@ -1,6 +1,6 @@
 import { BarChart2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult } from '@/types/simulacao'
 

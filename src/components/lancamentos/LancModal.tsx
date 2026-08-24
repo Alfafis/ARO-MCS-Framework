@@ -3,7 +3,7 @@ import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { lancamentosT } from '@/i18n/lancamentos'
 
 interface Form { categoria: string; periodo: string; valor: string }

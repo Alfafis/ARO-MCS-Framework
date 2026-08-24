@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import { ChevronUp, ChevronDown, Trash2, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import type { Category, CategoryItem } from '@/types/categorias'
 

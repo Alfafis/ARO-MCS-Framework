@@ -2,10 +2,10 @@ import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FolderOpen, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
-import { useProjeto } from '@/context/ProjetoContext'
+import { useProjeto } from '@/context/useProjeto'
 import type { Projeto } from '@/types/clientes'
 
 export default function Categorias() {

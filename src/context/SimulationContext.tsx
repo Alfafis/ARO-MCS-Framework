@@ -1,15 +1,10 @@
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import type { HistoryRun, SimResult } from '@/types/simulacao'
 import { supabase } from '@/integrations/supabase/client'
 import { formatDateTime } from '@/lib/utils'
 import type { SimulacaoRow } from '@/types'
 import type { Json } from '@/integrations/supabase/type'
-
-interface ProjectSimState {
-  result:           SimResult | null
-  history:          HistoryRun[]
-  activeCategories: string[]
-}
+import { SimulationContext, type ProjectSimState } from './simulation-context'
 
 const EMPTY_STATE: ProjectSimState = { result: null, history: [], activeCategories: [] }
 
@@ -24,15 +19,6 @@ function mapRowToHistoryRun(row: SimulacaoRow): HistoryRun {
     uncertainty: resultado.uncertainty,
   }
 }
-
-interface SimulationContextValue {
-  getSimState:   (projetoId: string) => ProjectSimState
-  loadSimState:  (projetoId: string) => Promise<void>
-  setSimulation: (projetoId: string, result: SimResult, categories: string[]) => Promise<void>
-  previewResult: (projetoId: string, patch: Pick<SimResult, 'mean' | 'status'>) => void
-}
-
-const SimulationContext = createContext<SimulationContextValue | null>(null)
 
 export function SimulationProvider({ children }: { children: ReactNode }) {
   const [states, setStates] = useState<Record<string, ProjectSimState>>({})
@@ -104,10 +90,4 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       {children}
     </SimulationContext.Provider>
   )
-}
-
-export function useSimulation(): SimulationContextValue {
-  const ctx = useContext(SimulationContext)
-  if (!ctx) throw new Error('useSimulation must be used within SimulationProvider')
-  return ctx
 }

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { sidebarT } from '@/i18n/sidebar'
 import { loginT } from '@/i18n/login'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'

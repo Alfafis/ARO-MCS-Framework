@@ -3,11 +3,11 @@ import { Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { clientesT } from '@/i18n/clientes'
 import ClienteRow from '@/components/clientes/ClienteRow'
 import NovoClienteModal from '@/components/clientes/NovoClienteModal'
-import { useProjeto } from '@/context/ProjetoContext'
+import { useProjeto } from '@/context/useProjeto'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Clientes() {

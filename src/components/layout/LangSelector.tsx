@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { Globe, ChevronDown } from 'lucide-react'
-import { useLang, type Lang } from '@/i18n/LangContext'
+import { useLang } from '@/i18n/useLang'
+import type { Lang } from '@/i18n/LangContext'
 
 const LANGUAGES: { code: Lang; label: string; short: string }[] = [
   { code: 'pt-BR', label: 'Português (Brasil)', short: 'PT' },

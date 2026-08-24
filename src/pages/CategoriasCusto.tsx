@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import PageHeader from '@/components/layout/PageHeader'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { categoriasCustoT } from '@/i18n/categorias-custo'
-import { useProjeto } from '@/context/ProjetoContext'
+import { useProjeto } from '@/context/useProjeto'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 
 // Editor de template de categoria por tipo_projeto — reaproveita CategoryBlock

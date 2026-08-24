@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import CustomSelect from '@/components/categorias/CustomSelect'
-import { useProjeto } from '@/context/ProjetoContext'
-import { useT } from '@/i18n/LangContext'
+import { useProjeto } from '@/context/useProjeto'
+import { useT } from '@/i18n/useLang'
 import { clientesT } from '@/i18n/clientes'
 
 // Step 1 do wizard de criação (ver specs/2026-08-23-wizard-criacao-projeto-design.md).

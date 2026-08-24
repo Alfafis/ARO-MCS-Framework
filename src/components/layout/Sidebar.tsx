@@ -6,7 +6,8 @@ import {
   Users, ChevronsLeft, MoreHorizontal, User, LogOut,
   Globe, ChevronDown, Tag, FolderTree, SlidersHorizontal,
 } from 'lucide-react'
-import { useLang, useT, type Lang } from '@/i18n/LangContext'
+import { useLang, useT } from '@/i18n/useLang'
+import type { Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { supabase } from '@/integrations/supabase/client'

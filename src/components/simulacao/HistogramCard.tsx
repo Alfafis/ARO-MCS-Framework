@@ -1,5 +1,5 @@
 import { Activity } from 'lucide-react'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult, UncertaintyLevel } from '@/types/simulacao'
 

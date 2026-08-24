@@ -1,6 +1,6 @@
 import { Dialog } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import type { HistoryRun, UncertaintyLevel } from '@/types/simulacao'
 

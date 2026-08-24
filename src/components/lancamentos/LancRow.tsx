@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Activity, Clock, Layers, MoreVertical, Users } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { lancamentosT } from '@/i18n/lancamentos'
 import type { IconKey, LancStatus, Lancamento } from '@/types/lancamentos'
 

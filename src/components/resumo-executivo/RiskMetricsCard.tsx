@@ -1,5 +1,5 @@
 import { Shield } from 'lucide-react'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
 import type { RiskMetric } from '@/types/relatorio'
 import type { UncertaintyLevel } from '@/types/simulacao'

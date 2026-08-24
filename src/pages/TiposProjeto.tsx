@@ -4,9 +4,9 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import PageHeader from '@/components/layout/PageHeader'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { tiposProjetoT } from '@/i18n/tipos-projeto'
-import { useProjeto } from '@/context/ProjetoContext'
+import { useProjeto } from '@/context/useProjeto'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 
 interface TipoRowProps {

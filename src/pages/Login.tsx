@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { loginT } from '@/i18n/login'
 import { supabase } from '@/integrations/supabase/client'
 

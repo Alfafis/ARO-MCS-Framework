@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { MoreVertical } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { clientesT } from '@/i18n/clientes'
 import type { Projeto, ProjStatus } from '@/types/clientes'
 

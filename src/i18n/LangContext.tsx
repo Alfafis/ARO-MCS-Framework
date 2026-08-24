@@ -1,13 +1,7 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
+import { Ctx, type Lang } from './lang-context'
 
-export type Lang = 'pt-BR' | 'en' | 'es'
-
-interface LangCtx {
-  lang:    Lang
-  setLang: (l: Lang) => void
-}
-
-const Ctx = createContext<LangCtx>({ lang: 'pt-BR', setLang: () => {} })
+export type { Lang }
 
 const STORAGE_KEY = 'aro_lang'
 
@@ -32,11 +26,4 @@ export function LangProvider({ children }: { children: ReactNode }) {
   }
 
   return <Ctx.Provider value={{ lang, setLang }}>{children}</Ctx.Provider>
-}
-
-export const useLang = () => useContext(Ctx)
-
-export function useT<T>(dict: Record<Lang, T>): T {
-  const { lang } = useLang()
-  return dict[lang]
 }

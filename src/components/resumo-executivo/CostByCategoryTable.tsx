@@ -1,6 +1,6 @@
 import { Fragment } from 'react'
 import { BarChart2 } from 'lucide-react'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
 import type { CostCategory, CostTotals, PhaseCategory } from '@/types/relatorio'
 

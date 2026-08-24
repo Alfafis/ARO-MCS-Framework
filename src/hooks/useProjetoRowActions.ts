@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useProjeto } from '@/context/ProjetoContext'
+import { useProjeto } from '@/context/useProjeto'
 import type { Projeto } from '@/types/clientes'
 
 export type ProjetoRowAction =

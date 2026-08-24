@@ -1,6 +1,6 @@
 import { Clock, Check } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
 
 export interface RevisionTimelineItem {

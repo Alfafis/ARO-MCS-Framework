@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import CustomSelect from '@/components/categorias/CustomSelect'
-import { useT } from '@/i18n/LangContext'
+import { useT } from '@/i18n/useLang'
 import { configFinanceiraT } from '@/i18n/config-financeira'
 import type { ConfigFinanceiraForm as ConfigFinanceiraFormValue } from '@/context/ProjetoContext'
 
