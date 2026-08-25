@@ -46,6 +46,27 @@ export function computeMonetaryValues(filteredBase: number, params: ParametrosCa
   return resultados
 }
 
+// Máscara de digitação em moeda BR — bloqueia letras/símbolos e mantém
+// separador de milhar/decimal durante a digitação. Tolerante à edição no meio:
+// vírgulas extras são removidas, decimais cortados a 2 dígitos.
+//
+// Casos:
+//   "abc123"     → "123"
+//   "1234"       → "1.234"
+//   "1234,56"    → "1.234,56"
+//   "12,3,4"     → "12,34"       (2ª vírgula ignorada, decimal truncado)
+//   "1.234,56ab" → "1.234,56"
+export function maskMoedaBR(input: string): string {
+  let s = input.replace(/[^\d,]/g, '')
+  const firstComma = s.indexOf(',')
+  if (firstComma >= 0) {
+    s = s.slice(0, firstComma + 1) + s.slice(firstComma + 1).replace(/,/g, '')
+  }
+  const [inteira = '', decimal] = s.split(',')
+  const inteiraFmt = inteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return decimal !== undefined ? `${inteiraFmt},${decimal.slice(0, 2)}` : inteiraFmt
+}
+
 // "R$ 1.234.567" ou "1.234.567,89" → 1234567(.89). Retorna 0 se não conseguir extrair número.
 export function parseMoedaBR(str: string): number {
   const cleaned = str.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.')

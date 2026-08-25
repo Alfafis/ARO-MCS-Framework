@@ -16,10 +16,19 @@ export const categoriasT: Record<Lang, {
   colCostMin:       string
   colCostMax:       string
   colSource:        string
-  colAplicabilidade: string
+  colSetores:       string
+  colFase:          string
   colAno:           string
   addItem:          string
   deleteItem:       string
+  setoresTodos:     string
+  setoresNSelecionados: (n: number) => string
+  fasePlaceholder:  string
+  fasePre:          string
+  faseExec:         string
+  fasePos:          string
+  anoInicioPh:      string
+  anoFimPh:         string
 }> = {
   'pt-BR': {
     headerTitle:      'Categorias',
@@ -36,10 +45,19 @@ export const categoriasT: Record<Lang, {
     colCostMin:       'Custo Min',
     colCostMax:       'Custo Max',
     colSource:        'Fonte',
-    colAplicabilidade: 'Aplicabilidade',
-    colAno:           'Ano previsto',
+    colSetores:       'Setores',
+    colFase:          'Fase',
+    colAno:           'Ano (início→fim)',
     addItem:          '+ Adicionar item',
     deleteItem:       'Excluir item',
+    setoresTodos:     'Todos os setores',
+    setoresNSelecionados: (n) => `${n} setor${n === 1 ? '' : 'es'}`,
+    fasePlaceholder:  'A definir',
+    fasePre:          'Pré-fechamento',
+    faseExec:         'Fechamento',
+    fasePos:          'Pós-fechamento',
+    anoInicioPh:      'Ini',
+    anoFimPh:         'Fim',
   },
   'en': {
     headerTitle:      'Categories',
@@ -56,10 +74,19 @@ export const categoriasT: Record<Lang, {
     colCostMin:       'Min Cost',
     colCostMax:       'Max Cost',
     colSource:        'Source',
-    colAplicabilidade: 'Applicability',
-    colAno:           'Expected year',
+    colSetores:       'Sectors',
+    colFase:          'Phase',
+    colAno:           'Year (start→end)',
     addItem:          '+ Add item',
     deleteItem:       'Delete item',
+    setoresTodos:     'All sectors',
+    setoresNSelecionados: (n) => `${n} sector${n === 1 ? '' : 's'}`,
+    fasePlaceholder:  'To define',
+    fasePre:          'Pre-closure',
+    faseExec:         'Closure',
+    fasePos:          'Post-closure',
+    anoInicioPh:      'Start',
+    anoFimPh:         'End',
   },
   'es': {
     headerTitle:      'Categorías',
@@ -76,9 +103,18 @@ export const categoriasT: Record<Lang, {
     colCostMin:       'Costo Mín',
     colCostMax:       'Costo Máx',
     colSource:        'Fuente',
-    colAplicabilidade: 'Aplicabilidad',
-    colAno:           'Año previsto',
+    colSetores:       'Sectores',
+    colFase:          'Fase',
+    colAno:           'Año (inicio→fin)',
     addItem:          '+ Agregar ítem',
     deleteItem:       'Eliminar ítem',
+    setoresTodos:     'Todos los sectores',
+    setoresNSelecionados: (n) => `${n} sector${n === 1 ? '' : 'es'}`,
+    fasePlaceholder:  'A definir',
+    fasePre:          'Pre-cierre',
+    faseExec:         'Cierre',
+    fasePos:          'Post-cierre',
+    anoInicioPh:      'Ini',
+    anoFimPh:         'Fin',
   },
 }

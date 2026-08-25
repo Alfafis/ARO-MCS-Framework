@@ -379,11 +379,23 @@
 /* Linhas de item — grid de colunas */
 .item-row {
   display: grid;
-  grid-template-columns: 1fr 80px 120px 120px 120px 140px 100px 32px;
+  grid-template-columns: minmax(160px, 1fr) 84px 130px 130px 110px 140px 130px 130px 32px;
   align-items: center;
   gap: 8px;
   padding: 8px 0;
   border-bottom: 1px solid var(--c-line);
+}
+
+/* Esconde os spinner buttons dos <input type=number> nas linhas de item —
+   em coluna estreita eles roubavam metade da largura útil do input. */
+.row-input[type='number']::-webkit-outer-spin-button,
+.row-input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.row-input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 .item-header { padding: 10px 0 6px; }

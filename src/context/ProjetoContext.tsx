@@ -4,6 +4,7 @@ import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
+import type { Setor } from '@/types/setores'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
@@ -33,6 +34,9 @@ function estimateTotal(categorias: Category[]): string {
 }
 
 // Campo do item → chave que a RPC update_item_custo espera no patch jsonb.
+// As chaves novas (aplicabilidadeSetores/fase/anoInicio/anoFim) exigem que
+// a RPC seja estendida — ver "Pendente" no cabeçalho da migration
+// 20260824120000_setores_fase_ano.sql.
 const ITEM_FIELD_TO_PATCH_KEY: Record<keyof CategoryItem, string> = {
   id: 'id', // nunca enviado — id não é editável
   name: 'nome',
@@ -40,6 +44,11 @@ const ITEM_FIELD_TO_PATCH_KEY: Record<keyof CategoryItem, string> = {
   min: 'custoMin',
   max: 'custoMax',
   source: 'fonte',
+  aplicabilidadeSetores: 'aplicabilidadeSetores',
+  fase: 'fase',
+  anoInicio: 'anoInicio',
+  anoFim: 'anoFim',
+  // legado (transitório)
   aplicabilidade: 'aplicabilidade',
   anoPrevisto: 'anoPrevisto',
 }
@@ -111,6 +120,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [clientes, setClientes] = useState<Cliente[]>([])
   const [tiposProjeto, setTiposProjeto] = useState<TipoProjeto[]>([])
   const [catalogo, setCatalogo] = useState<CategoriaCatalogo[]>([])
+  const [setores, setSetores] = useState<Setor[]>([])
   const [parametrosGlobais, setParametrosGlobais] = useState<ParametroGlobal[]>([])
   const [parametrosAnuais, setParametrosAnuais] = useState<ParametroAnual[]>([])
   const [tiposComTemplate, setTiposComTemplate] = useState<string[]>([])
@@ -167,6 +177,25 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setCatalogo(data)
       })
+    // Setores é lookup pequeno (10 seeds), pode carregar tudo no boot sem
+    // paginação — usado pelo multi-select de aplicabilidade em CategoryBlock.
+    // Cast em `from<'setores'>` porque os types gerados só entram no
+    // supabase/type.ts depois de `npm run gen:types` (a rodar quando a
+    // migration 20260824120000_setores_fase_ano.sql for aplicada).
+    const fetchSetores = (supabase as unknown as {
+      from: (table: string) => {
+        select: (cols: string) => {
+          order: (col: string) => Promise<{ data: { id: number; nome: string }[] | null; error: unknown }>
+        }
+      }
+    })
+      .from('setores')
+      .select('id, nome')
+      .order('id')
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setSetores(data.map(s => ({ id: s.id, nome: s.nome })))
+      })
     const fetchParametrosGlobais = supabase
       .from('parametros_globais')
       .select('*')
@@ -192,7 +221,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         setTiposComTemplate([...new Set(data.map(r => r.tipo_projeto_id))])
       })
 
-    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchParametrosGlobais, fetchParametrosAnuais, fetchTiposComTemplate])
+    Promise.allSettled([fetchClientes, fetchTipos, fetchProjetos, fetchCatalogo, fetchSetores, fetchParametrosGlobais, fetchParametrosAnuais, fetchTiposComTemplate])
       .then(() => setLoading(false))
   }
 
@@ -386,18 +415,21 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   }, [mapTemplateCategorias])
 
   // Só estado local — digitar não toca rede, mesmo padrão de updateItem.
-  const templateUpdateItem = useCallback((tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => {
+  const templateUpdateItem = useCallback((tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => {
     mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
       ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, [field]: value } : i) }
       : c
     ))
   }, [mapTemplateCategorias])
 
-  const templateSaveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: string) => {
+  const templateSaveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
     if (field === 'id') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
-    const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(value) : value
-    const { error } = await supabase.rpc('template_update_item', { p_id: itemId, p_patch: { [patchKey]: patchValue } })
+    const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(String(value)) : value
+    // Cast para Json — patchValue é sempre um valor serializável (string,
+    // number, null ou number[]) validado pelos callers.
+    const patch = { [patchKey]: patchValue } as unknown as Record<string, string | number | null | number[]>
+    const { error } = await supabase.rpc('template_update_item', { p_id: itemId, p_patch: patch })
     if (error) throw error
   }, [])
 
@@ -489,18 +521,19 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
 
   // Só estado local — digitar não toca rede. Persistência real é `saveItem`,
   // chamada no blur de cada campo (ver CategoryBlock.tsx).
-  const updateItem = useCallback((projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => {
+  const updateItem = useCallback((projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => {
     mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId
       ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, [field]: value } : i) }
       : c
     ))
   }, [mapCategorias])
 
-  const saveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: string) => {
+  const saveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
     if (field === 'id') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
-    const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(value) : value
-    const { error } = await supabase.rpc('update_item_custo', { p_id: itemId, p_patch: { [patchKey]: patchValue } })
+    const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(String(value)) : value
+    const patch = { [patchKey]: patchValue } as unknown as Record<string, string | number | null | number[]>
+    const { error } = await supabase.rpc('update_item_custo', { p_id: itemId, p_patch: patch })
     if (error) throw error
   }, [])
 
@@ -514,6 +547,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       clientes, criarCliente,
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
+      setores,
       parametrosGlobais, atualizarParametroGlobal,
       parametrosAnuais, atualizarParametroAnual,
       tiposComTemplate, templates, fetchTemplateCategorias,

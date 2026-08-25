@@ -3,6 +3,7 @@ import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categori
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
+import type { Setor } from '@/types/setores'
 
 export interface NovoProjetoForm {
   clienteId:     string
@@ -28,6 +29,7 @@ export interface ProjetoContextValue {
   removerTipoProjeto:  (id: string) => Promise<void>
   catalogo:        CategoriaCatalogo[]
   renomearCategoriaCatalogo: (catalogoId: string, novoNome: string) => Promise<void>
+  setores:         Setor[]
   parametrosGlobais: ParametroGlobal[]
   atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   parametrosAnuais: ParametroAnual[]
@@ -40,8 +42,8 @@ export interface ProjetoContextValue {
   templateUpdateCategoria: (tipoProjetoId: string, catId: string, field: keyof Category, value: string | boolean) => Promise<void>
   templateAddItem:         (tipoProjetoId: string, catId: string) => Promise<void>
   templateRemoveItem:      (tipoProjetoId: string, catId: string, itemId: string) => Promise<void>
-  templateUpdateItem:      (tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => void
-  templateSaveItem:        (itemId: string, field: keyof CategoryItem, value: string) => Promise<void>
+  templateUpdateItem:      (tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => void
+  templateSaveItem:        (itemId: string, field: keyof CategoryItem, value: unknown) => Promise<void>
   projetos:        Projeto[]
   criarProjeto:    (form: NovoProjetoForm) => Promise<string>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
@@ -53,8 +55,11 @@ export interface ProjetoContextValue {
   updateCategoria: (projetoId: string, catId: string, field: keyof Category, value: string | boolean) => Promise<void>
   addItem:         (projetoId: string, catId: string) => Promise<void>
   removeItem:      (projetoId: string, catId: string, itemId: string) => Promise<void>
-  updateItem:      (projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: string) => void
-  saveItem:        (itemId: string, field: keyof CategoryItem, value: string) => Promise<void>
+  // `value` é `unknown` para acomodar os campos novos que não são string:
+  // aplicabilidadeSetores (number[] | null), anoInicio/anoFim (number | null),
+  // fase (Fase | null). Fields legados continuam recebendo string.
+  updateItem:      (projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => void
+  saveItem:        (itemId: string, field: keyof CategoryItem, value: unknown) => Promise<void>
   // Publicar revisão (Revisoes.tsx) já persiste projetos.rev no banco via RPC —
   // isso só sincroniza o state local pro badge (ProjetoWorkspace) atualizar sem F5.
   atualizarRevLocal: (projetoId: string, rev: string) => void
