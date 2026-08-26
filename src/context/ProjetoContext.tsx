@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
+import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacionalTemplate } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
@@ -7,7 +7,7 @@ import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
-import { mapItemCustoRow } from '@/lib/categoriaMappers'
+import { mapItemCustoRow, mapCampoOperacionalTemplateRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
 import type {
   ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns,
@@ -60,13 +60,23 @@ type ProjetoRowComCategorias = ProjetoDbRow & {
   })[]
 }
 
+type CampoOperacionalTemplateRow = {
+  id:               string
+  label:            string
+  unidade:          string | null
+  valor_referencia: string | null
+  ordem:            number
+}
+
 type CategoriaTemplateRowComItens = CategoriaTemplateRow & {
   categorias_catalogo: CategoriaCatalogoRow
   itens_template: ItemTemplateRow[]
+  campos_operacionais_template?: CampoOperacionalTemplateRow[]
 }
 
-// Mesmo shape de tela do projeto real (Category) — camposOperacionais não
-// existe em template (fato operacional é sempre por instância de projeto).
+// Mesmo shape de tela do projeto real (Category). camposOperacionais (por
+// projeto, com status pendente/preenchido) fica vazio no template — o
+// template usa `camposOperacionaisTemplate` (só label/unidade/valor_ref).
 function mapRowToTemplateCategoria(row: CategoriaTemplateRowComItens): Category {
   return {
     id: row.id,
@@ -76,6 +86,10 @@ function mapRowToTemplateCategoria(row: CategoriaTemplateRowComItens): Category 
     justAdded: false,
     items: row.itens_template.map(mapItemCustoRow),
     camposOperacionais: [],
+    camposOperacionaisTemplate: (row.campos_operacionais_template ?? [])
+      .slice()
+      .sort((a, b) => a.ordem - b.ordem)
+      .map(mapCampoOperacionalTemplateRow),
   }
 }
 
@@ -179,16 +193,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       })
     // Setores é lookup pequeno (10 seeds), pode carregar tudo no boot sem
     // paginação — usado pelo multi-select de aplicabilidade em CategoryBlock.
-    // Cast em `from<'setores'>` porque os types gerados só entram no
-    // supabase/type.ts depois de `npm run gen:types` (a rodar quando a
-    // migration 20260824120000_setores_fase_ano.sql for aplicada).
-    const fetchSetores = (supabase as unknown as {
-      from: (table: string) => {
-        select: (cols: string) => {
-          order: (col: string) => Promise<{ data: { id: number; nome: string }[] | null; error: unknown }>
-        }
-      }
-    })
+    const fetchSetores = supabase
       .from('setores')
       .select('id, nome')
       .order('id')
@@ -358,7 +363,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const fetchTemplateCategorias = useCallback(async (tipoProjetoId: string) => {
     const { data, error } = await supabase
       .from('categorias_template')
-      .select('*, categorias_catalogo(*), itens_template(*)')
+      .select('*, categorias_catalogo(*), itens_template(*), campos_operacionais_template(*)')
       .eq('tipo_projeto_id', tipoProjetoId)
       .order('ordem')
     if (error || !data) return
@@ -366,6 +371,57 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       ...prev,
       [tipoProjetoId]: (data as unknown as CategoriaTemplateRowComItens[]).map(mapRowToTemplateCategoria),
     }))
+  }, [])
+
+  const templateAddCampoOp = useCallback(async (tipoProjetoId: string, catId: string) => {
+    // Ordem = max atual + 1, calculada aqui em vez de RPC — insert é direto,
+    // e como só o admin edita esta tela, colisão é improvável na prática.
+    const categoriasDoTipo = templates[tipoProjetoId] ?? []
+    const cat = categoriasDoTipo.find(c => c.id === catId)
+    const proximaOrdem = (cat?.camposOperacionaisTemplate ?? []).reduce((m, cp) => Math.max(m, cp.ordem), -1) + 1
+    const { data, error } = await supabase
+      .from('campos_operacionais_template')
+      .insert({ categoria_template_id: catId, label: '', ordem: proximaOrdem })
+      .select('id, label, unidade, valor_referencia, ordem')
+      .single()
+    if (error || !data) throw error ?? new Error('Falha ao criar campo operacional')
+    const novo = mapCampoOperacionalTemplateRow(data)
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionaisTemplate: [...(c.camposOperacionaisTemplate ?? []), novo] }
+      : c
+    ))
+  }, [mapTemplateCategorias, templates])
+
+  const templateRemoveCampoOp = useCallback(async (tipoProjetoId: string, catId: string, campoId: string) => {
+    const { error } = await supabase.from('campos_operacionais_template').delete().eq('id', campoId)
+    if (error) throw error
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionaisTemplate: (c.camposOperacionaisTemplate ?? []).filter(cp => cp.id !== campoId) }
+      : c
+    ))
+  }, [mapTemplateCategorias])
+
+  // Só estado local — mesmo padrão de templateUpdateItem.
+  const templateUpdateCampoOp = useCallback((tipoProjetoId: string, catId: string, campoId: string, field: keyof CampoOperacionalTemplate, value: string) => {
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionaisTemplate: (c.camposOperacionaisTemplate ?? []).map(cp => cp.id === campoId ? { ...cp, [field]: value } : cp) }
+      : c
+    ))
+  }, [mapTemplateCategorias])
+
+  // Só campos livres do template (label/unidade/valor_referencia) são
+  // editáveis pela UI. id/ordem são gerenciados pelo backend/insert.
+  const templateSaveCampoOp = useCallback(async (campoId: string, field: keyof CampoOperacionalTemplate, value: string) => {
+    let patch: { label?: string; unidade?: string | null; valor_referencia?: string | null }
+    if      (field === 'label')           patch = { label: value }
+    else if (field === 'unidade')         patch = { unidade: value }
+    else if (field === 'valorReferencia') patch = { valor_referencia: value }
+    else return
+    const { error } = await supabase
+      .from('campos_operacionais_template')
+      .update(patch)
+      .eq('id', campoId)
+    if (error) throw error
   }, [])
 
   const templateAddCategoria = useCallback(async (tipoProjetoId: string) => {
@@ -553,6 +609,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       tiposComTemplate, templates, fetchTemplateCategorias,
       templateAddCategoria, templateRemoveCategoria, templateUpdateCategoria,
       templateAddItem, templateRemoveItem, templateUpdateItem, templateSaveItem,
+      templateAddCampoOp, templateRemoveCampoOp, templateUpdateCampoOp, templateSaveCampoOp,
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       atualizarConfigFinanceira,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,

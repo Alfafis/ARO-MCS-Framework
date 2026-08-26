@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { Category, CategoryItem, CategoriaCatalogo } from '@/types/categorias'
+import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacionalTemplate } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
@@ -44,6 +44,12 @@ export interface ProjetoContextValue {
   templateRemoveItem:      (tipoProjetoId: string, catId: string, itemId: string) => Promise<void>
   templateUpdateItem:      (tipoProjetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => void
   templateSaveItem:        (itemId: string, field: keyof CategoryItem, value: unknown) => Promise<void>
+  // Campos operacionais template (Perímetro/Área/Volume/…): CRUD via supabase
+  // direto, sem RPC — mesmo padrão de `setores`. Só usado em /categorias-custo.
+  templateAddCampoOp:      (tipoProjetoId: string, catId: string) => Promise<void>
+  templateRemoveCampoOp:   (tipoProjetoId: string, catId: string, campoId: string) => Promise<void>
+  templateUpdateCampoOp:   (tipoProjetoId: string, catId: string, campoId: string, field: keyof CampoOperacionalTemplate, value: string) => void
+  templateSaveCampoOp:     (campoId: string, field: keyof CampoOperacionalTemplate, value: string) => Promise<void>
   projetos:        Projeto[]
   criarProjeto:    (form: NovoProjetoForm) => Promise<string>
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>

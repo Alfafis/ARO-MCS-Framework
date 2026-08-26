@@ -67,6 +67,22 @@ export function maskMoedaBR(input: string): string {
   return decimal !== undefined ? `${inteiraFmt},${decimal.slice(0, 2)}` : inteiraFmt
 }
 
+// Máscara de número BR pura — sem "R$" e sem cap de casas decimais. Usada em
+// campos de quantidade operacional (perímetro, área, volume, tonelagem,
+// densidade) que seguem o padrão de milhar `.` e decimal `,` da planilha
+// (ex.: "1.643", "12,9", "56,7384", "4.721,6"). Diferente de maskMoedaBR,
+// preserva quantas casas decimais o usuário digitar.
+export function maskNumeroBR(input: string): string {
+  let s = input.replace(/[^\d,]/g, '')
+  const firstComma = s.indexOf(',')
+  if (firstComma >= 0) {
+    s = s.slice(0, firstComma + 1) + s.slice(firstComma + 1).replace(/,/g, '')
+  }
+  const [inteira = '', decimal] = s.split(',')
+  const inteiraFmt = inteira.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return decimal !== undefined ? `${inteiraFmt},${decimal}` : inteiraFmt
+}
+
 // "R$ 1.234.567" ou "1.234.567,89" → 1234567(.89). Retorna 0 se não conseguir extrair número.
 export function parseMoedaBR(str: string): number {
   const cleaned = str.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.')

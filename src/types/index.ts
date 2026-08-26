@@ -22,6 +22,7 @@ export type ParametroGlobalRow     = PublicTables['parametros_globais']['Row']
 export type ParametroAnualRow      = PublicTables['parametros_anuais']['Row']
 export type CategoriaTemplateRow   = PublicTables['categorias_template']['Row']
 export type ItemTemplateRow        = PublicTables['itens_template']['Row']
+export type SetorRow               = PublicTables['setores']['Row']
 
 export type Papel = PerfilRow['papel']
 
@@ -55,4 +56,5 @@ export interface RelatorioPublicoReturns {
   simulacao:         SimulacaoRow
   parametrosGlobais: ParametroGlobalRow[]
   parametrosAnuais:  ParametroAnualRow[]
+  setores:           SetorRow[]
 }

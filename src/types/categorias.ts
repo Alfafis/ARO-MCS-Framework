@@ -44,8 +44,25 @@ export interface CampoOperacional {
   status:   'pendente' | 'preenchido'
 }
 
+// Shape do template (por categoria template, editável pelo admin em
+// `/categorias-custo`). Difere de CampoOperacional (por-projeto): não tem
+// `status` — template guarda o valor de referência default, não o preenchido.
+// `valor_referencia` no banco (text) representa uma quantidade em unidades da
+// planilha (ex: "1.643" m, "12,9" ha) e é copiado como padrão quando a
+// categoria for herdada em um projeto.
+export interface CampoOperacionalTemplate {
+  id:              string
+  label:           string
+  unidade:         string
+  valorReferencia: string
+  ordem:           number
+}
+
 // Instância por projeto — referencia o catálogo pelo nome, mas itens/valores são
 // exclusivos deste projeto. Editar um item aqui nunca afeta outro projeto.
+// `camposOperacionaisTemplate` só é populado no modo template (admin em
+// `/categorias-custo`); no modo projeto fica `undefined`. Foi optado por
+// campo opcional em vez de shape separado pra manter `CategoryBlock` único.
 export interface Category {
   id:         string
   catalogoId: string
@@ -54,4 +71,5 @@ export interface Category {
   justAdded:  boolean
   items:      CategoryItem[]
   camposOperacionais: CampoOperacional[]
+  camposOperacionaisTemplate?: CampoOperacionalTemplate[]
 }

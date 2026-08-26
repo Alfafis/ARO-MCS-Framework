@@ -25,6 +25,7 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
     catalogo, templates, fetchTemplateCategorias,
     templateAddCategoria, templateRemoveCategoria, templateUpdateCategoria,
     templateAddItem, templateRemoveItem, templateUpdateItem, templateSaveItem,
+    templateAddCampoOp, templateRemoveCampoOp, templateUpdateCampoOp, templateSaveCampoOp,
     renomearCategoriaCatalogo,
   } = useProjeto()
   const [tipoSelecionadoId, setTipoSelecionadoId] = useState<string | null>(null)
@@ -105,6 +106,10 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
               onRemoveItem={itemId => templateRemoveItem(tipoSelecionadoId, cat.id, itemId).catch(() => onToast(t.saveErrorToast))}
               onUpdateItem={(itemId, field, value) => templateUpdateItem(tipoSelecionadoId, cat.id, itemId, field, value)}
               onSaveItem={(itemId, field, value) => templateSaveItem(itemId, field, value).catch(() => onToast(t.saveErrorToast))}
+              onAddCampoOp={() => templateAddCampoOp(tipoSelecionadoId, cat.id).catch(() => onToast(t.saveErrorToast))}
+              onRemoveCampoOp={campoId => templateRemoveCampoOp(tipoSelecionadoId, cat.id, campoId).catch(() => onToast(t.saveErrorToast))}
+              onUpdateCampoOp={(campoId, field, value) => templateUpdateCampoOp(tipoSelecionadoId, cat.id, campoId, field, value)}
+              onSaveCampoOp={(campoId, field, value) => templateSaveCampoOp(campoId, field, value).catch(() => onToast(t.saveErrorToast))}
             />
           ))}
         </div>

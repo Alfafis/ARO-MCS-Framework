@@ -55,6 +55,44 @@ export type Database = {
           },
         ]
       }
+      campos_operacionais_template: {
+        Row: {
+          categoria_template_id: string
+          criado_em: string
+          id: string
+          label: string
+          ordem: number
+          unidade: string | null
+          valor_referencia: string | null
+        }
+        Insert: {
+          categoria_template_id: string
+          criado_em?: string
+          id?: string
+          label: string
+          ordem?: number
+          unidade?: string | null
+          valor_referencia?: string | null
+        }
+        Update: {
+          categoria_template_id?: string
+          criado_em?: string
+          id?: string
+          label?: string
+          ordem?: number
+          unidade?: string | null
+          valor_referencia?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campos_operacionais_template_categoria_template_id_fkey"
+            columns: ["categoria_template_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_template"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias_catalogo: {
         Row: {
           id: string
@@ -206,13 +244,17 @@ export type Database = {
       }
       itens_custo: {
         Row: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_projeto_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string
@@ -220,13 +262,17 @@ export type Database = {
           unidade: string
         }
         Insert: {
+          ano_fim?: number | null
+          ano_inicio?: number | null
           ano_previsto?: string | null
           aplicabilidade?: string | null
+          aplicabilidade_setores?: number[] | null
           atualizado_em?: string
           categoria_projeto_id: string
           criado_em?: string
           custo_max: number
           custo_min: number
+          fase?: string | null
           fonte?: string | null
           id?: string
           nome: string
@@ -234,13 +280,17 @@ export type Database = {
           unidade: string
         }
         Update: {
+          ano_fim?: number | null
+          ano_inicio?: number | null
           ano_previsto?: string | null
           aplicabilidade?: string | null
+          aplicabilidade_setores?: number[] | null
           atualizado_em?: string
           categoria_projeto_id?: string
           criado_em?: string
           custo_max?: number
           custo_min?: number
+          fase?: string | null
           fonte?: string | null
           id?: string
           nome?: string
@@ -259,13 +309,17 @@ export type Database = {
       }
       itens_template: {
         Row: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_template_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string
@@ -273,13 +327,17 @@ export type Database = {
           unidade: string
         }
         Insert: {
+          ano_fim?: number | null
+          ano_inicio?: number | null
           ano_previsto?: string | null
           aplicabilidade?: string | null
+          aplicabilidade_setores?: number[] | null
           atualizado_em?: string
           categoria_template_id: string
           criado_em?: string
           custo_max: number
           custo_min: number
+          fase?: string | null
           fonte?: string | null
           id?: string
           nome: string
@@ -287,13 +345,17 @@ export type Database = {
           unidade: string
         }
         Update: {
+          ano_fim?: number | null
+          ano_inicio?: number | null
           ano_previsto?: string | null
           aplicabilidade?: string | null
+          aplicabilidade_setores?: number[] | null
           atualizado_em?: string
           categoria_template_id?: string
           criado_em?: string
           custo_max?: number
           custo_min?: number
+          fase?: string | null
           fonte?: string | null
           id?: string
           nome?: string
@@ -564,6 +626,24 @@ export type Database = {
           },
         ]
       }
+      setores: {
+        Row: {
+          criado_em: string
+          id: number
+          nome: string
+        }
+        Insert: {
+          criado_em?: string
+          id: number
+          nome: string
+        }
+        Update: {
+          criado_em?: string
+          id?: number
+          nome?: string
+        }
+        Relationships: []
+      }
       simulacoes: {
         Row: {
           active_categories: string[]
@@ -629,13 +709,17 @@ export type Database = {
       add_item_custo: {
         Args: { p_categoria_projeto_id: string }
         Returns: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_projeto_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string
@@ -985,13 +1069,17 @@ export type Database = {
       template_add_item: {
         Args: { p_categoria_template_id: string }
         Returns: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_template_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string
@@ -1014,13 +1102,17 @@ export type Database = {
       template_update_item: {
         Args: { p_id: string; p_patch: Json }
         Returns: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_template_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string
@@ -1042,13 +1134,17 @@ export type Database = {
       update_item_custo: {
         Args: { p_id: string; p_patch: Json }
         Returns: {
+          ano_fim: number | null
+          ano_inicio: number | null
           ano_previsto: string | null
           aplicabilidade: string | null
+          aplicabilidade_setores: number[] | null
           atualizado_em: string
           categoria_projeto_id: string
           criado_em: string
           custo_max: number
           custo_min: number
+          fase: string | null
           fonte: string | null
           id: string
           nome: string

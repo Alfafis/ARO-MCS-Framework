@@ -29,6 +29,12 @@ export const categoriasT: Record<Lang, {
   fasePos:          string
   anoInicioPh:      string
   anoFimPh:         string
+  camposOpTitle:    string
+  camposOpColLabel: string
+  camposOpColUnidade: string
+  camposOpColValorRef: string
+  camposOpAdd:      string
+  camposOpRemove:   string
 }> = {
   'pt-BR': {
     headerTitle:      'Categorias',
@@ -58,6 +64,12 @@ export const categoriasT: Record<Lang, {
     fasePos:          'Pós-fechamento',
     anoInicioPh:      'Ini',
     anoFimPh:         'Fim',
+    camposOpTitle:    'Campos operacionais',
+    camposOpColLabel: 'Campo',
+    camposOpColUnidade: 'Unidade',
+    camposOpColValorRef: 'Valor de referência',
+    camposOpAdd:      '+ Adicionar campo',
+    camposOpRemove:   'Excluir campo',
   },
   'en': {
     headerTitle:      'Categories',
@@ -87,6 +99,12 @@ export const categoriasT: Record<Lang, {
     fasePos:          'Post-closure',
     anoInicioPh:      'Start',
     anoFimPh:         'End',
+    camposOpTitle:    'Operational fields',
+    camposOpColLabel: 'Field',
+    camposOpColUnidade: 'Unit',
+    camposOpColValorRef: 'Reference value',
+    camposOpAdd:      '+ Add field',
+    camposOpRemove:   'Delete field',
   },
   'es': {
     headerTitle:      'Categorías',
@@ -116,5 +134,11 @@ export const categoriasT: Record<Lang, {
     fasePos:          'Post-cierre',
     anoInicioPh:      'Ini',
     anoFimPh:         'Fin',
+    camposOpTitle:    'Campos operativos',
+    camposOpColLabel: 'Campo',
+    camposOpColUnidade: 'Unidad',
+    camposOpColValorRef: 'Valor de referencia',
+    camposOpAdd:      '+ Agregar campo',
+    camposOpRemove:   'Eliminar campo',
   },
 }
