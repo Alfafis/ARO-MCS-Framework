@@ -124,9 +124,10 @@ export default function ResumoExecutivo() {
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', projeto.horizonteAnos)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', projeto.horizonteAnos)
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, projeto.horizonteAnos)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
     return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: projeto.horizonteAnos }).map(({ metodo, valor }) => ({
       label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),

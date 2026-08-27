@@ -1,5 +1,5 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { Check, RefreshCw, SlidersHorizontal, X } from 'lucide-react'
+import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
+import { Check, ChevronDown, ChevronUp, RefreshCw, SlidersHorizontal, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,7 +14,14 @@ import { formatRelativeTime } from '@/lib/utils'
 
 const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['cambio_usd_brl']
 const PARAMETRO_ANUAL_ORDEM: ParametroAnualChave[] = ['inflacao_ipca', 'selic']
-const ANOS_TABELA = Array.from({ length: 20 }, (_, i) => i + 1)
+
+// Range default do UI: ano-calendário atual + 50 anos à frente (51 linhas).
+// Migration 20260827120000_parametros_anuais_calendario troca a semântica de
+// `ano` (era 1..20 relativo ao projeto) pra calendário absoluto. Botão "Ver
+// anos anteriores" expande pra trás quando o consultor precisa editar dado
+// histórico ou revisar seed antigo.
+const YEARS_AHEAD = 50
+const YEARS_LOOKBACK_DEFAULT = 10
 
 // Formato de exibição: câmbio é preço (R$ por USD), inflação/Selic são taxa —
 // mesmo valor bruto do banco (4.44 = 4,44%), só muda o sufixo.
@@ -159,9 +166,33 @@ interface ParametroAnualTableProps {
 // min recém-salvo com null — reproduzido e confirmado ao vivo antes deste fix.
 function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalido, onBuscaFalhou }: ParametroAnualTableProps) {
   const porAno = new Map(linhas.map(l => [l.ano, l]))
-  const [buscandoAno1, setBuscandoAno1] = useState(false)
+  const [buscandoAnoAtual, setBuscandoAnoAtual] = useState(false)
   const [edicoes, setEdicoes] = useState<Record<number, { min?: string, max?: string }>>({})
-  const configurados = linhas.filter(l => l.valorMin !== null && l.valorMax !== null).length
+  const [mostrarAnteriores, setMostrarAnteriores] = useState(false)
+
+  const currentYear = new Date().getFullYear()
+  const anosFuturos = useMemo(
+    () => Array.from({ length: YEARS_AHEAD + 1 }, (_, i) => currentYear + i),
+    [currentYear],
+  )
+  const configurados = anosFuturos.filter(ano => {
+    const l = porAno.get(ano)
+    return l && l.valorMin !== null && l.valorMax !== null
+  }).length
+
+  // Anos anteriores: min(currentYear - 10, menor ano com dado preenchido) até
+  // currentYear - 1. Se não houver dado antigo, usa currentYear - 10 fixo pra
+  // dar espaço de edição. Se houver dado mais antigo, estende até lá pra não
+  // esconder linha preenchida.
+  const anosAnteriores = useMemo(() => {
+    if (!mostrarAnteriores) return []
+    const anosComDadoPassado = linhas
+      .filter(l => l.ano < currentYear)
+      .map(l => l.ano)
+    const menorComDado = anosComDadoPassado.length > 0 ? Math.min(...anosComDadoPassado) : currentYear - YEARS_LOOKBACK_DEFAULT
+    const inicio = Math.min(currentYear - YEARS_LOOKBACK_DEFAULT, menorComDado)
+    return Array.from({ length: currentYear - inicio }, (_, i) => inicio + i)
+  }, [mostrarAnteriores, linhas, currentYear])
 
   function parseCell(raw: string): number | null {
     const trimmed = raw.trim()
@@ -189,8 +220,8 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
     await onSalvar(ano, Number.isNaN(valorMin) ? null : valorMin, Number.isNaN(valorMax) ? null : valorMax, 'manual')
   }
 
-  async function atualizarAno1DaApi() {
-    setBuscandoAno1(true)
+  async function atualizarAnoAtualDaApi() {
+    setBuscandoAnoAtual(true)
     try {
       const serie = SERIE_BCB_ANUAL[chave]
       let valor: number
@@ -200,10 +231,34 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
         onBuscaFalhou()
         return
       }
-      await onSalvar(1, valor, valor, 'bcb-sgs')
+      await onSalvar(currentYear, valor, valor, 'bcb-sgs')
     } finally {
-      setBuscandoAno1(false)
+      setBuscandoAnoAtual(false)
     }
+  }
+
+  function renderLinha(ano: number, passado: boolean) {
+    return (
+      <Fragment key={ano}>
+        <span className={`flex items-center ${passado ? 'text-c-text-2' : 'text-c-text'}`}>{ano}</span>
+        <Input
+          variant="filled"
+          className={`h-7 px-2 py-0 text-[11.5px] ${passado ? 'opacity-70' : ''}`}
+          value={valorAtual(ano, 'min')}
+          onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
+          onBlur={e => void salvarCelula(ano, 'min', e.target.value)}
+          aria-label={`${label} ano ${ano} mínimo`}
+        />
+        <Input
+          variant="filled"
+          className={`h-7 px-2 py-0 text-[11.5px] ${passado ? 'opacity-70' : ''}`}
+          value={valorAtual(ano, 'max')}
+          onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
+          onBlur={e => void salvarCelula(ano, 'max', e.target.value)}
+          aria-label={`${label} ano ${ano} máximo`}
+        />
+      </Fragment>
+    )
   }
 
   return (
@@ -211,49 +266,64 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-c-text">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-c-text-2">{configurados}/20</span>
-          <Button variant="icon-btn" disabled={buscandoAno1} onClick={atualizarAno1DaApi} aria-label={t.atualizarDaApi} title={t.atualizarAno1Title}>
-            <RefreshCw size={14} className={buscandoAno1 ? 'animate-spin' : ''} aria-hidden="true" />
+          <span className="text-[11px] text-c-text-2">{configurados}/{anosFuturos.length}</span>
+          <Button variant="icon-btn" disabled={buscandoAnoAtual} onClick={atualizarAnoAtualDaApi} aria-label={t.atualizarDaApi} title={t.atualizarAnoAtualTitle}>
+            <RefreshCw size={14} className={buscandoAnoAtual ? 'animate-spin' : ''} aria-hidden="true" />
           </Button>
         </div>
       </div>
       <div className="max-h-64 overflow-y-auto rounded-[11px] border border-[rgba(20,21,26,.06)]">
+        <button
+          type="button"
+          onClick={() => setMostrarAnteriores(v => !v)}
+          className="flex items-center justify-center gap-1 w-full py-1.5 text-[11px] font-medium text-c-text-2 hover:text-c-text hover:bg-[rgba(20,21,26,.03)] transition-colors border-b border-[rgba(20,21,26,.06)]"
+        >
+          {mostrarAnteriores ? <ChevronUp size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
+          {mostrarAnteriores ? t.ocultarAnosAnteriores : t.verAnosAnteriores}
+        </button>
         <div className="grid grid-cols-[64px_1fr_1fr] gap-x-2 gap-y-1.5 p-2 text-[11.5px]">
           <span className="text-c-text-2 font-medium">{t.colAno}</span>
           <span className="text-c-text-2 font-medium">{t.colMinPct}</span>
           <span className="text-c-text-2 font-medium">{t.colMaxPct}</span>
-          {ANOS_TABELA.map(ano => (
-            <Fragment key={ano}>
-              <span className="flex items-center text-c-text">{ano}</span>
-              <Input
-                variant="filled"
-                className="h-7 px-2 py-0 text-[11.5px]"
-                value={valorAtual(ano, 'min')}
-                onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
-                onBlur={e => void salvarCelula(ano, 'min', e.target.value)}
-                aria-label={`${label} ano ${ano} mínimo`}
-              />
-              <Input
-                variant="filled"
-                className="h-7 px-2 py-0 text-[11.5px]"
-                value={valorAtual(ano, 'max')}
-                onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
-                onBlur={e => void salvarCelula(ano, 'max', e.target.value)}
-                aria-label={`${label} ano ${ano} máximo`}
-              />
-            </Fragment>
-          ))}
+          {mostrarAnteriores && anosAnteriores.length > 0 && (
+            <span style={{ gridColumn: '1 / -1' }} className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 pt-1">
+              {t.anosAnterioresHeader}
+            </span>
+          )}
+          {anosAnteriores.map(ano => renderLinha(ano, true))}
+          {anosFuturos.map(ano => renderLinha(ano, false))}
         </div>
       </div>
     </div>
   )
 }
 
+const AUTO_REFRESH_STALENESS_MS = 60 * 60 * 1000
+
 export default function ParametrosGlobais() {
   const t = useT(parametrosGlobaisT)
   const { parametrosGlobais, atualizarParametroGlobal, parametrosAnuais, atualizarParametroAnual, loading } = useProjeto()
 
   const [toast, setToast] = useState<string | null>(null)
+
+  // Refresh silencioso do câmbio ao acessar a tela — se o valor no banco é
+  // mais velho que 1h (ou nunca configurado), busca o spot da PTAX no BCB e
+  // salva. Falha da API mantém o valor antigo sem toast (usuário não pediu).
+  const jaTentouRef = useRef(false)
+  useEffect(() => {
+    if (loading || jaTentouRef.current) return
+    const cambio = parametrosGlobais.find(p => p.chave === 'cambio_usd_brl')
+    if (!cambio) return
+    const idadeMs = Date.now() - new Date(cambio.atualizadoEm).getTime()
+    if (!isNaoConfigurado(cambio) && idadeMs < AUTO_REFRESH_STALENESS_MS) return
+    jaTentouRef.current = true
+    void (async () => {
+      try {
+        const valor = await buscarValorBcb(SERIE_BCB.cambio_usd_brl)
+        await atualizarParametroGlobal('cambio_usd_brl', valor, 'bcb-sgs', SERIE_BCB.cambio_usd_brl)
+      } catch { /* silencioso — mantém valor antigo */ }
+    })()
+  }, [loading, parametrosGlobais, atualizarParametroGlobal])
 
   function showToast(msg: string) {
     setToast(msg)

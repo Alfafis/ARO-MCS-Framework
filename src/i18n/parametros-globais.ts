@@ -17,14 +17,17 @@ export const parametrosGlobaisT: Record<Lang, {
   colAno:            string
   colMinPct:         string
   colMaxPct:         string
-  atualizarAno1Title: string
+  atualizarAnoAtualTitle: string
+  verAnosAnteriores: string
+  ocultarAnosAnteriores: string
+  anosAnterioresHeader: string
 }> = {
   'pt-BR': {
     headerTitle:      'Parâmetros Globais',
     headerSubtitle:   'Usados no cálculo de atualização financeira de todos os projetos.',
     parametroInflacao: 'Inflação (IPCA 12 meses)',
     parametroCambio:   'Câmbio (USD/BRL)',
-    parametroSelic:    'Selic (meta vigente)',
+    parametroSelic:    'Selic (taxa básica de juros)',
     fonteBcb:          'Banco Central',
     fonteManual:       'Manual',
     naoConfigurado:    'Não configurado',
@@ -36,14 +39,17 @@ export const parametrosGlobaisT: Record<Lang, {
     colAno:            'Ano',
     colMinPct:         'Mín %',
     colMaxPct:         'Máx %',
-    atualizarAno1Title: 'Atualizar ano 1 da API',
+    atualizarAnoAtualTitle: 'Atualizar ano atual da API',
+    verAnosAnteriores: 'Ver anos anteriores',
+    ocultarAnosAnteriores: 'Ocultar anos anteriores',
+    anosAnterioresHeader: 'Anos anteriores',
   },
   'en': {
     headerTitle:      'Global Parameters',
     headerSubtitle:   'Used in the financial escalation calculation for all projects.',
     parametroInflacao: 'Inflation (12-month CPI)',
     parametroCambio:   'Exchange rate (USD/BRL)',
-    parametroSelic:    'Base interest rate',
+    parametroSelic:    'Selic (base interest rate)',
     fonteBcb:          'Central Bank',
     fonteManual:       'Manual',
     naoConfigurado:    'Not configured',
@@ -55,14 +61,17 @@ export const parametrosGlobaisT: Record<Lang, {
     colAno:            'Year',
     colMinPct:         'Min %',
     colMaxPct:         'Max %',
-    atualizarAno1Title: 'Update year 1 from API',
+    atualizarAnoAtualTitle: 'Update current year from API',
+    verAnosAnteriores: 'Show previous years',
+    ocultarAnosAnteriores: 'Hide previous years',
+    anosAnterioresHeader: 'Previous years',
   },
   'es': {
     headerTitle:      'Parámetros Globales',
     headerSubtitle:   'Usados en el cálculo de actualización financiera de todos los proyectos.',
     parametroInflacao: 'Inflación (IPCA 12 meses)',
     parametroCambio:   'Cambio (USD/BRL)',
-    parametroSelic:    'Selic (meta vigente)',
+    parametroSelic:    'Selic (tasa básica de interés)',
     fonteBcb:          'Banco Central',
     fonteManual:       'Manual',
     naoConfigurado:    'No configurado',
@@ -74,6 +83,9 @@ export const parametrosGlobaisT: Record<Lang, {
     colAno:            'Año',
     colMinPct:         'Mín %',
     colMaxPct:         'Máx %',
-    atualizarAno1Title: 'Actualizar año 1 de la API',
+    atualizarAnoAtualTitle: 'Actualizar año actual de la API',
+    verAnosAnteriores: 'Ver años anteriores',
+    ocultarAnosAnteriores: 'Ocultar años anteriores',
+    anosAnterioresHeader: 'Años anteriores',
   },
 }

@@ -132,9 +132,10 @@ export default function PortalClienteRelatorio() {
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
     const horizonYears   = projeto?.horizonte_anos ?? 10
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', horizonYears)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', horizonYears)
     const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, horizonYears)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
     return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears }).map(({ metodo, valor }) => ({
       label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),

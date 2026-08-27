@@ -67,15 +67,20 @@ export function mapParametroAnualRow(row: ParametroAnualRow): ParametroAnual {
   }
 }
 
-// Sequência de taxas (fração, ex: 0.044 = 4,4%) do ano 1 até `horizonYears`,
-// usando o ponto médio (min+max)/2 de cada ano. `null` se QUALQUER ano dentro
-// do horizonte não tiver min E max preenchidos — nunca calcula com buraco no
-// meio (silenciosamente errado é pior que método ausente, mesmo princípio de
-// "dado não disponível: ocultar, nunca mockar").
-export function sequenciaMidpoints(parametrosAnuais: ParametroAnual[], chave: ParametroAnualChave, horizonYears: number): number[] | null {
+// Sequência de taxas (fração, ex: 0.044 = 4,4%) do `anoBase` até
+// `anoBase + horizonYears - 1`, usando o ponto médio (min+max)/2 de cada ano.
+// `null` se QUALQUER ano dentro do horizonte não tiver min E max preenchidos
+// — nunca calcula com buraco no meio (silenciosamente errado é pior que método
+// ausente, mesmo princípio de "dado não disponível: ocultar, nunca mockar").
+//
+// `ano` aqui é ano-calendário absoluto (migration 20260827120000), não relativo
+// ao projeto. Callers precisam passar `anoBase = ano-calendário do 1º ano do
+// horizonte do projeto` (tipicamente derivado de `projeto.dataBase`).
+export function sequenciaMidpoints(parametrosAnuais: ParametroAnual[], chave: ParametroAnualChave, anoBase: number, horizonYears: number): number[] | null {
+  if (!Number.isFinite(anoBase)) return null
   const porAno = new Map(parametrosAnuais.filter(p => p.chave === chave).map(p => [p.ano, p]))
   const sequencia: number[] = []
-  for (let ano = 1; ano <= horizonYears; ano++) {
+  for (let ano = anoBase; ano < anoBase + horizonYears; ano++) {
     const p = porAno.get(ano)
     if (!p || p.valorMin === null || p.valorMax === null) return null
     sequencia.push((p.valorMin + p.valorMax) / 2 / 100)
