@@ -14,6 +14,7 @@ export default function Categorias() {
   const {
     catalogo, tiposProjeto, tiposComTemplate,
     addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
+    addCampoOp, removeCampoOp, updateCampoOp, saveCampoOp,
     updateCategoriaCustoProvavel, updateItemDesembolso,
     carregarTemplateExemplo, renomearCategoriaCatalogo,
   } = useProjeto()
@@ -86,6 +87,10 @@ export default function Categorias() {
                 horizonYears={projeto.horizonteAnos}
                 onSaveCustoProvavel={valor => updateCategoriaCustoProvavel(projeto.id, cat.id, valor).catch(() => showToast('Não foi possível salvar o custo provável.'))}
                 onSaveDesembolso={(itemId, valores) => updateItemDesembolso(projeto.id, cat.id, itemId, valores).catch(() => showToast('Não foi possível salvar o desembolso por ano.'))}
+                onAddCampoOpProjeto={() => addCampoOp(projeto.id, cat.id).catch(() => showToast('Não foi possível criar o campo operacional.'))}
+                onRemoveCampoOpProjeto={campoId => removeCampoOp(projeto.id, cat.id, campoId).catch(() => showToast('Não foi possível remover o campo operacional.'))}
+                onUpdateCampoOpProjeto={(campoId, field, value) => updateCampoOp(projeto.id, cat.id, campoId, field, value)}
+                onSaveCampoOpProjeto={(campoId, field, value) => saveCampoOp(campoId, field, value).catch(() => showToast('Não foi possível salvar o campo operacional.'))}
               />
             ))}
           </div>
