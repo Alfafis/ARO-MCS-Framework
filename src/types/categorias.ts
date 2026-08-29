@@ -25,6 +25,18 @@ export interface CategoryItem {
   // renderiza esses até o backfill rodar.
   aplicabilidade: string
   anoPrevisto:    string
+
+  // Detalhamento de desembolso por ano (`desembolso_item_ano` /
+  // `desembolso_item_template_ano`). null = usa fallback uniforme entre
+  // anoInicio..anoFim. Array vazio nunca — sempre null nesse caso.
+  desembolsoPorAno: DesembolsoAno[] | null
+}
+
+// Um par (ano relativo do horizonte, valor). Ordenado por ano na leitura,
+// sem duplicata (PK composta no banco).
+export interface DesembolsoAno {
+  ano:   number
+  valor: number
 }
 
 // Nome/estrutura da categoria — compartilhado entre todos os projetos do sistema.
@@ -72,4 +84,10 @@ export interface Category {
   items:      CategoryItem[]
   camposOperacionais: CampoOperacional[]
   camposOperacionaisTemplate?: CampoOperacionalTemplate[]
+
+  // Moda "pela experiência" — F18 da planilha original (`_Dados_Formulas_Planilha.md`).
+  // Alimenta o parâmetro `mode` do MC Triangular. null = fallback (min+max)/2.
+  // Guardado como número puro (não string, diferente de min/max dos items)
+  // porque é editado uma única vez com máscara BRL local, não em lista.
+  custoProvavel: number | null
 }

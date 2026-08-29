@@ -1,4 +1,4 @@
-import type { CategoryItem, CampoOperacionalTemplate } from '@/types/categorias'
+import type { CategoryItem, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
 import type { Fase } from '@/types/setores'
 import { formatMoedaBR } from '@/lib/financeiro'
 
@@ -22,6 +22,16 @@ interface ItemCustoLikeRow {
   // Legado (transitório)
   aplicabilidade:           string | null
   ano_previsto:             string | null
+  // Embed do Supabase — nome do array vem do nome da tabela filha. Só uma das
+  // duas keys estará presente conforme o contexto (item de projeto vs. de
+  // template). numeric(14,2) chega como string do driver.
+  desembolso_item_ano?:          DesembolsoAnoRow[] | null
+  desembolso_item_template_ano?: DesembolsoAnoRow[] | null
+}
+
+interface DesembolsoAnoRow {
+  ano:   number
+  valor: string | number
 }
 
 const FASES_VALIDAS: readonly Fase[] = ['pre-fechamento', 'fechamento', 'pos-fechamento']
@@ -52,6 +62,13 @@ export function mapCampoOperacionalTemplateRow(row: CampoOperacionalTemplateRow)
 // PortalClienteRelatorio (público) — todos convertem a mesma forma de linha
 // de custo pro mesmo shape de tela.
 export function mapItemCustoRow(row: ItemCustoLikeRow): CategoryItem {
+  const desembolsoRows = row.desembolso_item_ano ?? row.desembolso_item_template_ano ?? null
+  const desembolsoPorAno = desembolsoRows && desembolsoRows.length > 0
+    ? [...desembolsoRows]
+        .map<DesembolsoAno>(r => ({ ano: r.ano, valor: typeof r.valor === 'string' ? parseFloat(r.valor) : r.valor }))
+        .sort((a, b) => a.ano - b.ano)
+    : null
+
   return {
     id:                    row.id,
     name:                  row.nome,
@@ -65,5 +82,6 @@ export function mapItemCustoRow(row: ItemCustoLikeRow): CategoryItem {
     anoFim:                row.ano_fim ?? null,
     aplicabilidade:        row.aplicabilidade ?? '',
     anoPrevisto:           row.ano_previsto ?? '',
+    desembolsoPorAno,
   }
 }

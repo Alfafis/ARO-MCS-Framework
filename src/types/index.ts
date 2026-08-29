@@ -23,6 +23,8 @@ export type ParametroAnualRow      = PublicTables['parametros_anuais']['Row']
 export type CategoriaTemplateRow   = PublicTables['categorias_template']['Row']
 export type ItemTemplateRow        = PublicTables['itens_template']['Row']
 export type SetorRow               = PublicTables['setores']['Row']
+export type DesembolsoItemAnoRow          = PublicTables['desembolso_item_ano']['Row']
+export type DesembolsoItemTemplateAnoRow  = PublicTables['desembolso_item_template_ano']['Row']
 
 export type Papel = PerfilRow['papel']
 
@@ -37,7 +39,8 @@ export interface AddCategoriaReturns {
 export interface CarregarTemplateExemploItem {
   categoria: CategoriaProjetoRow
   catalogo:  CategoriaCatalogoRow
-  itens:     ItemCustoRow[]
+  // itens_custo com embed do desembolso ano-a-ano quando existir
+  itens:     (ItemCustoRow & { desembolso_item_ano?: DesembolsoItemAnoRow[] | null })[]
 }
 
 export interface TemplateAddCategoriaReturns {
