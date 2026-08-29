@@ -1,4 +1,4 @@
-import type { CategoryItem, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
+import type { CategoryItem, CampoOperacional, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
 import type { Fase } from '@/types/setores'
 import { formatMoedaBR } from '@/lib/financeiro'
 
@@ -55,6 +55,27 @@ export function mapCampoOperacionalTemplateRow(row: CampoOperacionalTemplateRow)
     unidade:         row.unidade ?? '',
     valorReferencia: row.valor_referencia ?? '',
     ordem:           row.ordem,
+  }
+}
+
+interface CampoOperacionalLikeRow {
+  id:      string
+  label:   string
+  valor:   string | null
+  unidade: string | null
+  status:  string
+}
+
+// Instância por projeto — herdada de campos_operacionais_template ao rodar
+// carregar_template_exemplo. Diferente da versão template (que só tem
+// valor_referencia), aqui há status editável pelo consultor/cliente.
+export function mapCampoOperacionalRow(row: CampoOperacionalLikeRow): CampoOperacional {
+  return {
+    id:      row.id,
+    label:   row.label,
+    valor:   row.valor ?? '',
+    unidade: row.unidade ?? '',
+    status:  row.status === 'preenchido' ? 'preenchido' : 'pendente',
   }
 }
 

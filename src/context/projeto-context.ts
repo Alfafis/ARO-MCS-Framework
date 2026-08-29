@@ -1,5 +1,5 @@
 import { createContext } from 'react'
-import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacionalTemplate } from '@/types/categorias'
+import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacional, CampoOperacionalTemplate } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
@@ -66,6 +66,13 @@ export interface ProjetoContextValue {
   // fase (Fase | null). Fields legados continuam recebendo string.
   updateItem:      (projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => void
   saveItem:        (itemId: string, field: keyof CategoryItem, value: unknown) => Promise<void>
+  // Campos operacionais do projeto (herdados do template ao carregar, editáveis
+  // pelo consultor). Padrão idêntico aos template*: add/remove no banco, update
+  // só state local, save em blur. Status pendente/preenchido = toggle explícito.
+  addCampoOp:      (projetoId: string, catId: string) => Promise<void>
+  removeCampoOp:   (projetoId: string, catId: string, campoId: string) => Promise<void>
+  updateCampoOp:   (projetoId: string, catId: string, campoId: string, field: keyof CampoOperacional, value: string) => void
+  saveCampoOp:     (campoId: string, field: keyof CampoOperacional, value: string) => Promise<void>
   // Desembolso ano-a-ano por item — array `[{ano, valor}]`, upsert+delete
   // atômico. Item de projeto vs. template.
   updateItemDesembolso:         (projetoId: string, catId: string, itemId: string, valores: { ano: number; valor: number }[]) => Promise<void>

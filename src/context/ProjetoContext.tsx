@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react'
-import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacionalTemplate } from '@/types/categorias'
+import type { Category, CategoryItem, CategoriaCatalogo, CampoOperacional, CampoOperacionalTemplate } from '@/types/categorias'
 import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
@@ -7,12 +7,12 @@ import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
-import { mapItemCustoRow, mapCampoOperacionalTemplateRow } from '@/lib/categoriaMappers'
+import { mapItemCustoRow, mapCampoOperacionalRow, mapCampoOperacionalTemplateRow } from '@/lib/categoriaMappers'
 import { supabase } from '@/integrations/supabase/client'
 import type {
   ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns,
   CarregarTemplateExemploItem, CategoriaTemplateRow, ItemTemplateRow, TemplateAddCategoriaReturns,
-  DesembolsoItemAnoRow, DesembolsoItemTemplateAnoRow,
+  DesembolsoItemAnoRow, DesembolsoItemTemplateAnoRow, CampoOperacionalRow,
 } from '@/types'
 import { ProjetoContext } from './projeto-context'
 import type { ConfigFinanceiraForm, NovoProjetoForm } from './projeto-context'
@@ -61,6 +61,7 @@ type ProjetoRowComCategorias = ProjetoDbRow & {
   categorias_projeto?: (CategoriaProjetoRow & {
     categorias_catalogo: CategoriaCatalogoRow
     itens_custo: (ItemCustoRow & { desembolso_item_ano?: DesembolsoItemAnoRow[] | null })[]
+    campos_operacionais?: CampoOperacionalRow[] | null
   })[]
 }
 
@@ -112,7 +113,10 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
       expanded: false,
       justAdded: false,
       items: cp.itens_custo.map(mapItemCustoRow),
-      camposOperacionais: [],
+      camposOperacionais: (cp.campos_operacionais ?? [])
+        .slice()
+        .sort((a, b) => new Date(a.criado_em).getTime() - new Date(b.criado_em).getTime())
+        .map(mapCampoOperacionalRow),
       custoProvavel: cp.custo_provavel,
     }))
   return {
@@ -183,7 +187,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       })
     const fetchProjetos = supabase
       .from('projetos')
-      .select('*, categorias_projeto(*, categorias_catalogo(*), itens_custo(*, desembolso_item_ano(*)))')
+      .select('*, categorias_projeto(*, categorias_catalogo(*), itens_custo(*, desembolso_item_ano(*)), campos_operacionais(*))')
       .order('criado_em')
       .then(({ data, error }) => {
         if (error || !data) return
@@ -352,6 +356,53 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       const categorias = fn(p.categorias)
       return { ...p, categorias, esperado: estimateTotal(categorias) }
     }))
+  }, [])
+
+  // ----------------------------------------------------------------------
+  // Campos operacionais do projeto — CRUD direto na `campos_operacionais`,
+  // sem RPC. Espelha as funções `templateAddCampoOp` etc. só que o alvo é a
+  // tabela por-projeto. RLS habilitada pela migration 20260829150000.
+  // ----------------------------------------------------------------------
+
+  const addCampoOp = useCallback(async (projetoId: string, catId: string) => {
+    const { data, error } = await supabase
+      .from('campos_operacionais')
+      .insert({ categoria_projeto_id: catId, label: '', status: 'pendente' })
+      .select('id, label, valor, unidade, status')
+      .single()
+    if (error || !data) throw error ?? new Error('Falha ao criar campo operacional')
+    const novo = mapCampoOperacionalRow(data)
+    mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionais: [...c.camposOperacionais, novo] }
+      : c
+    ))
+  }, [mapCategorias])
+
+  const removeCampoOp = useCallback(async (projetoId: string, catId: string, campoId: string) => {
+    const { error } = await supabase.from('campos_operacionais').delete().eq('id', campoId)
+    if (error) throw error
+    mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionais: c.camposOperacionais.filter(cp => cp.id !== campoId) }
+      : c
+    ))
+  }, [mapCategorias])
+
+  const updateCampoOp = useCallback((projetoId: string, catId: string, campoId: string, field: keyof CampoOperacional, value: string) => {
+    mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, camposOperacionais: c.camposOperacionais.map(cp => cp.id === campoId ? { ...cp, [field]: value } : cp) }
+      : c
+    ))
+  }, [mapCategorias])
+
+  const saveCampoOp = useCallback(async (campoId: string, field: keyof CampoOperacional, value: string) => {
+    let patch: { label?: string; unidade?: string | null; valor?: string | null; status?: 'pendente' | 'preenchido' }
+    if      (field === 'label')   patch = { label: value }
+    else if (field === 'unidade') patch = { unidade: value }
+    else if (field === 'valor')   patch = { valor: value }
+    else if (field === 'status')  patch = { status: value === 'preenchido' ? 'preenchido' : 'pendente' }
+    else return
+    const { error } = await supabase.from('campos_operacionais').update(patch).eq('id', campoId)
+    if (error) throw error
   }, [])
 
   // ----------------------------------------------------------------------
@@ -676,6 +727,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       atualizarConfigFinanceira,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
+      addCampoOp, removeCampoOp, updateCampoOp, saveCampoOp,
       updateItemDesembolso, templateUpdateItemDesembolso,
       updateCategoriaCustoProvavel, templateUpdateCategoriaCustoProvavel,
       atualizarRevLocal,
