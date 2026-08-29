@@ -10,8 +10,11 @@ export interface CategoryParam {
 }
 
 // Deriva os parâmetros da simulação a partir dos itens cadastrados em Categorias.
-// mode = ponto médio min/max — sem um campo "mais provável" capturado por item ainda,
-// é a melhor aproximação disponível (ver docs/simulacao.md).
+// mode vem de `categoria.custoProvavel` (moda "pela experiência" — F18 da planilha
+// NX Gold, ver `_Dados_Formulas_Planilha.md`). Fallback pra ponto médio (min+max)/2
+// quando null. Se o valor informado estiver fora de [min, max], clamp — a
+// Triangular exige min ≤ mode ≤ max, e o consultor pode ter editado items depois
+// de definir a moda.
 // Nome vem do catálogo (compartilhado) — valores vêm só dos itens deste projeto.
 export function categoryParamsFromCategorias(categorias: Category[], catalogo: CategoriaCatalogo[]): CategoryParam[] {
   return categorias
@@ -21,8 +24,11 @@ export function categoryParamsFromCategorias(categorias: Category[], catalogo: C
         min += parseMoedaBR(item.min)
         max += parseMoedaBR(item.max)
       }
-      const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
-      return { name: nome, min, max, mode: (min + max) / 2 }
+      const nome    = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+      const midMode = (min + max) / 2
+      const rawMode = cat.custoProvavel ?? midMode
+      const mode    = Math.max(min, Math.min(max, rawMode))
+      return { name: nome, min, max, mode }
     })
     .filter(c => c.min > 0 || c.max > 0)
 }
