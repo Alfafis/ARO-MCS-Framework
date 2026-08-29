@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -112,6 +112,7 @@ export type Database = {
         Row: {
           catalogo_id: string
           criado_em: string
+          custo_provavel: number | null
           id: string
           ordem: number
           preenche: string
@@ -120,6 +121,7 @@ export type Database = {
         Insert: {
           catalogo_id: string
           criado_em?: string
+          custo_provavel?: number | null
           id?: string
           ordem?: number
           preenche?: string
@@ -128,6 +130,7 @@ export type Database = {
         Update: {
           catalogo_id?: string
           criado_em?: string
+          custo_provavel?: number | null
           id?: string
           ordem?: number
           preenche?: string
@@ -154,6 +157,7 @@ export type Database = {
         Row: {
           catalogo_id: string
           criado_em: string
+          custo_provavel: number | null
           id: string
           ordem: number
           preenche: string
@@ -162,6 +166,7 @@ export type Database = {
         Insert: {
           catalogo_id: string
           criado_em?: string
+          custo_provavel?: number | null
           id?: string
           ordem?: number
           preenche?: string
@@ -170,6 +175,7 @@ export type Database = {
         Update: {
           catalogo_id?: string
           criado_em?: string
+          custo_provavel?: number | null
           id?: string
           ordem?: number
           preenche?: string
@@ -238,6 +244,58 @@ export type Database = {
             columns: ["projeto_id"]
             isOneToOne: false
             referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      desembolso_item_ano: {
+        Row: {
+          ano: number
+          item_id: string
+          valor: number
+        }
+        Insert: {
+          ano: number
+          item_id: string
+          valor: number
+        }
+        Update: {
+          ano?: number
+          item_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desembolso_item_ano_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "itens_custo"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      desembolso_item_template_ano: {
+        Row: {
+          ano: number
+          item_template_id: string
+          valor: number
+        }
+        Insert: {
+          ano: number
+          item_template_id: string
+          valor: number
+        }
+        Update: {
+          ano?: number
+          item_template_id?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "desembolso_item_template_ano_item_template_id_fkey"
+            columns: ["item_template_id"]
+            isOneToOne: false
+            referencedRelation: "itens_template"
             referencedColumns: ["id"]
           },
         ]
@@ -1095,6 +1153,10 @@ export type Database = {
       }
       template_remove_categoria: { Args: { p_id: string }; Returns: undefined }
       template_remove_item: { Args: { p_id: string }; Returns: undefined }
+      template_update_categoria_custo_provavel: {
+        Args: { p_categoria_template_id: string; p_valor: number }
+        Returns: undefined
+      }
       template_update_categoria_preenche: {
         Args: { p_id: string; p_preenche: string }
         Returns: undefined
@@ -1126,7 +1188,15 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      template_update_item_desembolso: {
+        Args: { p_item_template_id: string; p_valores: Json }
+        Returns: undefined
+      }
       unaccent: { Args: { "": string }; Returns: string }
+      update_categoria_custo_provavel: {
+        Args: { p_categoria_id: string; p_valor: number }
+        Returns: undefined
+      }
       update_categoria_preenche: {
         Args: { p_id: string; p_preenche: string }
         Returns: undefined
@@ -1157,6 +1227,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      update_item_desembolso: {
+        Args: { p_item_id: string; p_valores: Json }
+        Returns: undefined
       }
     }
     Enums: {
