@@ -14,6 +14,7 @@ export default function Categorias() {
   const {
     catalogo, tiposProjeto, tiposComTemplate,
     addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
+    updateCategoriaCustoProvavel, updateItemDesembolso,
     carregarTemplateExemplo, renomearCategoriaCatalogo,
   } = useProjeto()
 
@@ -82,6 +83,9 @@ export default function Categorias() {
                 onRemoveItem={itemId => removeItem(projeto.id, cat.id, itemId).catch(() => showToast('Não foi possível remover o item.'))}
                 onUpdateItem={(itemId, field, value) => updateItem(projeto.id, cat.id, itemId, field, value)}
                 onSaveItem={(itemId, field, value) => saveItem(itemId, field, value).catch(() => showToast('Não foi possível salvar o item.'))}
+                horizonYears={projeto.horizonteAnos}
+                onSaveCustoProvavel={valor => updateCategoriaCustoProvavel(projeto.id, cat.id, valor).catch(() => showToast('Não foi possível salvar o custo provável.'))}
+                onSaveDesembolso={(itemId, valores) => updateItemDesembolso(projeto.id, cat.id, itemId, valores).catch(() => showToast('Não foi possível salvar o desembolso por ano.'))}
               />
             ))}
           </div>
