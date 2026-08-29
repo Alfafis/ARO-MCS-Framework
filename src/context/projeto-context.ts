@@ -66,6 +66,13 @@ export interface ProjetoContextValue {
   // fase (Fase | null). Fields legados continuam recebendo string.
   updateItem:      (projetoId: string, catId: string, itemId: string, field: keyof CategoryItem, value: unknown) => void
   saveItem:        (itemId: string, field: keyof CategoryItem, value: unknown) => Promise<void>
+  // Desembolso ano-a-ano por item — array `[{ano, valor}]`, upsert+delete
+  // atômico. Item de projeto vs. template.
+  updateItemDesembolso:         (projetoId: string, catId: string, itemId: string, valores: { ano: number; valor: number }[]) => Promise<void>
+  templateUpdateItemDesembolso: (tipoProjetoId: string, catId: string, itemId: string, valores: { ano: number; valor: number }[]) => Promise<void>
+  // Custo provável (moda "pela experiência") por categoria. null = fallback (min+max)/2 no MC.
+  updateCategoriaCustoProvavel:         (projetoId: string, catId: string, valor: number | null) => Promise<void>
+  templateUpdateCategoriaCustoProvavel: (tipoProjetoId: string, catId: string, valor: number | null) => Promise<void>
   // Publicar revisão (Revisoes.tsx) já persiste projetos.rev no banco via RPC —
   // isso só sincroniza o state local pro badge (ProjetoWorkspace) atualizar sem F5.
   atualizarRevLocal: (projetoId: string, rev: string) => void

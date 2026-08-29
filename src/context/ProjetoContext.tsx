@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client'
 import type {
   ProjetoDbRow, ItemCustoRow, CategoriaProjetoRow, CategoriaCatalogoRow, AddCategoriaReturns,
   CarregarTemplateExemploItem, CategoriaTemplateRow, ItemTemplateRow, TemplateAddCategoriaReturns,
+  DesembolsoItemAnoRow, DesembolsoItemTemplateAnoRow,
 } from '@/types'
 import { ProjetoContext } from './projeto-context'
 import type { ConfigFinanceiraForm, NovoProjetoForm } from './projeto-context'
@@ -51,12 +52,15 @@ const ITEM_FIELD_TO_PATCH_KEY: Record<keyof CategoryItem, string> = {
   // legado (transitório)
   aplicabilidade: 'aplicabilidade',
   anoPrevisto: 'anoPrevisto',
+  // desembolsoPorAno tem RPC própria (update_item_desembolso) — não entra em
+  // update_item_custo. Mantemos aqui só pra fechar o Record; nunca é enviado.
+  desembolsoPorAno: 'desembolsoPorAno',
 }
 
 type ProjetoRowComCategorias = ProjetoDbRow & {
   categorias_projeto?: (CategoriaProjetoRow & {
     categorias_catalogo: CategoriaCatalogoRow
-    itens_custo: ItemCustoRow[]
+    itens_custo: (ItemCustoRow & { desembolso_item_ano?: DesembolsoItemAnoRow[] | null })[]
   })[]
 }
 
@@ -70,7 +74,7 @@ type CampoOperacionalTemplateRow = {
 
 type CategoriaTemplateRowComItens = CategoriaTemplateRow & {
   categorias_catalogo: CategoriaCatalogoRow
-  itens_template: ItemTemplateRow[]
+  itens_template: (ItemTemplateRow & { desembolso_item_template_ano?: DesembolsoItemTemplateAnoRow[] | null })[]
   campos_operacionais_template?: CampoOperacionalTemplateRow[]
 }
 
@@ -90,6 +94,7 @@ function mapRowToTemplateCategoria(row: CategoriaTemplateRowComItens): Category 
       .slice()
       .sort((a, b) => a.ordem - b.ordem)
       .map(mapCampoOperacionalTemplateRow),
+    custoProvavel: row.custo_provavel,
   }
 }
 
@@ -108,6 +113,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
       justAdded: false,
       items: cp.itens_custo.map(mapItemCustoRow),
       camposOperacionais: [],
+      custoProvavel: cp.custo_provavel,
     }))
   return {
     id: row.id,
@@ -177,7 +183,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       })
     const fetchProjetos = supabase
       .from('projetos')
-      .select('*, categorias_projeto(*, categorias_catalogo(*), itens_custo(*))')
+      .select('*, categorias_projeto(*, categorias_catalogo(*), itens_custo(*, desembolso_item_ano(*)))')
       .order('criado_em')
       .then(({ data, error }) => {
         if (error || !data) return
@@ -363,7 +369,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const fetchTemplateCategorias = useCallback(async (tipoProjetoId: string) => {
     const { data, error } = await supabase
       .from('categorias_template')
-      .select('*, categorias_catalogo(*), itens_template(*), campos_operacionais_template(*)')
+      .select('*, categorias_catalogo(*), itens_template(*, desembolso_item_template_ano(*)), campos_operacionais_template(*)')
       .eq('tipo_projeto_id', tipoProjetoId)
       .order('ordem')
     if (error || !data) return
@@ -434,7 +440,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     mapTemplateCategorias(tipoProjetoId, categorias => {
       const nova: Category = {
         id: categoria.id, catalogoId: categoria.catalogo_id, preenche: categoria.preenche as Category['preenche'],
-        expanded: true, justAdded: true, items: [], camposOperacionais: [],
+        expanded: true, justAdded: true, items: [], camposOperacionais: [], custoProvavel: null,
       }
       return [nova, ...categorias]
     })
@@ -479,7 +485,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   }, [mapTemplateCategorias])
 
   const templateSaveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
-    if (field === 'id') return
+    if (field === 'id' || field === 'desembolsoPorAno') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
     const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(String(value)) : value
     // Cast para Json — patchValue é sempre um valor serializável (string,
@@ -518,6 +524,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       justAdded: false,
       items: itens.map(mapItemCustoRow),
       camposOperacionais: [],
+      custoProvavel: categoria.custo_provavel,
     }))
 
     setProjetos(prev => prev.map(p => p.id === projetoId ? { ...p, categorias, esperado: estimateTotal(categorias) } : p))
@@ -532,7 +539,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     mapCategorias(projetoId, categorias => {
       const nova: Category = {
         id: categoria.id, catalogoId: categoria.catalogo_id, preenche: categoria.preenche as Category['preenche'],
-        expanded: true, justAdded: true, items: [], camposOperacionais: [],
+        expanded: true, justAdded: true, items: [], camposOperacionais: [], custoProvavel: null,
       }
       return [nova, ...categorias]
     })
@@ -585,13 +592,69 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   }, [mapCategorias])
 
   const saveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
-    if (field === 'id') return
+    if (field === 'id' || field === 'desembolsoPorAno') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
     const patchValue = (field === 'min' || field === 'max') ? parseMoedaBR(String(value)) : value
     const patch = { [patchKey]: patchValue } as unknown as Record<string, string | number | null | number[]>
     const { error } = await supabase.rpc('update_item_custo', { p_id: itemId, p_patch: patch })
     if (error) throw error
   }, [])
+
+  // -----------------------------------------------------------------
+  // Desembolso ano-a-ano (item de projeto e de template) — RPCs próprias
+  // (update_item_desembolso / template_update_item_desembolso) que fazem
+  // upsert+delete atômico do array de (ano, valor). Estado local é atualizado
+  // otimisticamente. Ver `_Dados_Formulas_Planilha.md` — Etapa 5.
+  // -----------------------------------------------------------------
+
+  const updateItemDesembolso = useCallback(async (projetoId: string, catId: string, itemId: string, valores: { ano: number; valor: number }[]) => {
+    const { error } = await supabase.rpc('update_item_desembolso', {
+      p_item_id: itemId,
+      p_valores: valores as unknown as Record<string, number>[],
+    })
+    if (error) throw error
+    const clean = valores.filter(v => v.valor > 0).sort((a, b) => a.ano - b.ano)
+    mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, desembolsoPorAno: clean.length > 0 ? clean : null } : i) }
+      : c
+    ))
+  }, [mapCategorias])
+
+  const templateUpdateItemDesembolso = useCallback(async (tipoProjetoId: string, catId: string, itemId: string, valores: { ano: number; valor: number }[]) => {
+    const { error } = await supabase.rpc('template_update_item_desembolso', {
+      p_item_template_id: itemId,
+      p_valores: valores as unknown as Record<string, number>[],
+    })
+    if (error) throw error
+    const clean = valores.filter(v => v.valor > 0).sort((a, b) => a.ano - b.ano)
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId
+      ? { ...c, items: c.items.map(i => i.id === itemId ? { ...i, desembolsoPorAno: clean.length > 0 ? clean : null } : i) }
+      : c
+    ))
+  }, [mapTemplateCategorias])
+
+  // -----------------------------------------------------------------
+  // custo_provavel por categoria (moda "pela experiência") — RPC única.
+  // valor null = "voltar pro fallback (min+max)/2 no MC".
+  // -----------------------------------------------------------------
+
+  const updateCategoriaCustoProvavel = useCallback(async (projetoId: string, catId: string, valor: number | null) => {
+    const { error } = await supabase.rpc('update_categoria_custo_provavel', {
+      p_categoria_id: catId,
+      p_valor: valor as number,
+    })
+    if (error) throw error
+    mapCategorias(projetoId, categorias => categorias.map(c => c.id === catId ? { ...c, custoProvavel: valor } : c))
+  }, [mapCategorias])
+
+  const templateUpdateCategoriaCustoProvavel = useCallback(async (tipoProjetoId: string, catId: string, valor: number | null) => {
+    const { error } = await supabase.rpc('template_update_categoria_custo_provavel', {
+      p_categoria_template_id: catId,
+      p_valor: valor as number,
+    })
+    if (error) throw error
+    mapTemplateCategorias(tipoProjetoId, categorias => categorias.map(c => c.id === catId ? { ...c, custoProvavel: valor } : c))
+  }, [mapTemplateCategorias])
 
   const atualizarRevLocal = useCallback((projetoId: string, rev: string) => {
     setProjetos(prev => prev.map(p => p.id === projetoId ? { ...p, rev } : p))
@@ -613,6 +676,8 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       projetos, criarProjeto, carregarTemplateExemplo, arquivarProjeto, concluirProjeto,
       atualizarConfigFinanceira,
       addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
+      updateItemDesembolso, templateUpdateItemDesembolso,
+      updateCategoriaCustoProvavel, templateUpdateCategoriaCustoProvavel,
       atualizarRevLocal,
     }}>
       {children}
