@@ -33,6 +33,10 @@ export const categoriasT: Record<Lang, {
   camposOpColLabel: string
   camposOpColUnidade: string
   camposOpColValorRef: string
+  camposOpColValor: string
+  camposOpColStatus: string
+  camposOpStatusPendente:   string
+  camposOpStatusPreenchido: string
   camposOpAdd:      string
   camposOpRemove:   string
   custoProvavelLabel: string
@@ -77,6 +81,10 @@ export const categoriasT: Record<Lang, {
     camposOpColLabel: 'Campo',
     camposOpColUnidade: 'Unidade',
     camposOpColValorRef: 'Valor de referência',
+    camposOpColValor: 'Valor',
+    camposOpColStatus: 'Status',
+    camposOpStatusPendente:   'Pendente',
+    camposOpStatusPreenchido: 'Preenchido',
     camposOpAdd:      '+ Adicionar campo',
     camposOpRemove:   'Excluir campo',
     custoProvavelLabel: 'Custo provável',
@@ -121,6 +129,10 @@ export const categoriasT: Record<Lang, {
     camposOpColLabel: 'Field',
     camposOpColUnidade: 'Unit',
     camposOpColValorRef: 'Reference value',
+    camposOpColValor: 'Value',
+    camposOpColStatus: 'Status',
+    camposOpStatusPendente:   'Pending',
+    camposOpStatusPreenchido: 'Filled',
     camposOpAdd:      '+ Add field',
     camposOpRemove:   'Delete field',
     custoProvavelLabel: 'Most likely cost',
@@ -165,6 +177,10 @@ export const categoriasT: Record<Lang, {
     camposOpColLabel: 'Campo',
     camposOpColUnidade: 'Unidad',
     camposOpColValorRef: 'Valor de referencia',
+    camposOpColValor: 'Valor',
+    camposOpColStatus: 'Estado',
+    camposOpStatusPendente:   'Pendiente',
+    camposOpStatusPreenchido: 'Rellenado',
     camposOpAdd:      '+ Agregar campo',
     camposOpRemove:   'Eliminar campo',
     custoProvavelLabel: 'Costo probable',

@@ -7,7 +7,7 @@ import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import { useProjeto } from '@/context/useProjeto'
 import { maskMoedaBR, parseMoedaBR, formatMoedaBR, maskNumeroBR } from '@/lib/financeiro'
-import type { Category, CategoryItem, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
+import type { Category, CategoryItem, CampoOperacional, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
 import type { Fase } from '@/types/setores'
 
 // Enum canônico de unidades — valores retirados da planilha NX Gold
@@ -32,6 +32,13 @@ interface Props {
   onRemoveCampoOp?: (campoId: string) => void
   onUpdateCampoOp?: (campoId: string, field: keyof CampoOperacionalTemplate, value: string) => void
   onSaveCampoOp?:   (campoId: string, field: keyof CampoOperacionalTemplate, value: string) => void
+  // Campos operacionais do projeto — só ativos no workspace do projeto
+  // (/projetos/:id/categorias). Shape diferente do template: tem `valor` livre
+  // + `status` (pendente/preenchido). Ausentes = seção não renderiza.
+  onAddCampoOpProjeto?:    () => void
+  onRemoveCampoOpProjeto?: (campoId: string) => void
+  onUpdateCampoOpProjeto?: (campoId: string, field: keyof CampoOperacional, value: string) => void
+  onSaveCampoOpProjeto?:   (campoId: string, field: keyof CampoOperacional, value: string) => void
   // Moda "pela experiência" da categoria (F18 da planilha) — alimenta o
   // parâmetro `mode` do MC Triangular. null = fallback (min+max)/2.
   onSaveCustoProvavel?: (valor: number | null) => void
@@ -50,9 +57,11 @@ const PREENCHE_BADGE_VARIANT: Record<Category['preenche'], 'default' | 'warning'
   Ambos:     'accent',
 }
 
-export default function CategoryBlock({ category, nome, index, onRemove, onChange, onRename, onCancelRename, onAddItem, onRemoveItem, onUpdateItem, onSaveItem, onAddCampoOp, onRemoveCampoOp, onUpdateCampoOp, onSaveCampoOp, onSaveCustoProvavel, onSaveDesembolso, horizonYears }: Props) {
+export default function CategoryBlock({ category, nome, index, onRemove, onChange, onRename, onCancelRename, onAddItem, onRemoveItem, onUpdateItem, onSaveItem, onAddCampoOp, onRemoveCampoOp, onUpdateCampoOp, onSaveCampoOp, onAddCampoOpProjeto, onRemoveCampoOpProjeto, onUpdateCampoOpProjeto, onSaveCampoOpProjeto, onSaveCustoProvavel, onSaveDesembolso, horizonYears }: Props) {
   const camposOpEnabled = !!(onAddCampoOp && onRemoveCampoOp && onUpdateCampoOp && onSaveCampoOp)
+  const camposOpProjetoEnabled = !!(onAddCampoOpProjeto && onRemoveCampoOpProjeto && onUpdateCampoOpProjeto && onSaveCampoOpProjeto)
   const camposOp = category.camposOperacionaisTemplate ?? []
+  const camposOpProjeto = category.camposOperacionais ?? []
   const horizon = horizonYears ?? 10
   const t = useT(categoriasT)
   const blockRef = useRef<HTMLDivElement>(null)
@@ -282,6 +291,42 @@ export default function CategoryBlock({ category, nome, index, onRemove, onChang
               </button>
             </div>
           )}
+
+          {camposOpProjetoEnabled && (
+            <div className="mt-4 pt-3 border-t border-[rgba(20,21,26,.08)] flex flex-col gap-1.5">
+              <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2 mb-1">
+                {t.camposOpTitle}
+              </div>
+
+              <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_28px] gap-2 px-1 pb-1 text-[0.7rem] font-semibold tracking-wide uppercase text-c-text-2">
+                <span>{t.camposOpColLabel}</span>
+                <span>{t.camposOpColUnidade}</span>
+                <span>{t.camposOpColValor}</span>
+                <span>{t.camposOpColStatus}</span>
+                <span></span>
+              </div>
+
+              {camposOpProjeto.map(campo => (
+                <CampoOpProjetoRow
+                  key={campo.id}
+                  campo={campo}
+                  onUpdate={(field, value) => onUpdateCampoOpProjeto!(campo.id, field, value)}
+                  onSave={(field, value) => onSaveCampoOpProjeto!(campo.id, field, value)}
+                  onRemove={() => onRemoveCampoOpProjeto!(campo.id)}
+                  removeLabel={t.camposOpRemove}
+                  statusPendenteLabel={t.camposOpStatusPendente}
+                  statusPreenchidoLabel={t.camposOpStatusPreenchido}
+                />
+              ))}
+
+              <button
+                className="text-[0.8125rem] font-medium text-c-text-2 hover:text-accent transition-colors cursor-pointer bg-transparent border-none py-2 px-1.5 self-start focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded"
+                onClick={onAddCampoOpProjeto}
+              >
+                {t.camposOpAdd}
+              </button>
+            </div>
+          )}
           </div>
         </div>
       )}
@@ -324,6 +369,65 @@ function CampoOpRow({ campo, onUpdate, onSave, onRemove, removeLabel }: CampoOpR
         onBlur={e => onSave('valorReferencia', maskNumeroBR(e.target.value))}
         aria-label="Valor de referência"
       />
+      <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
+        <Trash2 size={13} aria-hidden="true" />
+      </Button>
+    </div>
+  )
+}
+
+interface CampoOpProjetoRowProps {
+  campo:                  CampoOperacional
+  onUpdate:               (field: keyof CampoOperacional, value: string) => void
+  onSave:                 (field: keyof CampoOperacional, value: string) => void
+  onRemove:               () => void
+  removeLabel:            string
+  statusPendenteLabel:    string
+  statusPreenchidoLabel:  string
+}
+
+function CampoOpProjetoRow({ campo, onUpdate, onSave, onRemove, removeLabel, statusPendenteLabel, statusPreenchidoLabel }: CampoOpProjetoRowProps) {
+  function toggleStatus() {
+    const proximo: CampoOperacional['status'] = campo.status === 'preenchido' ? 'pendente' : 'preenchido'
+    onUpdate('status', proximo)
+    onSave('status', proximo)
+  }
+  return (
+    <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_28px] gap-2 items-center">
+      <input
+        className="row-input"
+        value={campo.label}
+        onChange={e => onUpdate('label', e.target.value)}
+        onBlur={e => onSave('label', e.target.value)}
+        aria-label="Nome do campo operacional"
+      />
+      <select
+        className="row-input cursor-pointer bg-transparent"
+        value={UNIDADES.includes(campo.unidade) ? campo.unidade : ''}
+        onChange={e => { onUpdate('unidade', e.target.value); onSave('unidade', e.target.value) }}
+        aria-label="Unidade do campo"
+      >
+        <option value=""></option>
+        {UNIDADES.map(u => <option key={u} value={u}>{u}</option>)}
+      </select>
+      <input
+        className="row-input mono"
+        value={campo.valor}
+        inputMode="decimal"
+        onChange={e => onUpdate('valor', maskNumeroBR(e.target.value))}
+        onBlur={e => onSave('valor', maskNumeroBR(e.target.value))}
+        aria-label="Valor preenchido"
+      />
+      <button
+        type="button"
+        onClick={toggleStatus}
+        className="cursor-pointer bg-transparent border-none p-0 text-left focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded"
+        aria-label="Alternar status"
+      >
+        <Badge variant={campo.status === 'preenchido' ? 'accent' : 'warning'}>
+          {campo.status === 'preenchido' ? statusPreenchidoLabel : statusPendenteLabel}
+        </Badge>
+      </button>
       <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
         <Trash2 size={13} aria-hidden="true" />
       </Button>
