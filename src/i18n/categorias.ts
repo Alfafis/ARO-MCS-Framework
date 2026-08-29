@@ -35,6 +35,15 @@ export const categoriasT: Record<Lang, {
   camposOpColValorRef: string
   camposOpAdd:      string
   camposOpRemove:   string
+  custoProvavelLabel: string
+  custoProvavelPh:    string
+  custoProvavelHint:  string
+  desembolsoToggle:   string
+  desembolsoLabel:    (ano: number) => string
+  desembolsoSum:      string
+  desembolsoTargetOk: string
+  desembolsoMismatch: (diff: string) => string
+  desembolsoClearAll: string
 }> = {
   'pt-BR': {
     headerTitle:      'Categorias',
@@ -70,6 +79,15 @@ export const categoriasT: Record<Lang, {
     camposOpColValorRef: 'Valor de referência',
     camposOpAdd:      '+ Adicionar campo',
     camposOpRemove:   'Excluir campo',
+    custoProvavelLabel: 'Custo provável',
+    custoProvavelPh:    '(min + max) / 2',
+    custoProvavelHint:  'Moda "pela experiência" da categoria — alimenta a Triangular do MC. Deixe vazio pra usar (min+max)/2.',
+    desembolsoToggle:   'Detalhar por ano',
+    desembolsoLabel:    (ano) => `Ano ${ano}`,
+    desembolsoSum:      'Soma',
+    desembolsoTargetOk: 'confere com Custo Max',
+    desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
+    desembolsoClearAll: 'Limpar todos',
   },
   'en': {
     headerTitle:      'Categories',
@@ -105,6 +123,15 @@ export const categoriasT: Record<Lang, {
     camposOpColValorRef: 'Reference value',
     camposOpAdd:      '+ Add field',
     camposOpRemove:   'Delete field',
+    custoProvavelLabel: 'Most likely cost',
+    custoProvavelPh:    '(min + max) / 2',
+    custoProvavelHint:  'Category mode "from experience" — feeds MC Triangular. Leave empty to use (min+max)/2.',
+    desembolsoToggle:   'Break down by year',
+    desembolsoLabel:    (ano) => `Year ${ano}`,
+    desembolsoSum:      'Sum',
+    desembolsoTargetOk: 'matches Max Cost',
+    desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
+    desembolsoClearAll: 'Clear all',
   },
   'es': {
     headerTitle:      'Categorías',
@@ -140,5 +167,14 @@ export const categoriasT: Record<Lang, {
     camposOpColValorRef: 'Valor de referencia',
     camposOpAdd:      '+ Agregar campo',
     camposOpRemove:   'Eliminar campo',
+    custoProvavelLabel: 'Costo probable',
+    custoProvavelPh:    '(min + max) / 2',
+    custoProvavelHint:  'Moda "por experiencia" de la categoría — alimenta la Triangular del MC. Vacío usa (min+max)/2.',
+    desembolsoToggle:   'Detallar por año',
+    desembolsoLabel:    (ano) => `Año ${ano}`,
+    desembolsoSum:      'Suma',
+    desembolsoTargetOk: 'coincide con Costo Máx',
+    desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
+    desembolsoClearAll: 'Limpiar todos',
   },
 }
