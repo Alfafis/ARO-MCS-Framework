@@ -8,6 +8,9 @@ import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
+import { computeDesembolsoMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
+import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
@@ -86,6 +89,7 @@ export default function PortalClienteRelatorio() {
   const categorias: Category[] = useMemo(() => (bundle?.categorias ?? []).map(({ categoria, itens }) => ({
     id: categoria.id, catalogoId: categoria.catalogo_id, preenche: categoria.preenche as Category['preenche'],
     expanded: false, justAdded: false, items: itens.map(mapItemCustoRow), camposOperacionais: [],
+    custoProvavel: categoria.custo_provavel,
   })), [bundle])
 
   const catalogo: CategoriaCatalogo[] = useMemo(() => {
@@ -156,6 +160,39 @@ export default function PortalClienteRelatorio() {
   const [icLo, icHi] = simResult ? simResult.ic95.replace('M', '').split('–') : ['—', '—']
   const icLoLabel = simResult ? t.icLabel(confLevel, icLo) : '—'
   const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
+
+  // Curva de desembolso ano-a-ano (`_Plan_Curva_Desembolso.md` — Etapa 4).
+  // Portal público reaproveita o mesmo helper e componente do ResumoExecutivo,
+  // mudando só a origem dos dados (bundle vs. context).
+  const [modoDesembolso, setModoDesembolso] = useState<ModoDesembolso>('base')
+  const disbursement = useMemo(() => {
+    if (!projeto || categorias.length === 0) return null
+    const horizonYears = projeto.horizonte_anos ?? 10
+    const dataBaseAno = projeto.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
+
+    const res = computeDesembolsoMatrix({
+      categorias,
+      catalogo,
+      horizonYears,
+      contingenciaPct: projeto.contingencia_pct ?? 0,
+      ipcaPorAno,
+      modo: modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
+    })
+
+    if (res.totalGeral === 0) return null
+
+    const years: DisbursementYear[] = res.totaisPorAno.map((total, i) => ({
+      label: `Ano ${String(i + 1).padStart(2, '0')}`,
+      value: fmtCompact(total),
+    }))
+    const cats: DisbursementCategory[] = res.categorias.map((name, ci) => ({
+      name,
+      values: res.matrix[ci].map(v => v > 0 ? fmtCompact(v) : null),
+    }))
+    return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
+  }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso])
 
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
@@ -362,6 +399,16 @@ export default function PortalClienteRelatorio() {
             />
           </div>
 
+          {disbursement && (
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
+                <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+              </div>
+              <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+            </div>
+          )}
+
           {monetaryMethods.length > 0 && (
             <MonetaryMethodsCard methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
           )}
@@ -385,6 +432,49 @@ export default function PortalClienteRelatorio() {
           {t.pdfGenerating}
         </div>
       )}
+    </div>
+  )
+}
+
+// Duplicado do ResumoExecutivo (mesmo shape). Extrair pra componente
+// compartilhado é limpeza pra depois — hoje os dois lugares divergem em
+// espaçamento/texto conforme o design evolui.
+interface ModoToggleProps {
+  current:     ModoDesembolso
+  onChange:    (m: ModoDesembolso) => void
+  disableIpca: boolean
+}
+
+function ModoToggle({ current, onChange, disableIpca }: ModoToggleProps) {
+  const opts: { key: ModoDesembolso; label: string }[] = [
+    { key: 'base',     label: 'Sem provisão' },
+    { key: 'provisao', label: 'Com provisão 20%' },
+    { key: 'ipca',     label: 'Com IPCA acumulado' },
+  ]
+  return (
+    <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
+      {opts.map(opt => {
+        const disabled = opt.key === 'ipca' && disableIpca
+        const active = current === opt.key
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            disabled={disabled}
+            onClick={() => onChange(opt.key)}
+            className={`px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors cursor-pointer border-0 ${
+              active
+                ? 'bg-white text-c-text shadow-sm'
+                : disabled
+                  ? 'text-c-text-2/40 cursor-not-allowed'
+                  : 'text-c-text-2 hover:text-c-text'
+            }`}
+            title={disabled ? 'IPCA anual não configurado' : undefined}
+          >
+            {opt.label}
+          </button>
+        )
+      })}
     </div>
   )
 }
