@@ -10,6 +10,8 @@ import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCa
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import { computeDesembolsoMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
+import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
@@ -101,7 +103,18 @@ export default function PortalClienteRelatorio() {
   const simResult = (bundle?.simulacao?.id ? bundle.simulacao.resultado : null) as unknown as SimResult | null
   const activeCatSet = useMemo(() => new Set(bundle?.simulacao?.active_categories ?? []), [bundle])
 
-  const categoryParams = useMemo(() => categoryParamsFromCategorias(categorias, catalogo), [categorias, catalogo])
+  const parametrosAnuais = useMemo(() => (bundle?.parametrosAnuais ?? []).map(mapParametroAnualRow), [bundle])
+
+  // Fator de ancoragem base_template (2022) → data_base do projeto — mesmo
+  // pattern do ResumoExecutivo, ver src/lib/ancoragem.ts. Sem essa multiplicação
+  // os valores exibidos ao cliente ficam em base 2022, subestimando N anos de IPCA.
+  const ancoragem = useMemo(() => {
+    const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
+  }, [projeto?.data_base, parametrosAnuais])
+
+  const categoryParams = useMemo(() => categoryParamsFromCategorias(categorias, catalogo, ancoragem.fator), [categorias, catalogo, ancoragem.fator])
 
   const filteredParams = useMemo(
     () => activeCatSet.size === 0 ? categoryParams : categoryParams.filter(c => activeCatSet.has(c.name)),
@@ -130,8 +143,6 @@ export default function PortalClienteRelatorio() {
   const baseTotal          = useMemo(() => filteredParams.reduce((acc, c) => acc + c.mode, 0), [filteredParams])
   const contingenciaPct    = projeto?.contingencia_pct ?? 0
   const baseWithProvision  = baseTotal * (1 + contingenciaPct / 100)
-
-  const parametrosAnuais = useMemo(() => (bundle?.parametrosAnuais ?? []).map(mapParametroAnualRow), [bundle])
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
@@ -179,6 +190,7 @@ export default function PortalClienteRelatorio() {
       contingenciaPct: projeto.contingencia_pct ?? 0,
       ipcaPorAno,
       modo: modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
+      fatorAncoragem: ancoragem.fator,
     })
 
     if (res.totalGeral === 0) return null
@@ -192,7 +204,7 @@ export default function PortalClienteRelatorio() {
       values: res.matrix[ci].map(v => v > 0 ? fmtCompact(v) : null),
     }))
     return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
-  }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso])
+  }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
 
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
@@ -404,6 +416,7 @@ export default function PortalClienteRelatorio() {
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
                 <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+                <AncoragemBadge ancoragem={ancoragem} />
               </div>
               <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
             </div>

@@ -13,6 +13,7 @@ import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
 import { runMonteCarlo, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/monteCarlo'
+import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 function computeResult(dist: Distribution, n: number, categoryParams: CategoryParam[], activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
@@ -45,8 +46,16 @@ export default function Simulacao() {
   const navigate = useNavigate()
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const { getSimState, loadSimState, setSimulation, previewResult } = useSimulation()
-  const { catalogo } = useProjeto()
-  const categoryParams = useMemo(() => categoryParamsFromCategorias(projeto.categorias, catalogo), [projeto.categorias, catalogo])
+  const { catalogo, parametrosAnuais } = useProjeto()
+  // Ancoragem base_template → data_base do projeto para o MC. Sem isso os
+  // resultados (média, P80, IC 95%) saem em base 2022, subestimando ~N anos
+  // de IPCA. Ver src/lib/ancoragem.ts.
+  const ancoragem = useMemo(() => {
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
+  }, [projeto.dataBase, parametrosAnuais])
+  const categoryParams = useMemo(() => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator), [projeto.categorias, catalogo, ancoragem.fator])
   const categoryNames  = useMemo(() => categoryParams.map(c => c.name), [categoryParams])
 
   useEffect(() => { loadSimState(projeto.id) }, [projeto.id, loadSimState])

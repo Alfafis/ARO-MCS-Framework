@@ -10,6 +10,8 @@ import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCa
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import { computeDesembolsoMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
+import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/useProjeto'
@@ -99,9 +101,19 @@ export default function ResumoExecutivo() {
     Promise.allSettled([fetchSim, fetchRev]).then(() => setLoading(false))
   }, [projeto.id])
 
+  // Fator de ancoragem base_template (2022) → data_base do projeto, via IPCA
+  // acumulado composto (`_Dados_Formulas_Planilha.md` §Etapa 3). fator=1 se
+  // data_base ausente/anterior ao template ou se algum ano faltar em
+  // `parametros_anuais` — nesse caso `faltantes` lista os anos e a UI mostra aviso.
+  const ancoragem = useMemo(() => {
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
+  }, [projeto.dataBase, parametrosAnuais])
+
   const categoryParams = useMemo(
-    () => categoryParamsFromCategorias(projeto.categorias, catalogo),
-    [projeto.categorias, catalogo]
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
+    [projeto.categorias, catalogo, ancoragem.fator]
   )
 
   const costCategories: CostCategory[] = useMemo(
@@ -169,6 +181,7 @@ export default function ResumoExecutivo() {
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
       modo:            modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
+      fatorAncoragem:  ancoragem.fator,
     })
 
     if (res.totalGeral === 0) return null
@@ -182,7 +195,7 @@ export default function ResumoExecutivo() {
       values: res.matrix[ci].map(v => v > 0 ? fmtCompact(v) : null),
     }))
     return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
-  }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, modoDesembolso])
+  }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${projeto.id}`
@@ -241,6 +254,7 @@ export default function ResumoExecutivo() {
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
               <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+              <AncoragemBadge ancoragem={ancoragem} />
             </div>
             <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
           </div>
