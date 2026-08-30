@@ -112,6 +112,19 @@ export interface MCResult {
   bars:        number[]
 }
 
+// Thin wrapper para rodar MC de UMA categoria só — usado pelo card de
+// estatísticas MC no CategoryBlock. Semanticamente equivalente a
+// runMonteCarlo com activeCategories = {param.name}, mas com nome
+// explícito pra o call-site ficar legível.
+export function mcForOneCategory(
+  dist:       Distribution,
+  iterations: number,
+  param:      CategoryParam,
+  confidence = 95,
+): MCResult {
+  return runMonteCarlo(dist, iterations, [param], new Set([param.name]), confidence)
+}
+
 export function runMonteCarlo(
   dist:             Distribution,
   iterations:       number,

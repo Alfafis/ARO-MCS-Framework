@@ -90,9 +90,27 @@ export function parseMoedaBR(str: string): number {
   return Number.isFinite(n) ? n : 0
 }
 
-// 32400000 → "R$ 32,4 M"
-export function formatMoedaCompact(n: number): string {
-  return `R$ ${(n / 1_000_000).toFixed(1).replace('.', ',')} M`
+// Formatter compacto único — escalona entre k/M/B conforme magnitude:
+//   1.234        → "R$ 1,2 k"
+//   32.400       → "R$ 32,4 k"
+//   2.860.213    → "R$ 2,86 M"
+//   12.635.174   → "R$ 12,64 M"
+//   1.2e9        → "R$ 1,20 B"
+//
+// M e B usam 2 casas decimais porque 1 casa arredonda demais no range 1-10M
+// (ex: 2.860.213 vira "R$ 2,86 M" em vez de "R$ 2,9 M" — erro relativo ~1,4%).
+// k usa 1 casa (33.500 → "R$ 33,5 k" — o range é largo o suficiente).
+//
+// `withPrefix=false` remove o "R$ " — usado em células de tabela onde o
+// cabeçalho da coluna já traz "R$" implícito e prefixar por célula polui.
+export function formatMoedaCompact(n: number, withPrefix: boolean = true): string {
+  const abs = Math.abs(n)
+  const sign = n < 0 ? '-' : ''
+  const prefix = withPrefix ? 'R$ ' : ''
+  if (abs >= 1_000_000_000) return `${sign}${prefix}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')} B`
+  if (abs >= 1_000_000)     return `${sign}${prefix}${(abs / 1_000_000).toFixed(2).replace('.', ',')} M`
+  if (abs >= 1_000)         return `${sign}${prefix}${(abs / 1_000).toFixed(1).replace('.', ',')} k`
+  return `${sign}${prefix}${abs.toFixed(0)}`
 }
 
 // Inverso de parseMoedaBR — só pra re-exibir valor NUMERIC do banco no campo
