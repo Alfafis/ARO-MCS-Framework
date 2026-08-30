@@ -37,9 +37,13 @@ interface ComputeArgs {
   contingenciaPct: number
   ipcaPorAno:      number[] | null    // frações (0.034 = 3,4%), tamanho horizonYears — null se não configurado
   modo:            ModoDesembolso
+  // Multiplicador de ancoragem base_template → data_base_projeto (default 1).
+  // Aplicado antes dos modos 'provisao' e 'ipca' — todas as células da matriz
+  // são shift-ajustadas. Ver `computeFatorAncoragem` em src/lib/ancoragem.ts.
+  fatorAncoragem?: number
 }
 
-export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, contingenciaPct, ipcaPorAno, modo }: ComputeArgs): DesembolsoMatrixResult {
+export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, contingenciaPct, ipcaPorAno, modo, fatorAncoragem = 1 }: ComputeArgs): DesembolsoMatrixResult {
   const matrix: number[][] = []
   const categoriasNomes: string[] = []
 
@@ -81,6 +85,16 @@ export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, co
       const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
       categoriasNomes.push(nome)
       matrix.push(valoresAno)
+    }
+  }
+
+  // Ancoragem base_template → data_base_projeto. Aplica um multiplicador
+  // uniforme em todas as células da matriz antes dos modos. fator=1 = no-op
+  // (é o default e o caso quando data_base <= ano_base_template ou quando
+  // faltam anos em parametros_anuais).
+  if (fatorAncoragem !== 1) {
+    for (const row of matrix) {
+      for (let a = 0; a < horizonYears; a++) row[a] *= fatorAncoragem
     }
   }
 

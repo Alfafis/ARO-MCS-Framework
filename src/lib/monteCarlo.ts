@@ -16,7 +16,10 @@ export interface CategoryParam {
 // Triangular exige min ≤ mode ≤ max, e o consultor pode ter editado items depois
 // de definir a moda.
 // Nome vem do catálogo (compartilhado) — valores vêm só dos itens deste projeto.
-export function categoryParamsFromCategorias(categorias: Category[], catalogo: CategoriaCatalogo[]): CategoryParam[] {
+// `fatorAncoragem` multiplica min/mode/max uniformemente (default 1 = no-op).
+// Aplicado APÓS o clamp de mode em [min, max] usando os valores base — assim o
+// invariante da Triangular (min <= mode <= max) é preservado no escalamento.
+export function categoryParamsFromCategorias(categorias: Category[], catalogo: CategoriaCatalogo[], fatorAncoragem: number = 1): CategoryParam[] {
   return categorias
     .map(cat => {
       let min = 0, max = 0
@@ -28,7 +31,12 @@ export function categoryParamsFromCategorias(categorias: Category[], catalogo: C
       const midMode = (min + max) / 2
       const rawMode = cat.custoProvavel ?? midMode
       const mode    = Math.max(min, Math.min(max, rawMode))
-      return { name: nome, min, max, mode }
+      return {
+        name: nome,
+        min:  min  * fatorAncoragem,
+        max:  max  * fatorAncoragem,
+        mode: mode * fatorAncoragem,
+      }
     })
     .filter(c => c.min > 0 || c.max > 0)
 }
