@@ -1,0 +1,335 @@
+import { useEffect, useMemo, useState } from 'react'
+import { NavLink, useOutletContext } from 'react-router-dom'
+import { Sprout, Plus, Trash2, Sparkles, Info } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import PageHeader from '@/components/layout/PageHeader'
+import { useT } from '@/i18n/useLang'
+import { remediacaoT } from '@/i18n/remediacao'
+import { useProjeto } from '@/context/useProjeto'
+import { formatMoedaCompact } from '@/lib/financeiro'
+import type { Projeto } from '@/types/clientes'
+import { custoTotalCategoria, custoTotalItem, custoTotalRemediacao } from '@/types/remediacao'
+import type { CategoriaRemediacao, ItemRemediacao } from '@/types/remediacao'
+
+// Formatação BR pra números decimais (área, quantidade). Aceita ponto e vírgula
+// na entrada e devolve string com vírgula pra exibição.
+const parseDecimalBR = (s: string): number | null => {
+  if (s.trim() === '') return null
+  const n = Number(s.replace(/\./g, '').replace(',', '.'))
+  return Number.isFinite(n) ? n : null
+}
+const fmtDecimalBR = (n: number, casas = 2): string =>
+  n.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas })
+
+export default function Remediacao() {
+  const t = useT(remediacaoT)
+  const { projeto } = useOutletContext<{ projeto: Projeto }>()
+  const {
+    remediacaoByProjeto, remediacaoLoading,
+    fetchRemediacao, setRemediacaoHabilitada, carregarRemediacaoPadrao,
+    addRemediacaoCategoria, updateRemediacaoCategoria, removeRemediacaoCategoria,
+    addRemediacaoItem, updateRemediacaoItem, removeRemediacaoItem,
+  } = useProjeto()
+
+  const categorias = remediacaoByProjeto[projeto.id]
+  const carregado = categorias !== undefined
+
+  useEffect(() => {
+    if (projeto.remediacaoHabilitada && !carregado) void fetchRemediacao(projeto.id)
+  }, [projeto.id, projeto.remediacaoHabilitada, carregado, fetchRemediacao])
+
+  const totalGeral = useMemo(() => custoTotalRemediacao(categorias ?? []), [categorias])
+
+  // -- Estado desabilitado ------------------------------------------------
+  if (!projeto.remediacaoHabilitada) {
+    return (
+      <div className="flex flex-col h-full">
+        <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
+        <div className="px-4 sm:px-8 pb-8">
+          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-8 flex flex-col items-start gap-4 max-w-[640px]">
+            <div className="flex items-center gap-2 text-[13px] font-semibold text-c-text-2 uppercase tracking-widest">
+              <Sprout size={14} color="var(--accent)" aria-hidden="true" />
+              {t.moduleTag}
+            </div>
+            <h2 className="text-[18px] font-bold text-c-text tracking-tight">{t.disabledStateTitle}</h2>
+            <p className="text-[13px] text-c-text-2 leading-relaxed">{t.disabledStateBody}</p>
+            <Button variant="primary" onClick={() => setRemediacaoHabilitada(projeto.id, true)}>
+              {t.disabledStateEnable}
+            </Button>
+            <NavLink to={`/projetos/${projeto.id}/config`} className="text-[12.5px] font-medium text-c-text-2 hover:text-accent transition-colors">
+              → {t.configToggleLabel}
+            </NavLink>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col h-full">
+      <PageHeader
+        title={t.headerTitle}
+        subtitle={t.headerSubtitle}
+        actions={
+          carregado && categorias.length > 0 ? (
+            <Button variant="ghost" onClick={() => void addRemediacaoCategoria(projeto.id, 'Nova categoria', null)}>
+              <Plus size={13} aria-hidden="true" />
+              {t.addCategoria}
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="px-4 sm:px-8 pb-8 flex flex-col gap-4">
+        {remediacaoLoading && !carregado && (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+          </div>
+        )}
+
+        {carregado && categorias.length === 0 && (
+          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-8 flex flex-col items-start gap-4 max-w-[640px]">
+            <Sparkles size={16} color="var(--accent)" aria-hidden="true" />
+            <h2 className="text-[16px] font-bold text-c-text">{t.emptyStateTitle}</h2>
+            <p className="text-[13px] text-c-text-2 leading-relaxed">{t.emptyStateBody}</p>
+            <div className="flex items-center gap-2">
+              <Button variant="primary" onClick={() => void carregarRemediacaoPadrao(projeto.id)}>
+                <Sparkles size={13} aria-hidden="true" />
+                {t.emptyStateSeed}
+              </Button>
+              <Button variant="ghost" onClick={() => void addRemediacaoCategoria(projeto.id, 'Nova categoria', null)}>
+                <Plus size={13} aria-hidden="true" />
+                {t.emptyStateAddManual}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {carregado && categorias.length > 0 && (
+          <>
+            {categorias.map(cat => (
+              <CategoriaCard
+                key={cat.id}
+                cat={cat}
+                onRenameCategoria={(nome) => void updateRemediacaoCategoria(cat.id, { nome })}
+                onChangeArea={(areaHa) => void updateRemediacaoCategoria(cat.id, { areaHa })}
+                onRemoveCategoria={() => {
+                  if (confirm(t.removeCategoriaConfirm)) void removeRemediacaoCategoria(projeto.id, cat.id)
+                }}
+                onAddItem={() => void addRemediacaoItem(cat.id)}
+                onUpdateItem={(id, patch) => void updateRemediacaoItem(id, patch)}
+                onRemoveItem={(id) => {
+                  if (confirm(t.removeItemConfirm)) void removeRemediacaoItem(cat.id, id)
+                }}
+              />
+            ))}
+
+            <div className="card flex items-center justify-between gap-4 border-t-2 border-[color:var(--accent)]/40">
+              <div className="flex items-center gap-2">
+                <Info size={14} color="var(--accent)" aria-hidden="true" />
+                <span className="text-[13px] font-semibold text-c-text">{t.totalGeral}</span>
+              </div>
+              <span className="font-mono text-[16px] font-bold text-c-text">{formatMoedaCompact(totalGeral)}</span>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
+// CategoriaCard — bloco por categoria com nome/área editáveis + tabela de itens
+// --------------------------------------------------------------------------
+interface CategoriaCardProps {
+  cat:              CategoriaRemediacao
+  onRenameCategoria:(nome: string) => void
+  onChangeArea:     (areaHa: number | null) => void
+  onRemoveCategoria:() => void
+  onAddItem:        () => void
+  onUpdateItem:     (id: string, patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>>) => void
+  onRemoveItem:     (id: string) => void
+}
+
+function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria, onAddItem, onUpdateItem, onRemoveItem }: CategoriaCardProps) {
+  const t = useT(remediacaoT)
+  const [nome, setNome] = useState(cat.nome)
+  const [areaStr, setAreaStr] = useState(cat.areaHa != null ? fmtDecimalBR(cat.areaHa) : '')
+  useEffect(() => setNome(cat.nome), [cat.nome])
+  useEffect(() => setAreaStr(cat.areaHa != null ? fmtDecimalBR(cat.areaHa) : ''), [cat.areaHa])
+
+  const total = custoTotalCategoria(cat)
+
+  return (
+    <div className="card animate-[catIn_320ms_cubic-bezier(.2,.8,.2,1)]">
+      <div className="flex flex-wrap items-end gap-3 mb-4">
+        <div className="flex flex-col gap-1 flex-1 min-w-[240px]">
+          <label className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">{t.categoriaNome}</label>
+          <Input
+            variant="filled"
+            value={nome}
+            onChange={e => setNome(e.target.value)}
+            onBlur={() => { if (nome.trim() && nome !== cat.nome) onRenameCategoria(nome.trim()) }}
+          />
+        </div>
+        <div className="flex flex-col gap-1 w-[140px]">
+          <label className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">{t.categoriaArea}</label>
+          <Input
+            variant="filled"
+            value={areaStr}
+            onChange={e => setAreaStr(e.target.value)}
+            onBlur={() => {
+              const parsed = parseDecimalBR(areaStr)
+              if (parsed !== cat.areaHa) onChangeArea(parsed)
+            }}
+            placeholder="—"
+            inputMode="decimal"
+          />
+        </div>
+        <Button variant="icon-danger" onClick={onRemoveCategoria} aria-label={t.categoriaRemove} title={t.categoriaRemove}>
+          <Trash2 size={14} aria-hidden="true" />
+        </Button>
+      </div>
+
+      <div className="overflow-x-auto">
+        <div
+          className="grid gap-2 min-w-[880px] items-center"
+          style={{ gridTemplateColumns: 'minmax(220px, 2fr) 80px 90px 120px 120px 120px minmax(120px, 1fr) 36px' }}
+        >
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5">{t.colDescricao}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-center">{t.colUnidade}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colQuantidade}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colCustoUnitMin}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colCustoUnitMax}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colTotal}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5">{t.colFonte}</div>
+          <div className="pb-1.5" />
+
+          {cat.items.map(item => (
+            <ItemRow
+              key={item.id}
+              item={item}
+              onUpdate={patch => onUpdateItem(item.id, patch)}
+              onRemove={() => onRemoveItem(item.id)}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-[rgba(20,21,26,.08)]">
+        <Button variant="ghost" onClick={onAddItem}>
+          <Plus size={13} aria-hidden="true" />
+          {t.addItem}
+        </Button>
+        <div className="flex items-baseline gap-2">
+          <span className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">{t.categoriaTotal}</span>
+          <span className="font-mono text-[14px] font-bold text-c-text">{formatMoedaCompact(total)}</span>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// --------------------------------------------------------------------------
+// ItemRow — 8 células dentro do grid da categoria. Blur commita cada campo.
+// --------------------------------------------------------------------------
+interface ItemRowProps {
+  item:     ItemRemediacao
+  onUpdate: (patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>>) => void
+  onRemove: () => void
+}
+
+function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
+  const t = useT(remediacaoT)
+  const [descricao, setDescricao]     = useState(item.descricao)
+  const [unidade, setUnidade]         = useState(item.unidade)
+  const [qtdStr, setQtdStr]           = useState(fmtDecimalBR(item.quantidade, item.quantidade % 1 === 0 ? 0 : 3))
+  const [custoMinStr, setCustoMinStr] = useState(fmtDecimalBR(item.custoUnitMin))
+  const [custoMaxStr, setCustoMaxStr] = useState(fmtDecimalBR(item.custoUnitMax))
+  const [fonte, setFonte]             = useState(item.fonte ?? '')
+
+  useEffect(() => setDescricao(item.descricao), [item.descricao])
+  useEffect(() => setUnidade(item.unidade), [item.unidade])
+  useEffect(() => setQtdStr(fmtDecimalBR(item.quantidade, item.quantidade % 1 === 0 ? 0 : 3)), [item.quantidade])
+  useEffect(() => setCustoMinStr(fmtDecimalBR(item.custoUnitMin)), [item.custoUnitMin])
+  useEffect(() => setCustoMaxStr(fmtDecimalBR(item.custoUnitMax)), [item.custoUnitMax])
+  useEffect(() => setFonte(item.fonte ?? ''), [item.fonte])
+
+  const commitQtd = () => {
+    const n = parseDecimalBR(qtdStr) ?? 0
+    if (n !== item.quantidade) onUpdate({ quantidade: n })
+  }
+  const commitMin = () => {
+    const n = parseDecimalBR(custoMinStr) ?? 0
+    if (n !== item.custoUnitMin) {
+      const patch: Partial<Pick<ItemRemediacao, 'custoUnitMin' | 'custoUnitMax'>> = { custoUnitMin: n }
+      if (n > item.custoUnitMax) patch.custoUnitMax = n
+      onUpdate(patch)
+    }
+  }
+  const commitMax = () => {
+    const n = parseDecimalBR(custoMaxStr) ?? 0
+    if (n !== item.custoUnitMax) {
+      const patch: Partial<Pick<ItemRemediacao, 'custoUnitMax'>> = { custoUnitMax: Math.max(n, item.custoUnitMin) }
+      onUpdate(patch)
+    }
+  }
+
+  return (
+    <>
+      <Input
+        variant="filled"
+        value={descricao}
+        onChange={e => setDescricao(e.target.value)}
+        onBlur={() => { if (descricao !== item.descricao) onUpdate({ descricao }) }}
+      />
+      <Input
+        variant="filled"
+        value={unidade}
+        onChange={e => setUnidade(e.target.value)}
+        onBlur={() => { if (unidade !== item.unidade) onUpdate({ unidade }) }}
+        className="text-center"
+      />
+      <Input
+        variant="filled"
+        value={qtdStr}
+        onChange={e => setQtdStr(e.target.value)}
+        onBlur={commitQtd}
+        inputMode="decimal"
+        className="text-right font-mono"
+      />
+      <Input
+        variant="filled"
+        value={custoMinStr}
+        onChange={e => setCustoMinStr(e.target.value)}
+        onBlur={commitMin}
+        inputMode="decimal"
+        className="text-right font-mono"
+      />
+      <Input
+        variant="filled"
+        value={custoMaxStr}
+        onChange={e => setCustoMaxStr(e.target.value)}
+        onBlur={commitMax}
+        inputMode="decimal"
+        className="text-right font-mono"
+      />
+      <div className="text-right font-mono text-[12px] font-bold text-c-text px-1">
+        {formatMoedaCompact(custoTotalItem(item))}
+      </div>
+      <Input
+        variant="filled"
+        value={fonte}
+        onChange={e => setFonte(e.target.value)}
+        onBlur={() => { if (fonte !== (item.fonte ?? '')) onUpdate({ fonte: fonte.trim() || null }) }}
+        placeholder="—"
+      />
+      <Button variant="icon-danger" onClick={onRemove} aria-label={t.itemRemove}>
+        <Trash2 size={13} aria-hidden="true" />
+      </Button>
+    </>
+  )
+}

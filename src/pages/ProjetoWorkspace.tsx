@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { LayoutDashboard, Tag, Activity, History, FileText, Settings2 } from 'lucide-react'
+import { LayoutDashboard, Tag, Activity, History, FileText, Settings2, Sprout } from 'lucide-react'
 import ClientSelector from '@/components/layout/ClientSelector'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/useProjeto'
@@ -65,6 +65,9 @@ export default function ProjetoWorkspace() {
     { to: 'dashboard',  label: tNav.overview,       Icon: LayoutDashboard },
     { to: 'categorias', label: tNav.costCategories, Icon: Tag             },
     { to: 'simulacao',  label: tNav.simulation,     Icon: Activity        },
+    // Tab Remediação só aparece quando o módulo foi habilitado no /config.
+    // Mantém o workspace enxuto pra projetos que não usam escopo alternativo.
+    ...(projeto.remediacaoHabilitada ? [{ to: 'remediacao', label: tNav.remediation, Icon: Sprout }] : []),
     { to: 'revisoes',   label: tNav.revisions,      Icon: History         },
     { to: 'lancamentos', label: tNav.launches,      Icon: FileText        },
     { to: 'config',      label: tNav.settings,      Icon: Settings2       },

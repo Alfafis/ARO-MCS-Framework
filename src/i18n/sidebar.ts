@@ -12,6 +12,7 @@ export const sidebarT: Record<Lang, {
   costCategoriesModule: string
   globalParams:   string
   sectors:        string
+  remediation:    string
   expand:         string
   collapse:       string
   selectLang:     string
@@ -33,6 +34,7 @@ export const sidebarT: Record<Lang, {
     costCategoriesModule: 'Categorias de Custo',
     globalParams:   'Parâmetros Globais',
     sectors:        'Setores',
+    remediation:    'Remediação',
     expand:         'Expandir menu lateral',
     collapse:       'Recolher menu lateral',
     selectLang:     'Selecionar idioma',
@@ -54,6 +56,7 @@ export const sidebarT: Record<Lang, {
     costCategoriesModule: 'Cost Categories',
     globalParams:   'Global Parameters',
     sectors:        'Sectors',
+    remediation:    'Remediation',
     expand:         'Expand sidebar',
     collapse:       'Collapse sidebar',
     selectLang:     'Select language',
@@ -75,6 +78,7 @@ export const sidebarT: Record<Lang, {
     costCategoriesModule: 'Categorías de Costo',
     globalParams:   'Parámetros Globales',
     sectors:        'Sectores',
+    remediation:    'Remediación',
     expand:         'Expandir menú lateral',
     collapse:       'Contraer menú lateral',
     selectLang:     'Seleccionar idioma',

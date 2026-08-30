@@ -25,6 +25,7 @@ import TiposProjeto from './pages/TiposProjeto'
 import CategoriasCusto from './pages/CategoriasCusto'
 import ParametrosGlobais from './pages/ParametrosGlobais'
 import Setores from './pages/Setores'
+import Remediacao from './pages/Remediacao'
 import Clientes from './pages/Clientes'
 import ClienteProjetos from './pages/ClienteProjetos'
 import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
@@ -200,6 +201,7 @@ export default function App() {
           <Route path="dashboard" element={<ResumoExecutivo />} />
           <Route path="categorias" element={<Categorias />} />
           <Route path="simulacao" element={<Simulacao />} />
+          <Route path="remediacao" element={<Remediacao />} />
           <Route path="revisoes" element={<Revisoes />} />
           <Route path="lancamentos" element={<Lancamentos />} />
           <Route path="config" element={<ProjetoConfiguracoes />} />
