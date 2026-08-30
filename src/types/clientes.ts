@@ -26,5 +26,6 @@ export interface Projeto {
   horizonteAnos:   number
   metodoAtualizacao: string
   contingenciaPct: number
+  remediacaoHabilitada: boolean
   categorias:      Category[]
 }

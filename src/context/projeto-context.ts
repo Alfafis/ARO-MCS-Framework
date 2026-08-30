@@ -4,6 +4,7 @@ import type { Cliente, Projeto } from '@/types/clientes'
 import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
+import type { CategoriaRemediacao, ItemRemediacao } from '@/types/remediacao'
 
 export interface NovoProjetoForm {
   clienteId:     string
@@ -36,6 +37,20 @@ export interface ProjetoContextValue {
   addSetor:        (id: number, nome: string) => Promise<void>
   renomearSetor:   (id: number, nome: string) => Promise<void>
   removerSetor:    (id: number) => Promise<void>
+  // Remediação (rota `/projetos/:id/remediacao`) — escopo alternativo.
+  // Categorias/itens carregados sob demanda (lazy) via `fetchRemediacao`,
+  // não no boot. Estado local: `remediacaoByProjeto[projetoId]`.
+  remediacaoByProjeto:      Record<string, CategoriaRemediacao[]>
+  remediacaoLoading:        boolean
+  fetchRemediacao:          (projetoId: string) => Promise<void>
+  setRemediacaoHabilitada:  (projetoId: string, habilitada: boolean) => Promise<void>
+  carregarRemediacaoPadrao: (projetoId: string) => Promise<void>
+  addRemediacaoCategoria:   (projetoId: string, nome: string, areaHa: number | null) => Promise<void>
+  updateRemediacaoCategoria:(id: string, patch: Partial<Pick<CategoriaRemediacao, 'nome' | 'areaHa' | 'ordem'>>) => Promise<void>
+  removeRemediacaoCategoria:(projetoId: string, id: string) => Promise<void>
+  addRemediacaoItem:        (categoriaId: string) => Promise<void>
+  updateRemediacaoItem:     (id: string, patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte' | 'ordem'>>) => Promise<void>
+  removeRemediacaoItem:     (categoriaId: string, id: string) => Promise<void>
   parametrosGlobais: ParametroGlobal[]
   atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   parametrosAnuais: ParametroAnual[]

@@ -5,6 +5,8 @@ import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAn
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
+import type { CategoriaRemediacao, ItemRemediacao, CategoriaRemediacaoRow, ItemRemediacaoRow } from '@/types/remediacao'
+import { mapCategoriaRemediacaoRow, mapItemRemediacaoRow } from '@/types/remediacao'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow, mapCampoOperacionalRow, mapCampoOperacionalTemplateRow } from '@/lib/categoriaMappers'
@@ -135,6 +137,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
     horizonteAnos: row.horizonte_anos,
     metodoAtualizacao: row.metodo_atualizacao,
     contingenciaPct: row.contingencia_pct,
+    remediacaoHabilitada: (row as unknown as { remediacao_habilitada?: boolean }).remediacao_habilitada ?? false,
     categorias,
   }
 }
@@ -150,6 +153,8 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [tiposComTemplate, setTiposComTemplate] = useState<string[]>([])
   const [templates, setTemplates] = useState<Record<string, Category[]>>({})
   const [projetos, setProjetos] = useState<Projeto[]>([])
+  const [remediacaoByProjeto, setRemediacaoByProjeto] = useState<Record<string, CategoriaRemediacao[]>>({})
+  const [remediacaoLoading, setRemediacaoLoading] = useState(false)
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
   // marca o boot como concluído, não serializa as chamadas em si.
@@ -731,6 +736,133 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  // -- Remediação --------------------------------------------------------
+  // Lazy load das categorias + itens de um projeto. Roda 1 query embed do
+  // PostgREST (categorias_remediacao com itens_remediacao(*)) — mesma
+  // estratégia do fetchProjetos original.
+  const fetchRemediacao = useCallback(async (projetoId: string) => {
+    setRemediacaoLoading(true)
+    const { data, error } = await supabase
+      .from('categorias_remediacao')
+      .select('id, projeto_id, nome, area_ha, ordem, itens_remediacao(id, categoria_id, descricao, unidade, quantidade, custo_unit_min, custo_unit_max, fonte, ordem)')
+      .eq('projeto_id', projetoId)
+      .order('ordem')
+    setRemediacaoLoading(false)
+    if (error || !data) return
+    type Row = CategoriaRemediacaoRow & { itens_remediacao?: ItemRemediacaoRow[] | null }
+    const categorias: CategoriaRemediacao[] = (data as unknown as Row[]).map(row => {
+      const items = (row.itens_remediacao ?? [])
+        .slice()
+        .sort((a, b) => a.ordem - b.ordem)
+        .map(mapItemRemediacaoRow)
+      return mapCategoriaRemediacaoRow(row, items)
+    })
+    setRemediacaoByProjeto(prev => ({ ...prev, [projetoId]: categorias }))
+  }, [])
+
+  const setRemediacaoHabilitada = useCallback(async (projetoId: string, habilitada: boolean) => {
+    setProjetos(prev => prev.map(p => p.id === projetoId ? { ...p, remediacaoHabilitada: habilitada } : p))
+    const { error } = await supabase.from('projetos').update({ remediacao_habilitada: habilitada }).eq('id', projetoId)
+    if (error) throw error
+  }, [])
+
+  const carregarRemediacaoPadrao = useCallback(async (projetoId: string) => {
+    const { error } = await supabase.rpc('carregar_remediacao_padrao', { p_projeto_id: projetoId })
+    if (error) throw error
+    await fetchRemediacao(projetoId)
+  }, [fetchRemediacao])
+
+  const addRemediacaoCategoria = useCallback(async (projetoId: string, nome: string, areaHa: number | null) => {
+    const proximaOrdem = (remediacaoByProjeto[projetoId]?.length ?? 0) + 1
+    const { data, error } = await supabase.from('categorias_remediacao').insert({
+      projeto_id: projetoId, nome, area_ha: areaHa, ordem: proximaOrdem,
+    }).select('id, projeto_id, nome, area_ha, ordem').single()
+    if (error || !data) throw error ?? new Error('sem retorno')
+    const nova = mapCategoriaRemediacaoRow(data as CategoriaRemediacaoRow, [])
+    setRemediacaoByProjeto(prev => ({ ...prev, [projetoId]: [...(prev[projetoId] ?? []), nova] }))
+  }, [remediacaoByProjeto])
+
+  const updateRemediacaoCategoria = useCallback(async (id: string, patch: Partial<Pick<CategoriaRemediacao, 'nome' | 'areaHa' | 'ordem'>>) => {
+    const dbPatch: Record<string, unknown> = {}
+    if (patch.nome != null)   dbPatch.nome    = patch.nome
+    if ('areaHa' in patch)    dbPatch.area_ha = patch.areaHa
+    if (patch.ordem != null)  dbPatch.ordem   = patch.ordem
+    setRemediacaoByProjeto(prev => {
+      const next: typeof prev = {}
+      for (const [pid, cats] of Object.entries(prev)) {
+        next[pid] = cats.map(c => c.id === id ? { ...c, ...patch } : c)
+      }
+      return next
+    })
+    const { error } = await supabase.from('categorias_remediacao').update(dbPatch as never).eq('id', id)
+    if (error) throw error
+  }, [])
+
+  const removeRemediacaoCategoria = useCallback(async (projetoId: string, id: string) => {
+    setRemediacaoByProjeto(prev => ({ ...prev, [projetoId]: (prev[projetoId] ?? []).filter(c => c.id !== id) }))
+    const { error } = await supabase.from('categorias_remediacao').delete().eq('id', id)
+    if (error) throw error
+  }, [])
+
+  const addRemediacaoItem = useCallback(async (categoriaId: string) => {
+    // Ordem = último + 1 do que estiver no state local.
+    let proximaOrdem = 1
+    for (const cats of Object.values(remediacaoByProjeto)) {
+      const cat = cats.find(c => c.id === categoriaId)
+      if (cat) { proximaOrdem = cat.items.length + 1; break }
+    }
+    const { data, error } = await supabase.from('itens_remediacao').insert({
+      categoria_id: categoriaId,
+      descricao: 'Novo item',
+      unidade: 'unid',
+      quantidade: 1,
+      custo_unit_min: 0,
+      custo_unit_max: 0,
+      ordem: proximaOrdem,
+    }).select('id, categoria_id, descricao, unidade, quantidade, custo_unit_min, custo_unit_max, fonte, ordem').single()
+    if (error || !data) throw error ?? new Error('sem retorno')
+    const novo = mapItemRemediacaoRow(data as ItemRemediacaoRow)
+    setRemediacaoByProjeto(prev => {
+      const next: typeof prev = {}
+      for (const [pid, cats] of Object.entries(prev)) {
+        next[pid] = cats.map(c => c.id === categoriaId ? { ...c, items: [...c.items, novo] } : c)
+      }
+      return next
+    })
+  }, [remediacaoByProjeto])
+
+  const updateRemediacaoItem = useCallback(async (id: string, patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte' | 'ordem'>>) => {
+    const dbPatch: Record<string, unknown> = {}
+    if (patch.descricao    != null) dbPatch.descricao      = patch.descricao
+    if (patch.unidade      != null) dbPatch.unidade        = patch.unidade
+    if (patch.quantidade   != null) dbPatch.quantidade     = patch.quantidade
+    if (patch.custoUnitMin != null) dbPatch.custo_unit_min = patch.custoUnitMin
+    if (patch.custoUnitMax != null) dbPatch.custo_unit_max = patch.custoUnitMax
+    if ('fonte' in patch)           dbPatch.fonte          = patch.fonte
+    if (patch.ordem        != null) dbPatch.ordem          = patch.ordem
+    setRemediacaoByProjeto(prev => {
+      const next: typeof prev = {}
+      for (const [pid, cats] of Object.entries(prev)) {
+        next[pid] = cats.map(c => ({ ...c, items: c.items.map(i => i.id === id ? { ...i, ...patch } : i) }))
+      }
+      return next
+    })
+    const { error } = await supabase.from('itens_remediacao').update(dbPatch as never).eq('id', id)
+    if (error) throw error
+  }, [])
+
+  const removeRemediacaoItem = useCallback(async (categoriaId: string, id: string) => {
+    setRemediacaoByProjeto(prev => {
+      const next: typeof prev = {}
+      for (const [pid, cats] of Object.entries(prev)) {
+        next[pid] = cats.map(c => c.id === categoriaId ? { ...c, items: c.items.filter(i => i.id !== id) } : c)
+      }
+      return next
+    })
+    const { error } = await supabase.from('itens_remediacao').delete().eq('id', id)
+    if (error) throw error
+  }, [])
+
   return (
     <ProjetoContext.Provider value={{
       loading,
@@ -738,6 +870,10 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
       setores, addSetor, renomearSetor, removerSetor,
+      remediacaoByProjeto, remediacaoLoading,
+      fetchRemediacao, setRemediacaoHabilitada, carregarRemediacaoPadrao,
+      addRemediacaoCategoria, updateRemediacaoCategoria, removeRemediacaoCategoria,
+      addRemediacaoItem, updateRemediacaoItem, removeRemediacaoItem,
       parametrosGlobais, atualizarParametroGlobal,
       parametrosAnuais, atualizarParametroAnual,
       tiposComTemplate, templates, fetchTemplateCategorias,
