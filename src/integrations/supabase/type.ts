@@ -153,6 +153,44 @@ export type Database = {
           },
         ]
       }
+      categorias_remediacao: {
+        Row: {
+          area_ha: number | null
+          atualizado_em: string
+          criado_em: string
+          id: string
+          nome: string
+          ordem: number
+          projeto_id: string
+        }
+        Insert: {
+          area_ha?: number | null
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome: string
+          ordem?: number
+          projeto_id: string
+        }
+        Update: {
+          area_ha?: number | null
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+          ordem?: number
+          projeto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "categorias_remediacao_projeto_id_fkey"
+            columns: ["projeto_id"]
+            isOneToOne: false
+            referencedRelation: "projetos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       categorias_template: {
         Row: {
           catalogo_id: string
@@ -361,6 +399,56 @@ export type Database = {
             columns: ["categoria_projeto_id"]
             isOneToOne: false
             referencedRelation: "categorias_projeto"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_remediacao: {
+        Row: {
+          atualizado_em: string
+          categoria_id: string
+          criado_em: string
+          custo_unit_max: number
+          custo_unit_min: number
+          descricao: string
+          fonte: string | null
+          id: string
+          ordem: number
+          quantidade: number
+          unidade: string
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria_id: string
+          criado_em?: string
+          custo_unit_max?: number
+          custo_unit_min?: number
+          descricao: string
+          fonte?: string | null
+          id?: string
+          ordem?: number
+          quantidade?: number
+          unidade: string
+        }
+        Update: {
+          atualizado_em?: string
+          categoria_id?: string
+          criado_em?: string
+          custo_unit_max?: number
+          custo_unit_min?: number
+          descricao?: string
+          fonte?: string | null
+          id?: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_remediacao_categoria_id_fkey"
+            columns: ["categoria_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_remediacao"
             referencedColumns: ["id"]
           },
         ]
@@ -589,6 +677,7 @@ export type Database = {
           metodo_atualizacao: string
           moeda: string
           nome: string
+          remediacao_habilitada: boolean
           rev: string
           status: string
           tipo_projeto_id: string
@@ -604,6 +693,7 @@ export type Database = {
           metodo_atualizacao?: string
           moeda?: string
           nome: string
+          remediacao_habilitada?: boolean
           rev?: string
           status?: string
           tipo_projeto_id: string
@@ -619,6 +709,7 @@ export type Database = {
           metodo_atualizacao?: string
           moeda?: string
           nome?: string
+          remediacao_habilitada?: boolean
           rev?: string
           status?: string
           tipo_projeto_id?: string
@@ -647,6 +738,7 @@ export type Database = {
           criado_em: string
           hash: string | null
           id: string
+          incluir_remediacao: boolean
           itens: string[]
           projeto_id: string
           publicado_em: string | null
@@ -658,6 +750,7 @@ export type Database = {
           criado_em?: string
           hash?: string | null
           id?: string
+          incluir_remediacao?: boolean
           itens?: string[]
           projeto_id: string
           publicado_em?: string | null
@@ -669,6 +762,7 @@ export type Database = {
           criado_em?: string
           hash?: string | null
           id?: string
+          incluir_remediacao?: boolean
           itens?: string[]
           projeto_id?: string
           publicado_em?: string | null
@@ -812,6 +906,7 @@ export type Database = {
           metodo_atualizacao: string
           moeda: string
           nome: string
+          remediacao_habilitada: boolean
           rev: string
           status: string
           tipo_projeto_id: string
@@ -895,6 +990,10 @@ export type Database = {
         Args: { p_id: string; p_status: string }
         Returns: undefined
       }
+      carregar_remediacao_padrao: {
+        Args: { p_projeto_id: string }
+        Returns: undefined
+      }
       carregar_template_exemplo: {
         Args: { p_projeto_id: string; p_tipo_projeto_id: string }
         Returns: Json
@@ -931,6 +1030,7 @@ export type Database = {
           metodo_atualizacao: string
           moeda: string
           nome: string
+          remediacao_habilitada: boolean
           rev: string
           status: string
           tipo_projeto_id: string
@@ -975,6 +1075,7 @@ export type Database = {
           criado_em: string
           hash: string | null
           id: string
+          incluir_remediacao: boolean
           itens: string[]
           projeto_id: string
           publicado_em: string | null
@@ -1024,6 +1125,10 @@ export type Database = {
         Args: { p_codigo?: string; p_projeto_id: string }
         Returns: Json
       }
+      obter_relatorio_publico_remediacao: {
+        Args: { p_projeto_id: string }
+        Returns: Json
+      }
       publicar_revisao: {
         Args: { p_id: string; p_itens: string[] }
         Returns: {
@@ -1032,6 +1137,7 @@ export type Database = {
           criado_em: string
           hash: string | null
           id: string
+          incluir_remediacao: boolean
           itens: string[]
           projeto_id: string
           publicado_em: string | null
@@ -1108,6 +1214,7 @@ export type Database = {
           criado_em: string
           hash: string | null
           id: string
+          incluir_remediacao: boolean
           itens: string[]
           projeto_id: string
           publicado_em: string | null
