@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FolderOpen, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,18 +6,39 @@ import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import { useProjeto } from '@/context/useProjeto'
+import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
+import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import type { Projeto } from '@/types/clientes'
 
 export default function Categorias() {
   const t = useT(categoriasT)
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const {
-    catalogo, tiposProjeto, tiposComTemplate,
+    catalogo, tiposProjeto, tiposComTemplate, parametrosAnuais,
     addCategoria, removeCategoria, updateCategoria, addItem, removeItem, updateItem, saveItem,
     addCampoOp, removeCampoOp, updateCampoOp, saveCampoOp,
     updateCategoriaCustoProvavel, updateItemDesembolso,
     carregarTemplateExemplo, renomearCategoriaCatalogo,
   } = useProjeto()
+
+  // Params MC por categoria (min/mode/max escalados pela ancoragem base→data-base),
+  // usados pelo CategoryMCStatsCard renderizado no fim de cada CategoryBlock.
+  // Match por `name` porque `categoryParamsFromCategorias` filtra categorias
+  // vazias e usa o nome do catálogo — mesma chave usada no dashboard.
+  const ancoragem = useMemo(() => {
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
+  }, [projeto.dataBase, parametrosAnuais])
+  const categoryParams = useMemo(
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
+    [projeto.categorias, catalogo, ancoragem.fator],
+  )
+  const mcParamPorNome = useMemo(() => {
+    const map = new Map<string, typeof categoryParams[number]>()
+    for (const p of categoryParams) map.set(p.name, p)
+    return map
+  }, [categoryParams])
 
   const TIPOS_COM_EXEMPLO = tiposProjeto.filter(tp => tiposComTemplate.includes(tp.id))
 
@@ -66,12 +87,15 @@ export default function Categorias() {
           )}
 
           <div className="flex flex-col gap-3">
-            {categories.map((cat, idx) => (
+            {categories.map((cat, idx) => {
+              const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+              return (
               <CategoryBlock
                 key={cat.id}
                 category={cat}
-                nome={catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'}
+                nome={nome}
                 index={idx}
+                mcParam={mcParamPorNome.get(nome)}
                 onRemove={() => removeCategoria(projeto.id, cat.id).catch(() => showToast('Não foi possível remover a categoria.'))}
                 onChange={(field, value) => updateCategoria(projeto.id, cat.id, field, value).catch(() => showToast('Não foi possível salvar.'))}
                 onRename={novoNome => {
@@ -92,7 +116,8 @@ export default function Categorias() {
                 onUpdateCampoOpProjeto={(campoId, field, value) => updateCampoOp(projeto.id, cat.id, campoId, field, value)}
                 onSaveCampoOpProjeto={(campoId, field, value) => saveCampoOp(campoId, field, value).catch(() => showToast('Não foi possível salvar o campo operacional.'))}
               />
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>

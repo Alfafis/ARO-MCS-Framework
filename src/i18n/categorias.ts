@@ -48,6 +48,12 @@ export const categoriasT: Record<Lang, {
   desembolsoTargetOk: string
   desembolsoMismatch: (diff: string) => string
   desembolsoClearAll: string
+  mcStatsTitle:  string
+  mcStatsMean:   string
+  mcStatsStddev: string
+  mcStatsP80:    string
+  mcStatsIC:     (conf: number) => string
+  mcStatsCV:     string
 }> = {
   'pt-BR': {
     headerTitle:      'Categorias',
@@ -96,6 +102,12 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'confere com Custo Max',
     desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
     desembolsoClearAll: 'Limpar todos',
+    mcStatsTitle:  'Estatísticas MC (Triangular, 1.000 iter.)',
+    mcStatsMean:   'Média',
+    mcStatsStddev: 'Desvio padrão',
+    mcStatsP80:    'P80',
+    mcStatsIC:     (conf) => `IC ${conf}%`,
+    mcStatsCV:     'CV',
   },
   'en': {
     headerTitle:      'Categories',
@@ -144,6 +156,12 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'matches Max Cost',
     desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
     desembolsoClearAll: 'Clear all',
+    mcStatsTitle:  'MC statistics (Triangular, 1,000 iter.)',
+    mcStatsMean:   'Mean',
+    mcStatsStddev: 'Stddev',
+    mcStatsP80:    'P80',
+    mcStatsIC:     (conf) => `${conf}% CI`,
+    mcStatsCV:     'CV',
   },
   'es': {
     headerTitle:      'Categorías',
@@ -192,5 +210,11 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'coincide con Costo Máx',
     desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
     desembolsoClearAll: 'Limpiar todos',
+    mcStatsTitle:  'Estadísticas MC (Triangular, 1.000 iter.)',
+    mcStatsMean:   'Media',
+    mcStatsStddev: 'Desviación estándar',
+    mcStatsP80:    'P80',
+    mcStatsIC:     (conf) => `IC ${conf}%`,
+    mcStatsCV:     'CV',
   },
 }
