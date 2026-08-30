@@ -12,8 +12,11 @@ import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
+import SensibilidadeAno10Card from '@/components/simulacao/SensibilidadeAno10Card'
 import { runMonteCarlo, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/monteCarlo'
+import { computeDesembolsoMatrix } from '@/lib/desembolsoAno'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { sequenciaMidpoints } from '@/types/parametrosGlobais'
 import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 function computeResult(dist: Distribution, n: number, categoryParams: CategoryParam[], activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
@@ -57,6 +60,33 @@ export default function Simulacao() {
   }, [projeto.dataBase, parametrosAnuais])
   const categoryParams = useMemo(() => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator), [projeto.categorias, catalogo, ancoragem.fator])
   const categoryNames  = useMemo(() => categoryParams.map(c => c.name), [categoryParams])
+
+  // Base do Ano 10 pra sensibilidade final MC (aba `Simulation` da planilha
+  // NX Gold — `_Dados_Formulas_Planilha.md` §Etapa 6). Usa modo `ipca` como
+  // fidelidade à planilha; se IPCA anual não estiver configurado, cai pra
+  // `provisao` como no `AnnualDisbursementCard`. Sensibilidade não faz
+  // sentido em modo `base` (a taxa de escalação já é IPCA + custo real).
+  const sensBase = useMemo(() => {
+    if (projeto.categorias.length === 0) return null
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    const modo = ipcaPorAno !== null ? 'ipca' : 'provisao'
+    const res = computeDesembolsoMatrix({
+      categorias:      projeto.categorias,
+      catalogo,
+      horizonYears:    projeto.horizonteAnos,
+      contingenciaPct: projeto.contingenciaPct,
+      ipcaPorAno,
+      modo,
+      fatorAncoragem:  ancoragem.fator,
+    })
+    if (res.totalGeral === 0) return null
+    return {
+      baseAno10:         res.totaisPorAno[projeto.horizonteAnos - 1] ?? 0,
+      modoIpcaDisponivel: ipcaPorAno !== null,
+    }
+  }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, ancoragem.fator])
 
   useEffect(() => { loadSimState(projeto.id) }, [projeto.id, loadSimState])
 
@@ -152,6 +182,27 @@ export default function Simulacao() {
             )}
           </div>
         </div>
+
+        {/* Sensibilidade sobre taxa — MC independente do principal. Fica em
+            seção própria (fora da coluna de "resultado da última rodada")
+            porque roda direto do valor determinístico do Ano 10, sem
+            depender do botão "Rodar simulação". */}
+        {sensBase && sensBase.baseAno10 > 0 && (
+          <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-[rgba(20,21,26,.08)]">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[15px] font-bold text-c-text tracking-tight leading-tight">
+                Sensibilidade sobre a taxa de escalação
+              </h2>
+              <p className="text-[12.5px] text-c-text-2 leading-snug max-w-[720px]">
+                Simulação Monte Carlo <strong>independente</strong> sobre o valor do Ano 10 — roda automaticamente com base nas categorias cadastradas, sem depender do botão "Rodar simulação" acima. Mede a incerteza da <em>taxa</em> de escalação futura, complementar à incerteza de <em>escopo</em> do MC principal.
+              </p>
+            </div>
+            <SensibilidadeAno10Card
+              baseAno10={sensBase.baseAno10}
+              modoIpcaDisponivel={sensBase.modoIpcaDisponivel}
+            />
+          </section>
+        )}
       </div>
 
       {historyOpen && (

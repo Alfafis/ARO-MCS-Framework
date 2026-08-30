@@ -33,10 +33,24 @@ export const simulacaoT: Record<Lang, {
   noResultYet:        string
   months:             string[]
   distLabels:         Record<'Triangular' | 'Normal' | 'Uniforme', string>
+  // Sensibilidade final MC Ano 10 (aba `Simulation` da planilha NX Gold)
+  sensAno10Title:      (iter: string) => string
+  sensAno10Base:       string
+  sensAno10RangeInfo:  (min: number, max: number) => string
+  sensAno10Mean:       string
+  sensAno10Stddev:     string
+  sensAno10P50:        string
+  sensAno10P80:        string
+  sensAno10P95:        string
+  sensAno10CV:         string
+  sensAno10ModeIpca:   string
+  sensAno10ModeProv:   string
+  sensAno10Empty:      string
+  sensAno10FooterNote: string
 }> = {
   'pt-BR': {
     headerTitle:        'Simulação Monte Carlo',
-    headerSubtitle:     'NX Gold · Análise probabilística de custo de fechamento',
+    headerSubtitle:     'Análise probabilística de custo de fechamento',
     seeHistory:         'Ver rodadas anteriores',
     params:             'Parâmetros',
     statDist:           'Distribuição estatística',
@@ -67,10 +81,23 @@ export const simulacaoT: Record<Lang, {
     noResultYet:        'Nenhuma simulação rodada ainda. Configure os parâmetros e clique em Rodar simulação.',
     months:             ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniforme' },
+    sensAno10Title:      (iter) => `Sensibilidade final do Ano 10 (${iter} iterações)`,
+    sensAno10Base:       'Valor base Ano 10',
+    sensAno10RangeInfo:  (min, max) => `Taxa de escalação sorteada entre ${min}% e ${max}% por iteração`,
+    sensAno10Mean:       'Média',
+    sensAno10Stddev:     'σ',
+    sensAno10P50:        'P50',
+    sensAno10P80:        'P80',
+    sensAno10P95:        'P95',
+    sensAno10CV:         'CV',
+    sensAno10ModeIpca:   'IPCA acumulado',
+    sensAno10ModeProv:   'Com provisão (IPCA indisponível)',
+    sensAno10Empty:      'Cadastre categorias com desembolso ano-a-ano para habilitar a sensibilidade final.',
+    sensAno10FooterNote: 'Cada iteração sorteia uma taxa aleatória inteira dentro da faixa configurada e aplica o multiplicador (1 + taxa) sobre o valor do Ano 10 já corrigido por IPCA acumulado (ou provisão, se IPCA incompleto). Mede a incerteza de taxa final acima da incerteza de escopo já capturada pelo MC principal.',
   },
   'en': {
     headerTitle:        'Monte Carlo Simulation',
-    headerSubtitle:     'NX Gold · Probabilistic closure cost analysis',
+    headerSubtitle:     'Probabilistic closure cost analysis',
     seeHistory:         'See previous runs',
     params:             'Parameters',
     statDist:           'Statistical distribution',
@@ -101,10 +128,23 @@ export const simulacaoT: Record<Lang, {
     noResultYet:        'No simulation run yet. Configure the parameters and click Run simulation.',
     months:             ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniform' },
+    sensAno10Title:      (iter) => `Year 10 final sensitivity (${iter} iterations)`,
+    sensAno10Base:       'Year 10 base value',
+    sensAno10RangeInfo:  (min, max) => `Escalation rate drawn between ${min}% and ${max}% per iteration`,
+    sensAno10Mean:       'Mean',
+    sensAno10Stddev:     'σ',
+    sensAno10P50:        'P50',
+    sensAno10P80:        'P80',
+    sensAno10P95:        'P95',
+    sensAno10CV:         'CV',
+    sensAno10ModeIpca:   'Cumulative IPCA',
+    sensAno10ModeProv:   'With provision (IPCA unavailable)',
+    sensAno10Empty:      'Register categories with year-by-year disbursement to enable the final sensitivity.',
+    sensAno10FooterNote: 'Each iteration draws a random integer rate within the configured range and applies the multiplier (1 + rate) on top of the Year 10 value already adjusted by cumulative IPCA (or provision, if IPCA is incomplete). It measures the final rate uncertainty on top of the scope uncertainty already captured by the main MC.',
   },
   'es': {
     headerTitle:        'Simulación Monte Carlo',
-    headerSubtitle:     'NX Gold · Análisis probabilístico de costo de cierre',
+    headerSubtitle:     'Análisis probabilístico de costo de cierre',
     seeHistory:         'Ver ejecuciones anteriores',
     params:             'Parámetros',
     statDist:           'Distribución estadística',
@@ -135,5 +175,18 @@ export const simulacaoT: Record<Lang, {
     noResultYet:        'Ninguna simulación ejecutada aún. Configure los parámetros y haga clic en Ejecutar simulación.',
     months:             ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'],
     distLabels:         { Triangular: 'Triangular', Normal: 'Normal', Uniforme: 'Uniforme' },
+    sensAno10Title:      (iter) => `Sensibilidad final del Año 10 (${iter} iteraciones)`,
+    sensAno10Base:       'Valor base Año 10',
+    sensAno10RangeInfo:  (min, max) => `Tasa de escalación sorteada entre ${min}% y ${max}% por iteración`,
+    sensAno10Mean:       'Media',
+    sensAno10Stddev:     'σ',
+    sensAno10P50:        'P50',
+    sensAno10P80:        'P80',
+    sensAno10P95:        'P95',
+    sensAno10CV:         'CV',
+    sensAno10ModeIpca:   'IPCA acumulado',
+    sensAno10ModeProv:   'Con provisión (IPCA no disponible)',
+    sensAno10Empty:      'Registre categorías con desembolso año a año para habilitar la sensibilidad final.',
+    sensAno10FooterNote: 'Cada iteración sortea una tasa entera aleatoria dentro del rango configurado y aplica el multiplicador (1 + tasa) sobre el valor del Año 10 ya corregido por IPCA acumulado (o provisión, si IPCA está incompleto). Mide la incertidumbre de tasa final por encima de la incertidumbre de alcance ya capturada por el MC principal.',
   },
 }

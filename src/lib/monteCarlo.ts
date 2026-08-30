@@ -188,3 +188,89 @@ export function runMonteCarlo(
 
   return { mean, stddev, p10, p90, p80, icLo, icHi, minVal, maxVal, cv, exceedProb, bars }
 }
+
+// Sensibilidade final do Ano 10 — replica a aba `Simulation` da planilha NX
+// Gold (`_Dados_Formulas_Planilha.md` §Etapa 6). Toma o valor base do Ano 10
+// (já anchado + provisão + IPCA acumulado, calculado por `computeDesembolsoMatrix`
+// no modo `ipca` ou `provisao`) e roda 10.000 iterações sorteando uma taxa
+// aleatória entre `taxaMinPct` e `taxaMaxPct` (1..10 na planilha) — cada
+// iteração multiplica o base por `(1 + taxa/100)`, gerando a distribuição do
+// valor sob incerteza da taxa de escalação final.
+//
+// Fórmula equivalente à planilha (linhas 4..10003 da aba Simulation):
+//   O2 = RANDBETWEEN(taxaMinPct, taxaMaxPct)
+//   P2 = O2 / 100
+//   M4 = baseAno10 * (1 + P2)
+//
+// Retorna média, σ, percentis P10/P50/P80/P90/P95, CV, min/max e histograma
+// de 12 bins (mesmo shape do `runMonteCarlo` pra reusar o HistogramCard).
+export interface MCSensibilidadeAno10Result {
+  base:   number
+  mean:   number
+  stddev: number
+  p10:    number
+  p50:    number
+  p80:    number
+  p90:    number
+  p95:    number
+  minVal: number
+  maxVal: number
+  cv:     number
+  bars:   number[]
+  taxaMinPct: number
+  taxaMaxPct: number
+  iterations: number
+}
+
+export function mcSensibilidadeAno10(
+  baseAno10:  number,
+  iterations = 10_000,
+  taxaMinPct = 1,
+  taxaMaxPct = 10,
+): MCSensibilidadeAno10Result {
+  const n = Math.max(100, Math.min(100_000, iterations))
+  const results = new Float64Array(n)
+
+  // RANDBETWEEN(a,b) da planilha é inteiro inclusivo entre a e b.
+  // Reproduz-se com Math.floor(Math.random() * (b-a+1)) + a.
+  const spanInclusive = taxaMaxPct - taxaMinPct + 1
+  for (let i = 0; i < n; i++) {
+    const taxaInt = Math.floor(Math.random() * spanInclusive) + taxaMinPct
+    results[i] = baseAno10 * (1 + taxaInt / 100)
+  }
+
+  results.sort()
+
+  let sum = 0
+  for (let i = 0; i < n; i++) sum += results[i]
+  const mean = sum / n
+
+  let sumSq = 0
+  for (let i = 0; i < n; i++) sumSq += (results[i] - mean) ** 2
+  const stddev = Math.sqrt(sumSq / n)
+
+  const p10  = results[Math.floor(n * 0.10)]
+  const p50  = results[Math.floor(n * 0.50)]
+  const p80  = results[Math.floor(n * 0.80)]
+  const p90  = results[Math.floor(n * 0.90)]
+  const p95  = results[Math.floor(n * 0.95)]
+  const minVal = results[0]
+  const maxVal = results[n - 1]
+  const cv     = mean > 0 ? stddev / mean : 0
+
+  const range   = maxVal - minVal || 1
+  const binSize = range / 12
+  const bins    = new Array<number>(12).fill(0)
+  for (let i = 0; i < n; i++) {
+    const idx = Math.min(11, Math.floor((results[i] - minVal) / binSize))
+    bins[idx]++
+  }
+  const maxBin = Math.max(...bins)
+  const bars   = bins.map(b => Math.max(2, Math.round((b / maxBin) * 100)))
+
+  return {
+    base: baseAno10,
+    mean, stddev, p10, p50, p80, p90, p95, minVal, maxVal, cv, bars,
+    taxaMinPct, taxaMaxPct, iterations: n,
+  }
+}
