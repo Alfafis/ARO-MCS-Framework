@@ -17,7 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/useProjeto'
 import { supabase } from '@/integrations/supabase/client'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
-import { computeMonetaryValues, type MetodoAtualizacao } from '@/lib/financeiro'
+import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
 import { formatDateTime } from '@/lib/utils'
 import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -38,16 +38,6 @@ function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPo
     case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
     case 'escalonamento': return t.method4(dataBaseAno)
   }
-}
-
-// "34,2" (compacto, sem "R$") — mesma convenção do Portal do Cliente pra
-// célula de tabela, onde o prefixo já vem da coluna/título ao redor.
-function fmtCompact(v: number) {
-  return `${(v / 1_000_000).toFixed(2).replace('.', ',')}M`
-}
-
-function fmtM(v: number) {
-  return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} M`
 }
 
 type ResumoT = typeof resumoT['pt-BR']
@@ -120,15 +110,15 @@ export default function ResumoExecutivo() {
     () => categoryParams.map((c, i) => ({
       rank: String(i + 1).padStart(2, '0'),
       name: c.name,
-      min:  fmtCompact(c.min),
-      max:  fmtCompact(c.max),
+      min:  formatMoedaCompact(c.min, false),
+      max:  formatMoedaCompact(c.max, false),
     })),
     [categoryParams]
   )
 
   const costTotals: CostTotals = useMemo(() => ({
-    min: fmtCompact(categoryParams.reduce((acc, c) => acc + c.min, 0)),
-    max: fmtCompact(categoryParams.reduce((acc, c) => acc + c.max, 0)),
+    min: formatMoedaCompact(categoryParams.reduce((acc, c) => acc + c.min, 0), false),
+    max: formatMoedaCompact(categoryParams.reduce((acc, c) => acc + c.max, 0), false),
   }), [categoryParams])
 
   // Base pro provisionamento: soma do ponto médio de cada categoria real —
@@ -188,11 +178,11 @@ export default function ResumoExecutivo() {
 
     const years: DisbursementYear[] = res.totaisPorAno.map((total, i) => ({
       label: `Ano ${String(i + 1).padStart(2, '0')}`,
-      value: fmtCompact(total),
+      value: formatMoedaCompact(total, false),
     }))
     const categories: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
-      values: res.matrix[ci].map(v => v > 0 ? fmtCompact(v) : null),
+      values: res.matrix[ci].map(v => v > 0 ? formatMoedaCompact(v, false) : null),
     }))
     return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
   }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
@@ -262,7 +252,7 @@ export default function ResumoExecutivo() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} horizonYears={projeto.horizonteAnos} />
+            <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel={formatMoedaCompact(baseWithProvision)} horizonYears={projeto.horizonteAnos} />
           )}
           <RevisionTimeline
             className={monetaryMethods.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'}

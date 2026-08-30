@@ -16,7 +16,7 @@ import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
-import { computeMonetaryValues, type MetodoAtualizacao } from '@/lib/financeiro'
+import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
 import { useT } from '@/i18n/useLang'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -39,14 +39,6 @@ function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPo
     case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
     case 'escalonamento': return t.method4(dataBaseAno)
   }
-}
-
-function fmtM(v: number) {
-  return `R$ ${(v / 1_000_000).toFixed(1).replace('.', ',')} M`
-}
-
-function fmtCompact(v: number) {
-  return `${(v / 1_000_000).toFixed(2).replace('.', ',')}M`
 }
 
 function sessionKey(id: string) {
@@ -125,15 +117,15 @@ export default function PortalClienteRelatorio() {
     () => filteredParams.map((c, i) => ({
       rank: String(i + 1).padStart(2, '0'),
       name: c.name,
-      min:  fmtCompact(c.min),
-      max:  fmtCompact(c.max),
+      min:  formatMoedaCompact(c.min, false),
+      max:  formatMoedaCompact(c.max, false),
     })),
     [filteredParams]
   )
 
   const costTotals: CostTotals = useMemo(() => ({
-    min: fmtCompact(filteredParams.reduce((acc, c) => acc + c.min, 0)),
-    max: fmtCompact(filteredParams.reduce((acc, c) => acc + c.max, 0)),
+    min: formatMoedaCompact(filteredParams.reduce((acc, c) => acc + c.min, 0), false),
+    max: formatMoedaCompact(filteredParams.reduce((acc, c) => acc + c.max, 0), false),
   }), [filteredParams])
 
   // Base pro provisionamento: soma do ponto médio (min+max)/2 de cada categoria real —
@@ -197,11 +189,11 @@ export default function PortalClienteRelatorio() {
 
     const years: DisbursementYear[] = res.totaisPorAno.map((total, i) => ({
       label: `Ano ${String(i + 1).padStart(2, '0')}`,
-      value: fmtCompact(total),
+      value: formatMoedaCompact(total, false),
     }))
     const cats: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
-      values: res.matrix[ci].map(v => v > 0 ? fmtCompact(v) : null),
+      values: res.matrix[ci].map(v => v > 0 ? formatMoedaCompact(v, false) : null),
     }))
     return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
   }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
@@ -381,7 +373,7 @@ export default function PortalClienteRelatorio() {
               {
                 icon: <Plus size={14} strokeWidth={2} className="text-accent-700" />,
                 label: t.kpiBaseProvision,
-                value: baseTotal > 0 ? fmtM(baseWithProvision) : '—',
+                value: baseTotal > 0 ? formatMoedaCompact(baseWithProvision) : '—',
                 sub: t.kpiBaseSub(contingenciaPct),
               },
             ].map(kpi => (
@@ -423,7 +415,7 @@ export default function PortalClienteRelatorio() {
           )}
 
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard methods={monetaryMethods} baseLabel={fmtM(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
+            <MonetaryMethodsCard methods={monetaryMethods} baseLabel={formatMoedaCompact(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
           )}
 
         </div>
