@@ -12,6 +12,8 @@ import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisburse
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
+import { Sprout } from 'lucide-react'
+import { remediacaoT } from '@/i18n/remediacao'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
@@ -59,6 +61,7 @@ export default function PortalClienteRelatorio() {
   const [status, setStatus] = useState<'loading' | 'need-code' | 'not-found' | 'ready'>('loading')
   const [bundle, setBundle] = useState<RelatorioPublicoReturns | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [remediacaoData, setRemediacaoData] = useState<Array<{ id: string; nome: string; area_ha: number | null; ordem: number; itens: Array<{ id: string; descricao: string; unidade: string; quantidade: number | string; custo_unit_min: number | string; custo_unit_max: number | string; fonte: string | null; ordem: number }> }>>([])
 
   const fetchRelatorio = useCallback(async (codigo?: string) => {
     const { data, error } = await supabase.rpc('obter_relatorio_publico', { p_projeto_id: projetoId, p_codigo: codigo })
@@ -78,6 +81,17 @@ export default function PortalClienteRelatorio() {
       if (!ok && stored) sessionStorage.removeItem(sessionKey(projetoId))
     })
   }, [projetoId, fetchRelatorio])
+
+  // Bundle de remediação — RPC própria, respeita o flag incluir_remediacao
+  // da revisão vigente. Se a revisão não marcou opt-in, devolve array vazio.
+  useEffect(() => {
+    if (status !== 'ready') return
+    supabase.rpc('obter_relatorio_publico_remediacao', { p_projeto_id: projetoId })
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setRemediacaoData(data as never)
+      })
+  }, [projetoId, status])
 
   const projeto = bundle?.projeto
   const cliente = bundle?.cliente
@@ -465,6 +479,12 @@ export default function PortalClienteRelatorio() {
             <MonetaryMethodsCard methods={monetaryMethods} baseLabel={formatMoedaCompact(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
           )}
 
+          {/* Seção Remediação — só aparece se a revisão vigente marcou opt-in.
+              Escopo alternativo, totais não somam ao provisionamento principal. */}
+          {remediacaoData.length > 0 && (
+            <RemediacaoSection categorias={remediacaoData} />
+          )}
+
         </div>
       </div>
 
@@ -485,6 +505,94 @@ export default function PortalClienteRelatorio() {
         </div>
       )}
     </div>
+  )
+}
+
+// --------------------------------------------------------------------------
+// RemediacaoSection — bloco no portal público quando a revisão vigente marcou
+// opt-in. Somas por categoria e total geral do módulo. Deixa claro que é
+// escopo alternativo (não soma no total principal).
+// --------------------------------------------------------------------------
+interface RemediacaoSectionProps {
+  categorias: Array<{
+    id:      string
+    nome:    string
+    area_ha: number | null
+    ordem:   number
+    itens:   Array<{ id: string; descricao: string; unidade: string; quantidade: number | string; custo_unit_min: number | string; custo_unit_max: number | string; fonte: string | null; ordem: number }>
+  }>
+}
+
+function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
+  const t = useT(remediacaoT)
+  const toNum = (v: number | string | null): number => v == null ? 0 : (typeof v === 'number' ? v : Number(v))
+  const custoTotalItem = (item: RemediacaoSectionProps['categorias'][number]['itens'][number]): number => {
+    const qtd = toNum(item.quantidade)
+    const med = (toNum(item.custo_unit_min) + toNum(item.custo_unit_max)) / 2
+    return qtd * med
+  }
+  const totalCategoria = (c: RemediacaoSectionProps['categorias'][number]): number =>
+    c.itens.reduce((acc, i) => acc + custoTotalItem(i), 0)
+  const totalGeral = categorias.reduce((acc, c) => acc + totalCategoria(c), 0)
+
+  return (
+    <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-[rgba(20,21,26,.08)]">
+      <div className="flex items-center gap-2">
+        <Sprout size={14} color="var(--accent)" aria-hidden="true" />
+        <h2 className="text-[15px] font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h2>
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">{t.moduleTag}</span>
+      </div>
+      <p className="text-[12.5px] text-c-text-2 leading-snug max-w-[720px]">{t.headerSubtitle}</p>
+
+      {categorias.map(cat => (
+        <div key={cat.id} className="card">
+          <div className="flex items-baseline justify-between gap-3 mb-3">
+            <h3 className="text-[14px] font-bold text-c-text">
+              {cat.nome}
+              {cat.area_ha != null && (
+                <span className="text-[12px] font-normal text-c-text-2 ml-2">
+                  ({cat.area_ha.toLocaleString('pt-BR', { minimumFractionDigits: 2 })} ha)
+                </span>
+              )}
+            </h3>
+            <span className="font-mono text-[13px] font-bold text-c-text">{formatMoedaCompact(totalCategoria(cat))}</span>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-[12px]">
+              <thead>
+                <tr className="text-c-text-2 text-[10px] font-semibold uppercase tracking-widest">
+                  <th className="text-left pb-2 pr-3">{t.colDescricao}</th>
+                  <th className="text-center pb-2 pr-3">{t.colUnidade}</th>
+                  <th className="text-right pb-2 pr-3">{t.colQuantidade}</th>
+                  <th className="text-right pb-2 pr-3">{t.colCustoUnitMin}</th>
+                  <th className="text-right pb-2 pr-3">{t.colCustoUnitMax}</th>
+                  <th className="text-right pb-2 pr-3">{t.colTotal}</th>
+                  <th className="text-left pb-2">{t.colFonte}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {cat.itens.map(item => (
+                  <tr key={item.id} className="border-t border-[rgba(20,21,26,.04)]">
+                    <td className="py-1.5 pr-3 text-c-text">{item.descricao}</td>
+                    <td className="py-1.5 pr-3 text-center text-c-text-2 font-mono text-[11px]">{item.unidade}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{toNum(item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 3 })}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{formatMoedaCompact(toNum(item.custo_unit_min), false)}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{formatMoedaCompact(toNum(item.custo_unit_max), false)}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono font-bold text-c-text">{formatMoedaCompact(custoTotalItem(item), false)}</td>
+                    <td className="py-1.5 text-c-text-2 text-[11px]">{item.fonte ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+
+      <div className="card flex items-center justify-between gap-4 border-t-2 border-[color:var(--accent)]/40">
+        <span className="text-[13px] font-semibold text-c-text">{t.totalGeral}</span>
+        <span className="font-mono text-[16px] font-bold text-c-text">{formatMoedaCompact(totalGeral)}</span>
+      </div>
+    </section>
   )
 }
 

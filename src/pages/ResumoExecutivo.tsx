@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { Copy, Check } from 'lucide-react'
+import { Copy, Check, Sprout, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import type { Projeto } from '@/types/clientes'
@@ -24,6 +24,8 @@ import { formatDateTime } from '@/lib/utils'
 import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
+import { remediacaoT } from '@/i18n/remediacao'
+import { custoTotalRemediacao } from '@/types/remediacao'
 import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 import type { RevisaoRow } from '@/types'
@@ -65,9 +67,26 @@ function revisaoToTimelineItem(rev: RevisaoRow, t: ResumoT): RevisionTimelineIte
 export default function ResumoExecutivo() {
   const t   = useT(resumoT)
   const tRel = useT(relatorioClienteT)
+  const tRem = useT(remediacaoT)
   const navigate = useNavigate()
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
-  const { catalogo, parametrosAnuais } = useProjeto()
+  const { catalogo, parametrosAnuais, remediacaoByProjeto, fetchRemediacao } = useProjeto()
+
+  // Se o módulo Remediação está habilitado, carrega o resumo pra mostrar o
+  // card compacto (link "ver detalhes" pra rota dedicada). Escopo alternativo:
+  // não soma no total principal.
+  const remediacaoCategorias = remediacaoByProjeto[projeto.id]
+  useEffect(() => {
+    if (projeto.remediacaoHabilitada && remediacaoCategorias === undefined) {
+      void fetchRemediacao(projeto.id)
+    }
+  }, [projeto.id, projeto.remediacaoHabilitada, remediacaoCategorias, fetchRemediacao])
+  const remediacaoTotal = useMemo(
+    () => remediacaoCategorias ? custoTotalRemediacao(remediacaoCategorias) : 0,
+    [remediacaoCategorias]
+  )
+  const showRemediacaoCard = projeto.remediacaoHabilitada && remediacaoCategorias && remediacaoCategorias.length > 0
+
   const [linkCopied, setLinkCopied] = useState(false)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
@@ -295,6 +314,29 @@ export default function ResumoExecutivo() {
               )
             }
           </div>
+        )}
+
+        {showRemediacaoCard && (
+          <button
+            type="button"
+            onClick={() => navigate(`/projetos/${projeto.id}/remediacao`)}
+            className="card w-full text-left cursor-pointer transition-shadow hover:shadow-[0_4px_12px_rgba(20,21,26,.08)] flex items-center gap-4 border-0"
+          >
+            <div className="w-[38px] h-[38px] rounded-[10px] bg-accent-100 flex items-center justify-center shrink-0">
+              <Sprout size={16} color="var(--accent)" aria-hidden="true" />
+            </div>
+            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[13.5px] font-semibold text-c-text">{tRem.headerTitle}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">{tRem.moduleTag}</span>
+              </div>
+              <span className="text-[12px] text-c-text-2 leading-snug">{tRem.headerSubtitle}</span>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="font-mono text-[15px] font-bold text-c-text">{formatMoedaCompact(remediacaoTotal)}</span>
+              <ChevronRight size={14} className="text-c-text-2" aria-hidden="true" />
+            </div>
+          </button>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">

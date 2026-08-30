@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/useLang'
 import { revisoesT } from '@/i18n/revisoes'
+import { remediacaoT } from '@/i18n/remediacao'
 import { Skeleton } from '@/components/ui/skeleton'
 import { supabase } from '@/integrations/supabase/client'
 import type { Projeto } from '@/types/clientes'
@@ -30,6 +31,7 @@ export default function Revisoes() {
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const { atualizarRevLocal } = useProjeto()
   const t = useT(revisoesT)
+  const tRem = useT(remediacaoT)
 
   const STATUS_META: Record<RevisaoRow['status'], { label: string; cls: string }> = {
     rascunho:    { label: t.statusDraft,    cls: 'bg-[#f0eeec] text-c-text-2' },
@@ -204,6 +206,28 @@ export default function Revisoes() {
                             rows={3}
                             onChange={e => setEditText(e.target.value)}
                           />
+                          {projeto.remediacaoHabilitada && (
+                            <label className="flex items-start gap-2 mt-1 cursor-pointer group">
+                              <input
+                                type="checkbox"
+                                className="mt-[3px] accent-[color:var(--accent)] cursor-pointer"
+                                checked={(rev as unknown as { incluir_remediacao?: boolean }).incluir_remediacao ?? false}
+                                onChange={async e => {
+                                  const incluir = e.target.checked
+                                  setRevisoes(prev => prev.map(r => r.id === rev.id ? { ...r, incluir_remediacao: incluir } as RevisaoRow : r))
+                                  await supabase.from('revisoes').update({ incluir_remediacao: incluir }).eq('id', rev.id)
+                                }}
+                              />
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-[12.5px] font-semibold text-c-text group-hover:text-accent transition-colors">
+                                  {tRem.revisionIncludeLabel}
+                                </span>
+                                <span className="text-[11.5px] text-c-text-2 leading-snug max-w-[560px]">
+                                  {tRem.revisionIncludeHint}
+                                </span>
+                              </div>
+                            </label>
+                          )}
                           <div className="flex gap-2">
                             <Button variant="ghost"   onClick={() => handleSalvar(rev.id)}>{t.saveChanges}</Button>
                             <Button variant="primary" onClick={() => handlePublicar(rev.id)}>{t.publishRevision}</Button>
