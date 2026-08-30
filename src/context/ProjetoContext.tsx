@@ -711,13 +711,33 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     setProjetos(prev => prev.map(p => p.id === projetoId ? { ...p, rev } : p))
   }, [])
 
+  // Setores CRUD (tela `/setores`) — RLS aplicada em migration
+  // 20260830170905_setores_admin_rls. Optimistic update local + save Supabase.
+  const addSetor = useCallback(async (id: number, nome: string) => {
+    const { error } = await supabase.from('setores').insert({ id, nome }).select().single()
+    if (error) throw error
+    setSetores(prev => [...prev, { id, nome }].sort((a, b) => a.id - b.id))
+  }, [])
+
+  const renomearSetor = useCallback(async (id: number, nome: string) => {
+    setSetores(prev => prev.map(s => s.id === id ? { ...s, nome } : s))
+    const { error } = await supabase.from('setores').update({ nome }).eq('id', id)
+    if (error) throw error
+  }, [])
+
+  const removerSetor = useCallback(async (id: number) => {
+    setSetores(prev => prev.filter(s => s.id !== id))
+    const { error } = await supabase.from('setores').delete().eq('id', id)
+    if (error) throw error
+  }, [])
+
   return (
     <ProjetoContext.Provider value={{
       loading,
       clientes, criarCliente,
       tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto,
       catalogo, renomearCategoriaCatalogo,
-      setores,
+      setores, addSetor, renomearSetor, removerSetor,
       parametrosGlobais, atualizarParametroGlobal,
       parametrosAnuais, atualizarParametroAnual,
       tiposComTemplate, templates, fetchTemplateCategorias,

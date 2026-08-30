@@ -11,6 +11,7 @@ export const sidebarT: Record<Lang, {
   projectTypes:   string
   costCategoriesModule: string
   globalParams:   string
+  sectors:        string
   expand:         string
   collapse:       string
   selectLang:     string
@@ -31,6 +32,7 @@ export const sidebarT: Record<Lang, {
     projectTypes:   'Tipos de Projeto',
     costCategoriesModule: 'Categorias de Custo',
     globalParams:   'Parâmetros Globais',
+    sectors:        'Setores',
     expand:         'Expandir menu lateral',
     collapse:       'Recolher menu lateral',
     selectLang:     'Selecionar idioma',
@@ -51,6 +53,7 @@ export const sidebarT: Record<Lang, {
     projectTypes:   'Project Types',
     costCategoriesModule: 'Cost Categories',
     globalParams:   'Global Parameters',
+    sectors:        'Sectors',
     expand:         'Expand sidebar',
     collapse:       'Collapse sidebar',
     selectLang:     'Select language',
@@ -71,6 +74,7 @@ export const sidebarT: Record<Lang, {
     projectTypes:   'Tipos de Proyecto',
     costCategoriesModule: 'Categorías de Costo',
     globalParams:   'Parámetros Globales',
+    sectors:        'Sectores',
     expand:         'Expandir menú lateral',
     collapse:       'Contraer menú lateral',
     selectLang:     'Seleccionar idioma',

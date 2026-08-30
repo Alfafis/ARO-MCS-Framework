@@ -30,6 +30,12 @@ export interface ProjetoContextValue {
   catalogo:        CategoriaCatalogo[]
   renomearCategoriaCatalogo: (catalogoId: string, novoNome: string) => Promise<void>
   setores:         Setor[]
+  // Setores admin (rota `/setores`) — CRUD direto via supabase.from, mesmo
+  // padrão de `campos_operacionais_template`. RLS aplicada em migration
+  // 20260830170905_setores_admin_rls.
+  addSetor:        (id: number, nome: string) => Promise<void>
+  renomearSetor:   (id: number, nome: string) => Promise<void>
+  removerSetor:    (id: number) => Promise<void>
   parametrosGlobais: ParametroGlobal[]
   atualizarParametroGlobal: (chave: ParametroGlobalChave, valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   parametrosAnuais: ParametroAnual[]

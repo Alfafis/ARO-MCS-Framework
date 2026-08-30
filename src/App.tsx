@@ -24,6 +24,7 @@ import Perfil from './pages/Perfil'
 import TiposProjeto from './pages/TiposProjeto'
 import CategoriasCusto from './pages/CategoriasCusto'
 import ParametrosGlobais from './pages/ParametrosGlobais'
+import Setores from './pages/Setores'
 import Clientes from './pages/Clientes'
 import ClienteProjetos from './pages/ClienteProjetos'
 import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
@@ -232,6 +233,14 @@ export default function App() {
           element={
             <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
               <ParametrosGlobais />
+            </ProtectedLayout>
+          }
+        />
+        <Route
+          path="/setores"
+          element={
+            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+              <Setores />
             </ProtectedLayout>
           }
         />
