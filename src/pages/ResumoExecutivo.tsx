@@ -9,7 +9,9 @@ import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTab
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
-import { computeDesembolsoMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
+import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
+import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
+import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
@@ -157,7 +159,10 @@ export default function ResumoExecutivo() {
 
   // Curva de desembolso ano-a-ano — matriz por categoria com 3 modos de
   // visualização (Etapa 4 do `_Plan_Curva_Desembolso.md`, `_Dados_Formulas_Planilha.md`).
+  // `viewDesembolso` alterna entre Agregado (aba `0. Síntese Por Setor`, categoria × ano)
+  // e Detalhado (aba `9. Síntese Por Atividade`, item × ano com contingência por ano).
   const [modoDesembolso, setModoDesembolso] = useState<ModoDesembolso>('base')
+  const [viewDesembolso, setViewDesembolso] = useState<'agregado' | 'detalhado'>('agregado')
   const disbursement = useMemo(() => {
     if (projeto.categorias.length === 0) return null
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
@@ -186,6 +191,29 @@ export default function ResumoExecutivo() {
     }))
     return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
   }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
+
+  // Matriz detalhada item × ano — mesma origem de dados, apenas outra
+  // granularidade. Rende só quando `viewDesembolso === 'detalhado'` para não
+  // computar o item-level (mais pesado que o categoria-level) sem necessidade.
+  const disbursementDetalhado = useMemo(() => {
+    if (viewDesembolso !== 'detalhado' || projeto.categorias.length === 0) return null
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    const modo = modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso
+    const res = computeDesembolsoItemMatrix({
+      categorias:      projeto.categorias,
+      catalogo,
+      horizonYears:    projeto.horizonteAnos,
+      contingenciaPct: projeto.contingenciaPct,
+      ipcaPorAno,
+      modo,
+      fatorAncoragem:  ancoragem.fator,
+    })
+    if (res.totalGeral === 0) return null
+    const yearsLabels = Array.from({ length: projeto.horizonteAnos }, (_, i) => ({ label: `Ano ${String(i + 1).padStart(2, '0')}` }))
+    return { ...res, years: yearsLabels }
+  }, [viewDesembolso, modoDesembolso, projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, ancoragem.fator])
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${projeto.id}`
@@ -241,12 +269,31 @@ export default function ResumoExecutivo() {
 
         {disbursement && (
           <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
-              <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+            <div className="flex items-center gap-3 flex-wrap">
+              <div className="flex items-center gap-2">
+                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
+                <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">{t.viewLabel}</span>
+                <ViewToggle
+                  current={viewDesembolso}
+                  onChange={setViewDesembolso}
+                  labels={{ agregado: t.viewAggregated, detalhado: t.viewDetailed }}
+                />
+              </div>
               <AncoragemBadge ancoragem={ancoragem} />
             </div>
-            <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+            {viewDesembolso === 'agregado'
+              ? <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+              : disbursementDetalhado && (
+                <AnnualDisbursementDetailedCard
+                  years={disbursementDetalhado.years}
+                  groups={disbursementDetalhado.groups}
+                  totaisPorAno={disbursementDetalhado.totaisPorAno}
+                />
+              )
+            }
           </div>
         )}
 
@@ -266,45 +313,3 @@ export default function ResumoExecutivo() {
   )
 }
 
-// Toggle dos 3 modos do card de desembolso ano-a-ano (`_Plan_Curva_Desembolso.md`).
-// `disableIpca` esconde o modo IPCA quando `parametros_anuais` não tem série
-// completa configurada (evita render de matriz idêntica à provisão sem aviso).
-interface ModoToggleProps {
-  current:     ModoDesembolso
-  onChange:    (m: ModoDesembolso) => void
-  disableIpca: boolean
-}
-
-function ModoToggle({ current, onChange, disableIpca }: ModoToggleProps) {
-  const opts: { key: ModoDesembolso; label: string }[] = [
-    { key: 'base',     label: 'Sem provisão' },
-    { key: 'provisao', label: 'Com provisão 20%' },
-    { key: 'ipca',     label: 'Com IPCA acumulado' },
-  ]
-  return (
-    <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
-      {opts.map(opt => {
-        const disabled = opt.key === 'ipca' && disableIpca
-        const active = current === opt.key
-        return (
-          <button
-            key={opt.key}
-            type="button"
-            disabled={disabled}
-            onClick={() => onChange(opt.key)}
-            className={`px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors cursor-pointer border-0 ${
-              active
-                ? 'bg-white text-c-text shadow-sm'
-                : disabled
-                  ? 'text-c-text-2/40 cursor-not-allowed'
-                  : 'text-c-text-2 hover:text-c-text'
-            }`}
-            title={disabled ? 'IPCA anual não configurado em Parâmetros Globais' : undefined}
-          >
-            {opt.label}
-          </button>
-        )
-      })}
-    </div>
-  )
-}

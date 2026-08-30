@@ -14,6 +14,19 @@ export const resumoT: Record<Lang, {
   // AnnualDisbursementCard (componente ainda sem consumidor ligado — mantido pra não quebrar o arquivo)
   disbursementTitle: string
   yearPrefix:     string
+  // Toggle Agregado / Detalhado (view do card de desembolso ano-a-ano)
+  viewLabel:      string
+  viewAggregated: string
+  viewDetailed:   string
+  // AnnualDisbursementDetailedCard (aba `9. Síntese Por Atividade` da planilha)
+  disbursementDetailedTitle: string
+  detailedActivityHeader:    string
+  detailedSubtotalLabel:     (categoria: string) => string
+  detailedContingencyLabel:  (pct: number) => string
+  detailedTotalPerYearLabel: string
+  detailedIpcaMultiplierLabel: string
+  detailedTotalWithIpcaLabel: string
+  detailedFooterNote:        string
   // FanChartCard (idem — sem consumidor ligado)
   fanTitle:       string
   fanDesc:        (cv: string) => string
@@ -68,6 +81,17 @@ export const resumoT: Record<Lang, {
     method4:        (ano) => ano !== null ? `Escalonamento — IPCA variável ${ano}-${ano + 9}` : 'Escalonamento — IPCA variável', // +9 = HORIZON_YEARS-1 (lib/financeiro.ts)
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
     yearPrefix:     'ANO',
+    viewLabel:      'Visão:',
+    viewAggregated: 'Agregado por categoria',
+    viewDetailed:   'Detalhado por atividade',
+    disbursementDetailedTitle: 'Detalhamento por atividade — item × ano',
+    detailedActivityHeader:    'Atividade',
+    detailedSubtotalLabel:     (categoria) => `Subtotal ${categoria}`,
+    detailedContingencyLabel:  (pct) => `Contingência ${pct}%`,
+    detailedTotalPerYearLabel: 'Total por ano (base + contingência)',
+    detailedIpcaMultiplierLabel: 'Multiplicador IPCA acumulado',
+    detailedTotalWithIpcaLabel: 'Total corrigido por IPCA',
+    detailedFooterNote:        'Cada linha representa um item de custo distribuído ano a ano. A linha de contingência aplica o percentual configurado sobre a soma dos itens por ano; o total agrega itens + contingência. No modo IPCA, o multiplicador acumulado e o total corrigido aparecem nas duas linhas finais.',
     fanTitle:       'Leque de confiança (fan chart) — desembolso acumulado por ano',
     fanDesc:        cv => `Faixa estimada a partir do coeficiente de variação da simulação de Monte Carlo (${cv}%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.`,
     costTableTitle: (count) => `Custo por categoria — ${count} setores`,
@@ -115,6 +139,17 @@ export const resumoT: Record<Lang, {
     method4:        (ano) => ano !== null ? `Escalation — variable IPCA ${ano}-${ano + 9}` : 'Escalation — variable IPCA',
     disbursementTitle: 'Projected disbursement by year — Grand Total',
     yearPrefix:     'YEAR',
+    viewLabel:      'View:',
+    viewAggregated: 'Aggregated by category',
+    viewDetailed:   'Detailed by activity',
+    disbursementDetailedTitle: 'Detail by activity — item × year',
+    detailedActivityHeader:    'Activity',
+    detailedSubtotalLabel:     (categoria) => `Subtotal ${categoria}`,
+    detailedContingencyLabel:  (pct) => `Contingency ${pct}%`,
+    detailedTotalPerYearLabel: 'Total per year (base + contingency)',
+    detailedIpcaMultiplierLabel: 'Cumulative IPCA multiplier',
+    detailedTotalWithIpcaLabel: 'Total adjusted by IPCA',
+    detailedFooterNote:        'Each row represents a cost item distributed year by year. The contingency row applies the configured percentage to the item sum per year; the total aggregates items + contingency. In IPCA mode, the cumulative multiplier and the adjusted total appear in the final two rows.',
     fanTitle:       'Confidence fan chart — cumulative disbursement by year',
     fanDesc:        cv => `Range estimated from the Monte Carlo simulation coefficient of variation (${cv}%) applied to cumulative disbursement by year — not an independent percentile (P10/P90) calculation per year.`,
     costTableTitle: (count) => `Cost by category — ${count} sectors`,
@@ -162,6 +197,17 @@ export const resumoT: Record<Lang, {
     method4:        (ano) => ano !== null ? `Escalonamiento — IPCA variable ${ano}-${ano + 9}` : 'Escalonamiento — IPCA variable',
     disbursementTitle: 'Desembolso proyectado por año — Total General',
     yearPrefix:     'AÑO',
+    viewLabel:      'Vista:',
+    viewAggregated: 'Agregado por categoría',
+    viewDetailed:   'Detallado por actividad',
+    disbursementDetailedTitle: 'Detalle por actividad — ítem × año',
+    detailedActivityHeader:    'Actividad',
+    detailedSubtotalLabel:     (categoria) => `Subtotal ${categoria}`,
+    detailedContingencyLabel:  (pct) => `Contingencia ${pct}%`,
+    detailedTotalPerYearLabel: 'Total por año (base + contingencia)',
+    detailedIpcaMultiplierLabel: 'Multiplicador IPCA acumulado',
+    detailedTotalWithIpcaLabel: 'Total corregido por IPCA',
+    detailedFooterNote:        'Cada fila representa un ítem de costo distribuido año a año. La fila de contingencia aplica el porcentaje configurado sobre la suma de los ítems por año; el total agrega ítems + contingencia. En el modo IPCA, el multiplicador acumulado y el total ajustado aparecen en las dos filas finales.',
     fanTitle:       'Abanico de confianza (fan chart) — desembolso acumulado por año',
     fanDesc:        cv => `Rango estimado a partir del coeficiente de variación de la simulación de Monte Carlo (${cv}%) aplicado al desembolso acumulado por año — no es un cálculo de percentil (P10/P90) ejecutado independientemente para cada año.`,
     costTableTitle: (count) => `Costo por categoría — ${count} sectores`,
