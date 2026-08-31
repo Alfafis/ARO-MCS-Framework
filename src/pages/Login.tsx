@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
-import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/useLang'
 import { loginT } from '@/i18n/login'
@@ -42,10 +41,11 @@ export default function Login() {
       >
         {/* Marca */}
         <div className="flex flex-col items-center mb-7">
-          <div className="w-[52px] h-[52px] rounded-full bg-accent-100 flex items-center justify-center mb-4">
-            <OctahedronIcon />
-          </div>
-          <h1 className="text-[20px] font-bold text-c-text tracking-tight">ARO-MCS Framework</h1>
+          <img
+            src="/BePlanned Logo.png"
+            alt="Be Planned"
+            className="w-40 object-contain mb-2"
+          />
           <p className="text-[13px] text-c-text-2 mt-1">{t.subtitle}</p>
         </div>
 

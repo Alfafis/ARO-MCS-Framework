@@ -53,11 +53,19 @@
 
   html { font-size: 16px; }
 
-  html, body {
+  html, body { background-color: var(--c-bg); }
+
+  .bg-fixed {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
     background:
       linear-gradient(rgba(244, 243, 241, 0.92), rgba(244, 243, 241, 0.92)),
-      url('/PADRONAGEM%20-%20FUNDO%20com%20pontilhado.png') center / cover fixed no-repeat;
+      url('/PADRONAGEM%20-%20FUNDO%20com%20pontilhado.png') center / cover no-repeat;
   }
+
+  #root { position: relative; z-index: 1; }
 
   body {
     font-family: var(--font-sans);

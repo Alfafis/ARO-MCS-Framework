@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react
 import { useParams } from 'react-router-dom'
 import { Download, Copy, Check, KeyRound } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
-import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
@@ -275,9 +274,9 @@ export default function PortalClienteRelatorio() {
 
   if (status === 'not-found') {
     return (
-      <div className="min-h-screen bg-c-bg flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-[420px] text-center flex flex-col items-center gap-3">
-          <OctahedronIcon />
+          <img src="/logo.png" alt="Be Planned" className="h-12 w-auto object-contain" />
           <h1 className="text-[18px] font-bold text-c-text">{t.reportNotFoundTitle}</h1>
           <p className="text-[13px] text-c-text-2">{t.reportNotFoundBody}</p>
         </div>
@@ -286,18 +285,15 @@ export default function PortalClienteRelatorio() {
   }
 
   if (status === 'loading') {
-    return <div className="min-h-screen bg-c-bg" />
+    return <div className="min-h-screen" />
   }
 
   if (status === 'need-code') {
     return (
-      <div className="min-h-screen bg-c-bg flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-[400px] bg-white rounded-[20px] shadow-[0_24px_64px_-12px_rgba(20,21,26,.28)] p-7">
           <div className="flex items-center mb-5">
-            <div className="flex items-center gap-2">
-              <OctahedronIcon />
-              <span className="text-[15px] font-bold text-c-text">ARO-MCS</span>
-            </div>
+            <img src="/BePlanned Logo.png" alt="Be Planned" className="h-9 w-auto object-contain" />
           </div>
           <h2 className="text-[17px] font-bold text-c-text mb-5">{t.modalTitle}</h2>
           <form onSubmit={handleCodeSubmit} className="flex flex-col gap-3">
@@ -339,14 +335,11 @@ export default function PortalClienteRelatorio() {
   if (!projeto || !cliente) return null // 'ready' sempre traz os dois — guarda só pro TS
 
   return (
-    <div className="min-h-screen bg-c-bg print:bg-white">
+    <div className="min-h-screen print:bg-white">
 
       {/* ── Header fixo ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[rgba(20,21,26,.08)] flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
-        <div className="flex items-center gap-2">
-          <OctahedronIcon />
-          <span className="text-[16px] font-bold text-c-text">ARO-MCS</span>
-        </div>
+        <img src="/BePlanned Logo.png" alt="Be Planned" className="h-10 w-auto object-contain" />
         <div className="flex items-center gap-3 print:hidden">
           <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-[#f0eeec] text-c-text-2 text-[12px] font-medium">
             {cliente.nome} — {t.portalPill}
