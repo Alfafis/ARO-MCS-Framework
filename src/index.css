@@ -10,9 +10,9 @@
   --color-c-card:    #ffffff;
   --color-c-line:    rgba(20,21,26,.08);
 
-  --color-accent:     #ec3013;
-  --color-accent-700: #ae1800;
-  --color-accent-100: #fff1ee;
+  --color-accent:     #2e7d32;
+  --color-accent-700: #1b5e20;
+  --color-accent-100: #e8f5e9;
 
   --color-success:    #1a7f4b;
   --color-success-bg: #eaf7ef;
@@ -26,9 +26,9 @@
   --c-card:    #ffffff;
   --c-line:    rgba(20,21,26,.08);
 
-  --accent:      #ec3013;
-  --accent-700:  #ae1800;
-  --accent-100:  #fff1ee;
+  --accent:      #2e7d32;
+  --accent-700:  #1b5e20;
+  --accent-100:  #e8f5e9;
 
   --success:     #1a7f4b;
   --success-bg:  #eaf7ef;
@@ -53,11 +53,16 @@
 
   html { font-size: 16px; }
 
+  html, body {
+    background:
+      linear-gradient(rgba(244, 243, 241, 0.92), rgba(244, 243, 241, 0.92)),
+      url('/PADRONAGEM%20-%20FUNDO%20com%20pontilhado.png') center / cover fixed no-repeat;
+  }
+
   body {
     font-family: var(--font-sans);
     font-size: 0.875rem;
     color: var(--c-text);
-    background: var(--c-bg);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }

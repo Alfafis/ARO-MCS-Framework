@@ -9,7 +9,6 @@ import {
 import { useLang, useT } from '@/i18n/useLang'
 import type { Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
-import OctahedronIcon from '@/components/icons/OctahedronIcon'
 import { supabase } from '@/integrations/supabase/client'
 
 const LANGUAGES: { code: Lang; label: string }[] = [
@@ -133,11 +132,15 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
         style={{
           justifyContent: collapsed ? 'center' : 'flex-start',
           padding: collapsed ? '8px 10px 20px' : '8px 4px 20px 10px',
-          gap: '9px',
+          gap: '10px',
         }}
       >
-        <OctahedronIcon />
-        {!collapsed && <span className="brand-label">ARO-MCS</span>}
+        <img
+          src="/logo.png"
+          alt="Be Planned"
+          className="h-9 w-auto object-contain"
+        />
+        {!collapsed && <span className="brand-label">Be Planned</span>}
       </div>
 
       {/* ── Botão de recolher ── */}

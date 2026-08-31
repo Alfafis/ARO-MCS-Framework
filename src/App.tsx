@@ -7,7 +7,6 @@ import { ProjetoProvider } from './context/ProjetoContext'
 import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
 import DocumentTitle from './components/layout/DocumentTitle'
-import OctahedronIcon from './components/icons/OctahedronIcon'
 import Login from './pages/Login'
 import ResumoExecutivo from './pages/ResumoExecutivo'
 import Categorias from './pages/Categorias'
@@ -93,13 +92,14 @@ function ProtectedLayout({
             >
               <Menu size={18} strokeWidth={2} />
             </button>
-            <div className="flex items-center gap-2">
-              <OctahedronIcon />
-              <span className="font-bold text-[15px] text-c-text tracking-tight">ARO-MCS</span>
-            </div>
+            <img
+              src="/BePlanned Logo.png"
+              alt="Be Planned"
+              className="h-9 w-auto object-contain"
+            />
             <div className="w-9" />
           </div>
-          <main className="flex-1 overflow-auto bg-c-bg">{children}</main>
+          <main className="flex-1 overflow-auto">{children}</main>
         </div>
       </>
     )
@@ -115,7 +115,7 @@ function ProtectedLayout({
         onToggle={() => setCollapsed(v => !v)}
         onLogout={onLogout}
       />
-      <main className="overflow-auto bg-c-bg">{children}</main>
+      <main className="overflow-auto">{children}</main>
     </div>
   )
 }
