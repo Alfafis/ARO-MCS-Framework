@@ -141,7 +141,7 @@ export default function SimulacaoDrawer({ open, onClose, onResult }: Props) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-[18px] border-b border-[rgba(20,21,26,.08)] shrink-0">
           <div>
-            <p className="text-[15px] font-bold text-c-text leading-tight">Simulação Monte Carlo</p>
+            <p className="text-[15px] font-bold text-c-text leading-tight">Aro Simulação</p>
             <p className="text-[12px] text-c-text-2 mt-0.5">Parâmetros e resultado</p>
           </div>
           <button

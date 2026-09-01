@@ -49,7 +49,7 @@ export const simulacaoT: Record<Lang, {
   sensAno10FooterNote: string
 }> = {
   'pt-BR': {
-    headerTitle:        'Simulação Monte Carlo',
+    headerTitle:        'Aro Simulação',
     headerSubtitle:     'Análise probabilística de custo de fechamento',
     seeHistory:         'Ver rodadas anteriores',
     params:             'Parâmetros',
@@ -93,10 +93,10 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeIpca:   'IPCA acumulado',
     sensAno10ModeProv:   'Com provisão (IPCA indisponível)',
     sensAno10Empty:      'Cadastre categorias com desembolso ano-a-ano para habilitar a sensibilidade final.',
-    sensAno10FooterNote: 'Cada iteração sorteia uma taxa aleatória inteira dentro da faixa configurada e aplica o multiplicador (1 + taxa) sobre o valor do Ano 10 já corrigido por IPCA acumulado (ou provisão, se IPCA incompleto). Mede a incerteza de taxa final acima da incerteza de escopo já capturada pelo MC principal.',
+    sensAno10FooterNote: 'Cada iteração sorteia uma taxa aleatória inteira dentro da faixa configurada e aplica o multiplicador (1 + taxa) sobre o valor do Ano 10 já corrigido por IPCA acumulado (ou provisão, se IPCA incompleto). Mede a incerteza de taxa final acima da incerteza de escopo já capturada pela Aro Simulação principal.',
   },
   'en': {
-    headerTitle:        'Monte Carlo Simulation',
+    headerTitle:        'Aro Simulação',
     headerSubtitle:     'Probabilistic closure cost analysis',
     seeHistory:         'See previous runs',
     params:             'Parameters',
@@ -140,10 +140,10 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeIpca:   'Cumulative IPCA',
     sensAno10ModeProv:   'With provision (IPCA unavailable)',
     sensAno10Empty:      'Register categories with year-by-year disbursement to enable the final sensitivity.',
-    sensAno10FooterNote: 'Each iteration draws a random integer rate within the configured range and applies the multiplier (1 + rate) on top of the Year 10 value already adjusted by cumulative IPCA (or provision, if IPCA is incomplete). It measures the final rate uncertainty on top of the scope uncertainty already captured by the main MC.',
+    sensAno10FooterNote: 'Each iteration draws a random integer rate within the configured range and applies the multiplier (1 + rate) on top of the Year 10 value already adjusted by cumulative IPCA (or provision, if IPCA is incomplete). It measures the final rate uncertainty on top of the scope uncertainty already captured by the main Aro Simulação.',
   },
   'es': {
-    headerTitle:        'Simulación Monte Carlo',
+    headerTitle:        'Aro Simulação',
     headerSubtitle:     'Análisis probabilístico de costo de cierre',
     seeHistory:         'Ver ejecuciones anteriores',
     params:             'Parámetros',
@@ -187,6 +187,6 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeIpca:   'IPCA acumulado',
     sensAno10ModeProv:   'Con provisión (IPCA no disponible)',
     sensAno10Empty:      'Registre categorías con desembolso año a año para habilitar la sensibilidad final.',
-    sensAno10FooterNote: 'Cada iteración sortea una tasa entera aleatoria dentro del rango configurado y aplica el multiplicador (1 + tasa) sobre el valor del Año 10 ya corregido por IPCA acumulado (o provisión, si IPCA está incompleto). Mide la incertidumbre de tasa final por encima de la incertidumbre de alcance ya capturada por el MC principal.',
+    sensAno10FooterNote: 'Cada iteración sortea una tasa entera aleatoria dentro del rango configurado y aplica el multiplicador (1 + tasa) sobre el valor del Año 10 ya corregido por IPCA acumulado (o provisión, si IPCA está incompleto). Mide la incertidumbre de tasa final por encima de la incertidumbre de alcance ya capturada por la Aro Simulação principal.',
   },
 }

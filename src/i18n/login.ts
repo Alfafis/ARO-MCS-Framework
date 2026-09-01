@@ -11,7 +11,7 @@ export const loginT: Record<Lang, {
   emailNotConfirmed: string
 }> = {
   'pt-BR': {
-    subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
+    subtitle:         'Asset Retirement Obligation · Aro Simulação',
     emailLabel:       'E-mail',
     passwordLabel:    'Senha',
     emailPlaceholder: 'seu@email.com',
@@ -21,7 +21,7 @@ export const loginT: Record<Lang, {
     emailNotConfirmed: 'Confirme seu e-mail antes de entrar — verifique sua caixa de entrada.',
   },
   'en': {
-    subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
+    subtitle:         'Asset Retirement Obligation · Aro Simulação',
     emailLabel:       'E-mail',
     passwordLabel:    'Password',
     emailPlaceholder: 'your@email.com',
@@ -31,7 +31,7 @@ export const loginT: Record<Lang, {
     emailNotConfirmed: 'Confirm your e-mail before signing in — check your inbox.',
   },
   'es': {
-    subtitle:         'Asset Retirement Obligation · Monte Carlo Simulation',
+    subtitle:         'Asset Retirement Obligation · Aro Simulação',
     emailLabel:       'Correo electrónico',
     passwordLabel:    'Contraseña',
     emailPlaceholder: 'tu@correo.com',

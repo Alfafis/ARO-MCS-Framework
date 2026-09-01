@@ -194,7 +194,7 @@ export default function Simulacao() {
                 Sensibilidade sobre a taxa de escalação
               </h2>
               <p className="text-[12.5px] text-c-text-2 leading-snug max-w-[720px]">
-                Simulação Monte Carlo <strong>independente</strong> sobre o valor do Ano 10 — roda automaticamente com base nas categorias cadastradas, sem depender do botão "Rodar simulação" acima. Mede a incerteza da <em>taxa</em> de escalação futura, complementar à incerteza de <em>escopo</em> do MC principal.
+                Aro Simulação <strong>independente</strong> sobre o valor do Ano 10 — roda automaticamente com base nas categorias cadastradas, sem depender do botão "Rodar simulação" acima. Mede a incerteza da <em>taxa</em> de escalação futura, complementar à incerteza de <em>escopo</em> da Aro Simulação principal.
               </p>
             </div>
             <SensibilidadeAno10Card
