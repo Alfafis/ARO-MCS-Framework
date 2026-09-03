@@ -6,13 +6,15 @@ import { Button } from './button'
 const CLOSE_DURATION = 170
 
 interface DialogProps {
-  title:    string
-  onClose:  () => void
+  title: string
+  onClose: () => void
   children: (close: (callback?: () => void) => void) => React.ReactNode
   className?: string
 }
 
-function stopPropagation(e: React.MouseEvent) { e.stopPropagation() }
+function stopPropagation(e: React.MouseEvent) {
+  e.stopPropagation()
+}
 
 export function Dialog({ title, onClose, children, className }: DialogProps) {
   const [closing, setClosing] = useState(false)
@@ -24,11 +26,7 @@ export function Dialog({ title, onClose, children, className }: DialogProps) {
   }
 
   return (
-    <div
-      className={cn('modal-backdrop', closing && 'closing')}
-      onClick={() => close()}
-      role="presentation"
-    >
+    <div className={cn('modal-backdrop', closing && 'closing')} onClick={() => close()} role="presentation">
       <div
         className={cn('modal-card', closing && 'closing', className)}
         onClick={stopPropagation}

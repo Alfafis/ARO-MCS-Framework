@@ -7,7 +7,12 @@ import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/useLang'
 import { parametrosGlobaisT } from '@/i18n/parametros-globais'
 import { useProjeto } from '@/context/useProjeto'
-import type { ParametroGlobal, ParametroGlobalChave, ParametroAnual, ParametroAnualChave } from '@/types/parametrosGlobais'
+import type {
+  ParametroGlobal,
+  ParametroGlobalChave,
+  ParametroAnual,
+  ParametroAnualChave,
+} from '@/types/parametrosGlobais'
 import { isNaoConfigurado } from '@/types/parametrosGlobais'
 import { SERIE_BCB, SERIE_BCB_ANUAL, buscarValorBcb } from '@/lib/bcb'
 import { formatRelativeTime } from '@/lib/utils'
@@ -33,7 +38,7 @@ function formatParametroValor(chave: ParametroGlobalChave, valor: number): strin
 interface ParametroRowProps {
   parametro: ParametroGlobal
   label: string
-  t: typeof parametrosGlobaisT['pt-BR']
+  t: (typeof parametrosGlobaisT)['pt-BR']
   onSalvar: (valor: number, fonte: ParametroGlobal['fonte'], serieBcb: number | null) => Promise<void>
   onValorInvalido: () => void
   onBuscaFalhou: () => void
@@ -102,8 +107,8 @@ function ParametroRow({ parametro, label, t, onSalvar, onValorInvalido, onBuscaF
             className="w-28"
             autoFocus
             value={editing}
-            onChange={e => setEditing(e.target.value)}
-            onKeyDown={e => {
+            onChange={(e) => setEditing(e.target.value)}
+            onKeyDown={(e) => {
               if (e.key === 'Enter') void confirmEdicao()
               if (e.key === 'Escape') setEditing(null)
             }}
@@ -125,7 +130,13 @@ function ParametroRow({ parametro, label, t, onSalvar, onValorInvalido, onBuscaF
           >
             {naoConfigurado ? t.naoConfigurado : formatParametroValor(parametro.chave, parametro.valor)}
           </button>
-          <Button variant="icon-btn" disabled={buscando} onClick={atualizarDaApi} aria-label={t.atualizarDaApi} title={t.atualizarDaApi}>
+          <Button
+            variant="icon-btn"
+            disabled={buscando}
+            onClick={atualizarDaApi}
+            aria-label={t.atualizarDaApi}
+            title={t.atualizarDaApi}
+          >
             <RefreshCw size={14} className={buscando ? 'animate-spin' : ''} aria-hidden="true" />
           </Button>
         </div>
@@ -134,10 +145,10 @@ function ParametroRow({ parametro, label, t, onSalvar, onValorInvalido, onBuscaF
   )
 }
 
-const PARAMETRO_LABEL_KEY: Record<ParametroGlobalChave, keyof typeof parametrosGlobaisT['pt-BR']> = {
+const PARAMETRO_LABEL_KEY: Record<ParametroGlobalChave, keyof (typeof parametrosGlobaisT)['pt-BR']> = {
   cambio_usd_brl: 'parametroCambio',
 }
-const PARAMETRO_ANUAL_LABEL_KEY: Record<ParametroAnualChave, keyof typeof parametrosGlobaisT['pt-BR']> = {
+const PARAMETRO_ANUAL_LABEL_KEY: Record<ParametroAnualChave, keyof (typeof parametrosGlobaisT)['pt-BR']> = {
   inflacao_ipca: 'parametroInflacao',
   selic: 'parametroSelic',
 }
@@ -146,8 +157,13 @@ interface ParametroAnualTableProps {
   chave: ParametroAnualChave
   label: string
   linhas: ParametroAnual[]
-  t: typeof parametrosGlobaisT['pt-BR']
-  onSalvar: (ano: number, valorMin: number | null, valorMax: number | null, fonte: ParametroAnual['fonte']) => Promise<void>
+  t: (typeof parametrosGlobaisT)['pt-BR']
+  onSalvar: (
+    ano: number,
+    valorMin: number | null,
+    valorMax: number | null,
+    fonte: ParametroAnual['fonte']
+  ) => Promise<void>
   onValorInvalido: () => void
   onBuscaFalhou: () => void
 }
@@ -164,18 +180,23 @@ interface ParametroAnualTableProps {
 // max e blurar (rápido, antes do primeiro RPC+setState do context terminar)
 // faz o segundo save ler `linha` ainda desatualizada via prop e sobrescrever o
 // min recém-salvo com null — reproduzido e confirmado ao vivo antes deste fix.
-function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalido, onBuscaFalhou }: ParametroAnualTableProps) {
-  const porAno = new Map(linhas.map(l => [l.ano, l]))
+function ParametroAnualTable({
+  chave,
+  label,
+  linhas,
+  t,
+  onSalvar,
+  onValorInvalido,
+  onBuscaFalhou,
+}: ParametroAnualTableProps) {
+  const porAno = new Map(linhas.map((l) => [l.ano, l]))
   const [buscandoAnoAtual, setBuscandoAnoAtual] = useState(false)
-  const [edicoes, setEdicoes] = useState<Record<number, { min?: string, max?: string }>>({})
+  const [edicoes, setEdicoes] = useState<Record<number, { min?: string; max?: string }>>({})
   const [mostrarAnteriores, setMostrarAnteriores] = useState(false)
 
   const currentYear = new Date().getFullYear()
-  const anosFuturos = useMemo(
-    () => Array.from({ length: YEARS_AHEAD + 1 }, (_, i) => currentYear + i),
-    [currentYear],
-  )
-  const configurados = anosFuturos.filter(ano => {
+  const anosFuturos = useMemo(() => Array.from({ length: YEARS_AHEAD + 1 }, (_, i) => currentYear + i), [currentYear])
+  const configurados = anosFuturos.filter((ano) => {
     const l = porAno.get(ano)
     return l && l.valorMin !== null && l.valorMax !== null
   }).length
@@ -186,10 +207,9 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
   // esconder linha preenchida.
   const anosAnteriores = useMemo(() => {
     if (!mostrarAnteriores) return []
-    const anosComDadoPassado = linhas
-      .filter(l => l.ano < currentYear)
-      .map(l => l.ano)
-    const menorComDado = anosComDadoPassado.length > 0 ? Math.min(...anosComDadoPassado) : currentYear - YEARS_LOOKBACK_DEFAULT
+    const anosComDadoPassado = linhas.filter((l) => l.ano < currentYear).map((l) => l.ano)
+    const menorComDado =
+      anosComDadoPassado.length > 0 ? Math.min(...anosComDadoPassado) : currentYear - YEARS_LOOKBACK_DEFAULT
     const inicio = Math.min(currentYear - YEARS_LOOKBACK_DEFAULT, menorComDado)
     return Array.from({ length: currentYear - inicio }, (_, i) => inicio + i)
   }, [mostrarAnteriores, linhas, currentYear])
@@ -210,9 +230,12 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
   }
 
   async function salvarCelula(ano: number, campo: 'min' | 'max', raw: string) {
-    setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], [campo]: raw } }))
+    setEdicoes((prev) => ({ ...prev, [ano]: { ...prev[ano], [campo]: raw } }))
     const novoValor = parseCell(raw)
-    if (Number.isNaN(novoValor)) { onValorInvalido(); return }
+    if (Number.isNaN(novoValor)) {
+      onValorInvalido()
+      return
+    }
     const outroCampo = campo === 'min' ? 'max' : 'min'
     const outroValor = parseCell(valorAtual(ano, outroCampo))
     const valorMin = campo === 'min' ? novoValor : outroValor
@@ -245,16 +268,16 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
           variant="filled"
           className={`h-7 px-2 py-0 text-[11.5px] ${passado ? 'opacity-70' : ''}`}
           value={valorAtual(ano, 'min')}
-          onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
-          onBlur={e => void salvarCelula(ano, 'min', e.target.value)}
+          onChange={(e) => setEdicoes((prev) => ({ ...prev, [ano]: { ...prev[ano], min: e.target.value } }))}
+          onBlur={(e) => void salvarCelula(ano, 'min', e.target.value)}
           aria-label={`${label} ano ${ano} mínimo`}
         />
         <Input
           variant="filled"
           className={`h-7 px-2 py-0 text-[11.5px] ${passado ? 'opacity-70' : ''}`}
           value={valorAtual(ano, 'max')}
-          onChange={e => setEdicoes(prev => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
-          onBlur={e => void salvarCelula(ano, 'max', e.target.value)}
+          onChange={(e) => setEdicoes((prev) => ({ ...prev, [ano]: { ...prev[ano], max: e.target.value } }))}
+          onBlur={(e) => void salvarCelula(ano, 'max', e.target.value)}
           aria-label={`${label} ano ${ano} máximo`}
         />
       </Fragment>
@@ -266,8 +289,16 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-c-text">{label}</span>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-c-text-2">{configurados}/{anosFuturos.length}</span>
-          <Button variant="icon-btn" disabled={buscandoAnoAtual} onClick={atualizarAnoAtualDaApi} aria-label={t.atualizarDaApi} title={t.atualizarAnoAtualTitle}>
+          <span className="text-[11px] text-c-text-2">
+            {configurados}/{anosFuturos.length}
+          </span>
+          <Button
+            variant="icon-btn"
+            disabled={buscandoAnoAtual}
+            onClick={atualizarAnoAtualDaApi}
+            aria-label={t.atualizarDaApi}
+            title={t.atualizarAnoAtualTitle}
+          >
             <RefreshCw size={14} className={buscandoAnoAtual ? 'animate-spin' : ''} aria-hidden="true" />
           </Button>
         </div>
@@ -275,10 +306,14 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
       <div className="max-h-64 overflow-y-auto rounded-[11px] border border-[rgba(20,21,26,.06)]">
         <button
           type="button"
-          onClick={() => setMostrarAnteriores(v => !v)}
+          onClick={() => setMostrarAnteriores((v) => !v)}
           className="flex items-center justify-center gap-1 w-full py-1.5 text-[11px] font-medium text-c-text-2 hover:text-c-text hover:bg-[rgba(20,21,26,.03)] transition-colors border-b border-[rgba(20,21,26,.06)]"
         >
-          {mostrarAnteriores ? <ChevronUp size={12} aria-hidden="true" /> : <ChevronDown size={12} aria-hidden="true" />}
+          {mostrarAnteriores ? (
+            <ChevronUp size={12} aria-hidden="true" />
+          ) : (
+            <ChevronDown size={12} aria-hidden="true" />
+          )}
           {mostrarAnteriores ? t.ocultarAnosAnteriores : t.verAnosAnteriores}
         </button>
         <div className="grid grid-cols-[64px_1fr_1fr] gap-x-2 gap-y-1.5 p-2 text-[11.5px]">
@@ -286,12 +321,15 @@ function ParametroAnualTable({ chave, label, linhas, t, onSalvar, onValorInvalid
           <span className="text-c-text-2 font-medium">{t.colMinPct}</span>
           <span className="text-c-text-2 font-medium">{t.colMaxPct}</span>
           {mostrarAnteriores && anosAnteriores.length > 0 && (
-            <span style={{ gridColumn: '1 / -1' }} className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 pt-1">
+            <span
+              style={{ gridColumn: '1 / -1' }}
+              className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 pt-1"
+            >
               {t.anosAnterioresHeader}
             </span>
           )}
-          {anosAnteriores.map(ano => renderLinha(ano, true))}
-          {anosFuturos.map(ano => renderLinha(ano, false))}
+          {anosAnteriores.map((ano) => renderLinha(ano, true))}
+          {anosFuturos.map((ano) => renderLinha(ano, false))}
         </div>
       </div>
     </div>
@@ -302,7 +340,8 @@ const AUTO_REFRESH_STALENESS_MS = 60 * 60 * 1000
 
 export default function ParametrosGlobais() {
   const t = useT(parametrosGlobaisT)
-  const { parametrosGlobais, atualizarParametroGlobal, parametrosAnuais, atualizarParametroAnual, loading } = useProjeto()
+  const { parametrosGlobais, atualizarParametroGlobal, parametrosAnuais, atualizarParametroAnual, loading } =
+    useProjeto()
 
   const [toast, setToast] = useState<string | null>(null)
 
@@ -312,7 +351,7 @@ export default function ParametrosGlobais() {
   const jaTentouRef = useRef(false)
   useEffect(() => {
     if (loading || jaTentouRef.current) return
-    const cambio = parametrosGlobais.find(p => p.chave === 'cambio_usd_brl')
+    const cambio = parametrosGlobais.find((p) => p.chave === 'cambio_usd_brl')
     if (!cambio) return
     const idadeMs = Date.now() - new Date(cambio.atualizadoEm).getTime()
     if (!isNaoConfigurado(cambio) && idadeMs < AUTO_REFRESH_STALENESS_MS) return
@@ -321,7 +360,9 @@ export default function ParametrosGlobais() {
       try {
         const valor = await buscarValorBcb(SERIE_BCB.cambio_usd_brl)
         await atualizarParametroGlobal('cambio_usd_brl', valor, 'bcb-sgs', SERIE_BCB.cambio_usd_brl)
-      } catch { /* silencioso — mantém valor antigo */ }
+      } catch {
+        /* silencioso — mantém valor antigo */
+      }
     })()
   }, [loading, parametrosGlobais, atualizarParametroGlobal])
 
@@ -344,71 +385,75 @@ export default function ParametrosGlobais() {
           <div className="flex flex-col">
             {loading && (
               <div className="flex flex-col gap-2 py-1">
-                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} className="h-9 w-full" />
+                ))}
               </div>
             )}
-            {!loading && PARAMETRO_ORDEM.map(chave => {
-              const parametro = parametrosGlobais.find(p => p.chave === chave)
-              if (!parametro) return null
-              return (
-                <ParametroRow
+            {!loading &&
+              PARAMETRO_ORDEM.map((chave) => {
+                const parametro = parametrosGlobais.find((p) => p.chave === chave)
+                if (!parametro) return null
+                return (
+                  <ParametroRow
+                    key={chave}
+                    parametro={parametro}
+                    label={t[PARAMETRO_LABEL_KEY[chave]]}
+                    t={t}
+                    onValorInvalido={() => showToast(t.valorInvalidoToast)}
+                    onBuscaFalhou={() => showToast(t.buscarErroToast)}
+                    onSalvar={async (valor, fonte, serieBcb) => {
+                      try {
+                        await atualizarParametroGlobal(chave, valor, fonte, serieBcb)
+                        showToast(t.atualizadoToast)
+                      } catch {
+                        showToast(t.atualizarErroToast)
+                      }
+                    }}
+                  />
+                )
+              })}
+            {!loading &&
+              PARAMETRO_ANUAL_ORDEM.map((chave) => (
+                <ParametroAnualTable
                   key={chave}
-                  parametro={parametro}
-                  label={t[PARAMETRO_LABEL_KEY[chave]]}
+                  chave={chave}
+                  label={t[PARAMETRO_ANUAL_LABEL_KEY[chave]]}
+                  linhas={parametrosAnuais.filter((p) => p.chave === chave)}
                   t={t}
                   onValorInvalido={() => showToast(t.valorInvalidoToast)}
                   onBuscaFalhou={() => showToast(t.buscarErroToast)}
-                  onSalvar={async (valor, fonte, serieBcb) => {
+                  onSalvar={async (ano, valorMin, valorMax, fonte) => {
                     try {
-                      await atualizarParametroGlobal(chave, valor, fonte, serieBcb)
+                      await atualizarParametroAnual(chave, ano, valorMin, valorMax, fonte)
                       showToast(t.atualizadoToast)
                     } catch {
                       showToast(t.atualizarErroToast)
                     }
                   }}
                 />
-              )
-            })}
-            {!loading && PARAMETRO_ANUAL_ORDEM.map(chave => (
-              <ParametroAnualTable
-                key={chave}
-                chave={chave}
-                label={t[PARAMETRO_ANUAL_LABEL_KEY[chave]]}
-                linhas={parametrosAnuais.filter(p => p.chave === chave)}
-                t={t}
-                onValorInvalido={() => showToast(t.valorInvalidoToast)}
-                onBuscaFalhou={() => showToast(t.buscarErroToast)}
-                onSalvar={async (ano, valorMin, valorMax, fonte) => {
-                  try {
-                    await atualizarParametroAnual(chave, ano, valorMin, valorMax, fonte)
-                    showToast(t.atualizadoToast)
-                  } catch {
-                    showToast(t.atualizarErroToast)
-                  }
-                }}
-              />
-            ))}
+              ))}
           </div>
         </div>
       </div>
 
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          maxWidth:   360,
-          opacity:    toast ? 1 : 0,
-          transform:  toast ? 'translateY(0)' : 'translateY(6px)',
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
+          transform: toast ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

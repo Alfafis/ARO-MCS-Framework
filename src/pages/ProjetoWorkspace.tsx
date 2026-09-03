@@ -18,14 +18,14 @@ export default function ProjetoWorkspace() {
   const { projetos, clientes, loading } = useProjeto()
   const tNav = useT(sidebarT)
   const tCli = useT(clientesT)
-  const t    = useT(projetoWorkspaceT)
+  const t = useT(projetoWorkspaceT)
 
-  const projeto = projetos.find(p => p.id === projetoId)
-  const cliente = clientes.find(c => c.id === projeto?.clienteId)
+  const projeto = projetos.find((p) => p.id === projetoId)
+  const cliente = clientes.find((c) => c.id === projeto?.clienteId)
 
-  const options = projetos.map(p => ({
-    id:   p.id,
-    name: `${clientes.find(c => c.id === p.clienteId)?.nome ?? '—'} · ${p.projeto}`,
+  const options = projetos.map((p) => ({
+    id: p.id,
+    name: `${clientes.find((c) => c.id === p.clienteId)?.nome ?? '—'} · ${p.projeto}`,
   }))
 
   const currentTab = location.pathname.split('/')[3] ?? 'dashboard'
@@ -57,22 +57,22 @@ export default function ProjetoWorkspace() {
   }
 
   const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
-    andamento:  { label: tCli.statusActive,  cls: 'bg-success-bg text-success'    },
+    andamento: { label: tCli.statusActive, cls: 'bg-success-bg text-success' },
     aguardando: { label: tCli.statusWaiting, cls: 'bg-accent-100 text-accent-700' },
-    concluido:  { label: tCli.statusDone,    cls: 'bg-[#f0eeec] text-c-text-2'    },
+    concluido: { label: tCli.statusDone, cls: 'bg-[#f0eeec] text-c-text-2' },
   }
   const status = STATUS_META[projeto.status]
 
   const TABS = [
-    { to: 'dashboard',  label: tNav.overview,       Icon: LayoutDashboard },
-    { to: 'categorias', label: tNav.costCategories, Icon: Tag             },
-    { to: 'simulacao',  label: tNav.simulation,     Icon: Activity        },
+    { to: 'dashboard', label: tNav.overview, Icon: LayoutDashboard },
+    { to: 'categorias', label: tNav.costCategories, Icon: Tag },
+    { to: 'simulacao', label: tNav.simulation, Icon: Activity },
     // Tab Remediação só aparece quando o módulo foi habilitado no /config.
     // Mantém o workspace enxuto pra projetos que não usam escopo alternativo.
     ...(projeto.remediacaoHabilitada ? [{ to: 'remediacao', label: tNav.remediation, Icon: Sprout }] : []),
-    { to: 'revisoes',   label: tNav.revisions,      Icon: History         },
-    { to: 'lancamentos', label: tNav.launches,      Icon: FileText        },
-    { to: 'config',      label: tNav.settings,      Icon: Settings2       },
+    { to: 'revisoes', label: tNav.revisions, Icon: History },
+    { to: 'lancamentos', label: tNav.launches, Icon: FileText },
+    { to: 'config', label: tNav.settings, Icon: Settings2 },
   ]
 
   return (
@@ -91,14 +91,19 @@ export default function ProjetoWorkspace() {
             <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">
               {projeto.rev}
             </span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold ${status.cls}`}>
+            <span
+              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[12px] font-semibold ${status.cls}`}
+            >
               {status.label}
             </span>
           </div>
           <ClientSelector options={options} value={projetoId} onChange={switchProjeto} />
         </div>
 
-        <nav className="flex items-center gap-1 border-b border-[rgba(20,21,26,.08)] -mb-px" aria-label="Navegação do projeto">
+        <nav
+          className="flex items-center gap-1 border-b border-[rgba(20,21,26,.08)] -mb-px"
+          aria-label="Navegação do projeto"
+        >
           {TABS.map(({ to, label, Icon }) => (
             <NavLink
               key={to}

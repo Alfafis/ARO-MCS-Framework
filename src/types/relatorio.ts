@@ -32,8 +32,8 @@ export interface DisbursementCategory {
 
 export interface FanPoint {
   label: string
-  low: number    // posição inferior em % (0–100)
-  band: number   // altura em % (0–100)
+  low: number // posição inferior em % (0–100)
+  band: number // altura em % (0–100)
 }
 
 export interface RiskMetric {

@@ -1,35 +1,38 @@
 import type { Lang } from './LangContext'
 
-export const projetoWorkspaceT: Record<Lang, {
-  notFoundTitle: string
-  notFoundBody:  string
-  backToClients: string
-  configPageTitle:    string
-  configPageSubtitle: string
-  salvar:             string
-}> = {
+export const projetoWorkspaceT: Record<
+  Lang,
+  {
+    notFoundTitle: string
+    notFoundBody: string
+    backToClients: string
+    configPageTitle: string
+    configPageSubtitle: string
+    salvar: string
+  }
+> = {
   'pt-BR': {
     notFoundTitle: 'Projeto não encontrado',
-    notFoundBody:  'Esse link não corresponde a nenhum projeto ativo. Volte pra lista de clientes.',
+    notFoundBody: 'Esse link não corresponde a nenhum projeto ativo. Volte pra lista de clientes.',
     backToClients: '← Clientes',
-    configPageTitle:    'Configurações',
+    configPageTitle: 'Configurações',
     configPageSubtitle: 'Configuração financeira deste projeto.',
-    salvar:             'Salvar',
+    salvar: 'Salvar',
   },
-  'en': {
+  en: {
     notFoundTitle: 'Project not found',
-    notFoundBody:  'This link does not match any active project. Go back to the client list.',
+    notFoundBody: 'This link does not match any active project. Go back to the client list.',
     backToClients: '← Clients',
-    configPageTitle:    'Settings',
-    configPageSubtitle: 'This project\'s financial configuration.',
-    salvar:             'Save',
+    configPageTitle: 'Settings',
+    configPageSubtitle: "This project's financial configuration.",
+    salvar: 'Save',
   },
-  'es': {
+  es: {
     notFoundTitle: 'Proyecto no encontrado',
-    notFoundBody:  'Este enlace no corresponde a ningún proyecto activo. Vuelva a la lista de clientes.',
+    notFoundBody: 'Este enlace no corresponde a ningún proyecto activo. Vuelva a la lista de clientes.',
     backToClients: '← Clientes',
-    configPageTitle:    'Configuración',
+    configPageTitle: 'Configuración',
     configPageSubtitle: 'Configuración financiera de este proyecto.',
-    salvar:             'Guardar',
+    salvar: 'Guardar',
   },
 }

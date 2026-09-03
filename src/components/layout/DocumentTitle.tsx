@@ -26,15 +26,22 @@ export default function DocumentTitle() {
   useEffect(() => {
     const [, root, , tab] = location.pathname.split('/')
     const label = {
-      login:      tLogin.enter,
+      login: tLogin.enter,
       'visao-geral': tNav.overview,
-      clientes:   tNav.clients,
-      projetos:   root === 'projetos' && tab
-        ? ({ dashboard: tNav.overview, categorias: tNav.costCategories, simulacao: tNav.simulation, revisoes: tNav.revisions, lancamentos: tNav.launches }[tab] ?? tNav.projects)
-        : tNav.projects,
-      relatorio:  tRel.reportTitle,
-      perfil:     tPerfil.headerTitle,
-      'tipos-projeto':    tTipos.headerTitle,
+      clientes: tNav.clients,
+      projetos:
+        root === 'projetos' && tab
+          ? ({
+              dashboard: tNav.overview,
+              categorias: tNav.costCategories,
+              simulacao: tNav.simulation,
+              revisoes: tNav.revisions,
+              lancamentos: tNav.launches,
+            }[tab] ?? tNav.projects)
+          : tNav.projects,
+      relatorio: tRel.reportTitle,
+      perfil: tPerfil.headerTitle,
+      'tipos-projeto': tTipos.headerTitle,
       'categorias-custo': tCatCusto.headerTitle,
       'parametros-globais': tParamGlobais.headerTitle,
     }[root]

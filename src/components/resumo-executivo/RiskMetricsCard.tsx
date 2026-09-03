@@ -15,17 +15,23 @@ interface Props {
 }
 
 const UNCERTAINTY_COLOR: Record<UncertaintyLevel, string> = {
-  baixo:    'text-success',
+  baixo: 'text-success',
   moderado: 'text-yellow-600',
-  alto:     'text-accent',
+  alto: 'text-accent',
 }
 
-export default function RiskMetricsCard({ metrics, cvLabel, icLo, icHi, contingency, uncertainty, className = '' }: Props) {
+export default function RiskMetricsCard({
+  metrics,
+  cvLabel,
+  icLo,
+  icHi,
+  contingency,
+  uncertainty,
+  className = '',
+}: Props) {
   const t = useT(resumoT)
 
-  const riskLabel = uncertainty === 'moderado' ? t.riskModerate
-    : uncertainty === 'alto'    ? t.riskHigh
-    : t.riskLow
+  const riskLabel = uncertainty === 'moderado' ? t.riskModerate : uncertainty === 'alto' ? t.riskHigh : t.riskLow
 
   const riskColor = uncertainty ? UNCERTAINTY_COLOR[uncertainty] : 'text-success'
 

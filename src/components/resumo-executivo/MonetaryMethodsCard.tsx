@@ -4,10 +4,10 @@ import { resumoT } from '@/i18n/resumo-executivo'
 import type { MonetaryMethod } from '@/types/relatorio'
 
 interface Props {
-  methods:     MonetaryMethod[]
-  baseLabel:   string
+  methods: MonetaryMethod[]
+  baseLabel: string
   horizonYears: number
-  className?:  string
+  className?: string
 }
 
 export default function MonetaryMethodsCard({ methods, baseLabel, horizonYears, className = '' }: Props) {
@@ -22,10 +22,7 @@ export default function MonetaryMethodsCard({ methods, baseLabel, horizonYears, 
 
       <div className="flex flex-col">
         {methods.map(({ label, value }) => (
-          <div
-            key={label}
-            className="flex justify-between items-baseline py-3 border-b border-c-line last:border-b-0"
-          >
+          <div key={label} className="flex justify-between items-baseline py-3 border-b border-c-line last:border-b-0">
             <span className="text-[0.8125rem] text-c-text">{label}</span>
             <span className="font-mono text-[0.875rem] font-bold text-c-text whitespace-nowrap ml-4">{value}</span>
           </div>

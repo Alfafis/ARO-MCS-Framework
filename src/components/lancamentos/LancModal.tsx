@@ -6,18 +6,22 @@ import { Label } from '@/components/ui/label'
 import { useT } from '@/i18n/useLang'
 import { lancamentosT } from '@/i18n/lancamentos'
 
-interface Form { categoria: string; periodo: string; valor: string }
+interface Form {
+  categoria: string
+  periodo: string
+  valor: string
+}
 
 interface Props {
   onConfirm: (form: Form) => void
-  onCancel:  () => void
+  onCancel: () => void
 }
 
 export default function LancModal({ onConfirm, onCancel }: Props) {
   const t = useT(lancamentosT)
   const [form, setForm] = useState<Form>({ categoria: '', periodo: '', valor: '' })
   const canSubmit = form.categoria.trim().length > 0
-  const set = (field: keyof Form, value: string) => setForm(prev => ({ ...prev, [field]: value }))
+  const set = (field: keyof Form, value: string) => setForm((prev) => ({ ...prev, [field]: value }))
 
   return (
     <Dialog title={t.modalTitle} onClose={onCancel}>
@@ -30,7 +34,7 @@ export default function LancModal({ onConfirm, onCancel }: Props) {
               variant="filled"
               placeholder={t.placeholderCategory}
               value={form.categoria}
-              onChange={e => set('categoria', e.target.value)}
+              onChange={(e) => set('categoria', e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -40,7 +44,7 @@ export default function LancModal({ onConfirm, onCancel }: Props) {
               variant="filled"
               placeholder={t.placeholderPeriod}
               value={form.periodo}
-              onChange={e => set('periodo', e.target.value)}
+              onChange={(e) => set('periodo', e.target.value)}
             />
           </div>
           <div className="flex flex-col gap-1.5">
@@ -50,16 +54,14 @@ export default function LancModal({ onConfirm, onCancel }: Props) {
               variant="filled"
               placeholder={t.placeholderValue}
               value={form.valor}
-              onChange={e => set('valor', e.target.value)}
+              onChange={(e) => set('valor', e.target.value)}
             />
           </div>
           <div className="flex justify-end gap-2 mt-6">
-            <Button variant="ghost" onClick={() => close(onCancel)}>{t.cancel}</Button>
-            <Button
-              variant="primary"
-              disabled={!canSubmit}
-              onClick={() => canSubmit && close(() => onConfirm(form))}
-            >
+            <Button variant="ghost" onClick={() => close(onCancel)}>
+              {t.cancel}
+            </Button>
+            <Button variant="primary" disabled={!canSubmit} onClick={() => canSubmit && close(() => onConfirm(form))}>
               {t.add}
             </Button>
           </div>

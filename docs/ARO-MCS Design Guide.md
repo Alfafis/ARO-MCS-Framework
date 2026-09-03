@@ -3,12 +3,14 @@
 Referência viva, extraída de todas as telas construídas do sistema (`ARO-MCS Bento.dc.html` e as telas com sidebar: Dashboard, Cadastro, Simulação, Lançamentos, Revisões, Clientes, Configurações, Ajuda). Use como ponto de partida ao criar novas telas — não é o Modernist (design system padrão do projeto), é uma direção visual alternativa validada com o usuário.
 
 ## Tipografia
+
 - Fonte única: **Space Grotesk** (Google Fonts, pesos 400/500/600/700).
 - Títulos, números e nomes de categoria: peso 600–700, `letter-spacing: -0.02em` em números grandes.
 - Corpo/labels secundários: peso 400–500, cor `--c-text-2`.
 - Valores monetários, percentuais e hashes usam fonte monoespaçada (`ui-monospace, Menlo, monospace`) para alinhar dígitos.
 
 ## Cores
+
 ```
 --c-text:     #14151a   texto principal
 --c-text-2:   #6c7280   texto secundário / labels
@@ -28,23 +30,28 @@ Referência viva, extraída de todas as telas construídas do sistema (`ARO-MCS 
 --shadow-2: 0 16px 40px -12px rgba(20,21,26,.18)   elementos flutuantes
 --dur: 220ms   duração padrão de transição
 ```
+
 Regra: 1 cor de destaque (vermelho) sobre neutros claros. Nunca gradientes fortes no fundo. Fundos alternativos usados nos componentes: `#f6f5f3` (inputs, stat-mini, linha "add item"), `#f0eeec` (chips inativos, filtros inativos, hover neutro, ícone padrão de linha), `#faf9f8` (cabeçalho de bloco de categoria).
 
 **Paletas categóricas (gráficos com várias séries lado a lado):** quando cores precisam se tocar/comparar (ex.: barra 100% empilhada), NÃO usar tints monocromáticos claros — ficam parecidos demais entre si. Usar uma rampa categórica com contraste real, do mais escuro (maior valor) ao mais claro (menor valor), com pelo menos 8 tons distintos e nunca repetidos:
+
 ```
 #5c0f00  #7a1a06  #99280f  #b83a1a  #d14f2a  #e2703f  #ef9468  #f7bfa0
 ```
+
 Sempre garantir que a cor da barra e a cor da bolinha da legenda para a mesma categoria sejam idênticas.
 
 **Listas onde os itens não se tocam** (ex.: ranking vertical com barra de progresso): pode usar cor única (`var(--accent)`) — a ordem/número e o tamanho da barra já diferenciam, sem depender de tons.
 
 ## Espaçamento e formas
+
 - Raios grandes e consistentes: `--r-md:14px`, `--r-lg:20px`, `--r-xl:26px`, pills `999px` para navegação/tags/botões/filtros/inputs de busca.
 - **Cards sem hover** — sem elevação, sombra ou translate ao passar o mouse. Superfície estática (`.cell`).
 - Sombras discretas: `--shadow-1` em repouso (cards, botões), `--shadow-2` só em elementos flutuantes (dropdown de perfil, menu de dropdown custom, botão circular de recolher sidebar, modal).
 - Divisórias (`border-bottom`/`border-top` fina, `var(--c-line)`) só quando necessário para separar grupos distintos (linhas de toggle, itens de menu de rodada anterior) — evitar entre itens homogêneos de uma mesma lista (ex.: linhas de ranking não têm divisória entre si).
 
 ## Layout
+
 - **Bento grid** (usado em `ARO-MCS Bento.dc.html`): `display:grid; grid-template-columns: repeat(12, 1fr); gap:16px`. Cards ocupam múltiplos de coluna (`span 4`, `span 7`, `span 12`), tamanhos variados, nunca uniformes.
 - **Telas com sidebar** (padrão do sistema — Dashboard, Cadastro, Simulação, Lançamentos, Revisões, Clientes, Configurações, Ajuda): `.appgrid { display:grid; grid-template-columns: {{ sidebarWidth }} 1fr; height:100vh }`, sem bento — conteúdo em `.content` com `padding: 0 32px 32px` e `display:flex; flex-direction:column; gap:16px` (ou grid quando há colunas, ex. Simulação usa `grid-template-columns: 1fr 1.6fr`).
 - **Sidebar** — estrutura EXATA a reaproveitar em toda tela nova (copiar o bloco `<aside class="bsidebar">` inteiro, trocar apenas o link `active` e o `title`):
@@ -57,6 +64,7 @@ Sempre garantir que a cor da barra e a cor da bolinha da legenda para a mesma ca
 - **Topbar** (`.topbar`, `padding:22px 32px`): título + tag de status (opcional) à esquerda, subtítulo em cinza abaixo, botões de ação à direita (`.btn-ghost` + `.btn-primary`, sem quebra de linha, `flex:none`). Este header é o padrão a reaproveitar em toda tela do sistema que tiver cabeçalho — não recriar um novo estilo de header por tela.
 
 ## Componentes-chave
+
 - **KPI card**: ícone em badge quadrado-arredondado 26×26 (`--accent-100` bg, `--accent-700` icon, radius 9px) + label pequeno (`.cell-title`) + número grande (22px, peso 700) + meta/delta opcional.
 - **Delta/tag** (`.tag`): pill pequena (`--r-pill`), peso 600, fundo tintado — `.tag-ok` (verde, `--success-bg`/`--success`), `.tag-warn` (`--accent-100`/`--accent-700`), `.tag-line` (neutro, `#f0eeec`/`--c-text-2`).
 - **Toolbar de lista** (Lançamentos, Clientes): busca em pill flutuante (`.search`, ícone + input sem borda) + chips de filtro (`.filter-chip`, ativo = fundo `--accent` sólido, texto branco).
@@ -72,9 +80,11 @@ Sempre garantir que a cor da barra e a cor da bolinha da legenda para a mesma ca
 - **Segmented control** (`.seg`/`.seg-opt`, ex. distribuição estatística em Simulação): fundo `#f0eeec`, opção ativa com fundo branco + `--shadow-1`.
 
 ## Ícones
+
 Lucide (outline, stroke-width 2), tamanho 14–18px conforme contexto.
 
 ## Interações
+
 - Hover em texto/link: mudar cor para `var(--accent)`. Cuidado: se o elemento tem `style` inline de cor, o hover via classe precisa de `!important` (inline sempre vence especificidade normal).
 - Toda transição de abrir/fechar (dropdown, sidebar, modal) deve ter estado de saída animado — nunca remover do DOM abruptamente quando se espera uma transição.
 - **Item novo em uma lista** (categoria, revisão, lançamento, cliente): entra no TOPO (nunca no final), com animação de entrada (`@keyframes` tipo `fadeIn`/`revIn`/`catIn`: `from{opacity:0;transform:translateY(-14px) scale(.98)} to{opacity:1;transform:translateY(0) scale(1)}`, 420ms `cubic-bezier(.2,.8,.2,1)`) somada a um destaque temporário (borda ou fundo `--accent`/`--accent-100` que decai via `transition` em ~900ms, removido do estado via `setTimeout`).
@@ -82,6 +92,7 @@ Lucide (outline, stroke-width 2), tamanho 14–18px conforme contexto.
 - Ações assíncronas (rodar simulação): botão mostra estado de loading (label muda para "Simulando…", ícone spinner), fica `disabled`, e ao concluir atualiza os valores com transição suave (`transition: height 500ms` nas barras do histograma).
 
 ## O que evitar
+
 - Bordas 100% quadradas (raio zero).
 - Hover com elevação/translate nos cards.
 - Mais de uma cor de destaque.

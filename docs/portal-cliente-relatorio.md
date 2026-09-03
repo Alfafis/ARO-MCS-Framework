@@ -7,6 +7,7 @@ Relatório final que o CLIENTE visualiza, sem sessão de consultor — resumo do
 ## Portão de acesso
 
 Nenhum dado é buscado sem passar pela RPC `obter_relatorio_publico(p_projeto_id, p_codigo)` — ela é o único caminho, valida no servidor (código de acesso OU `is_consultor()` pra sessão de consultor logada). 3 estados possíveis antes do relatório:
+
 - **`loading`** — tela em branco, aguardando a RPC.
 - **`need-code`** — sem código válido em `sessionStorage` (`aro_portal_{projetoId}`): modal de código de acesso centralizado, campo mono uppercase, erro inline se o código for rejeitado.
 - **`not-found`** — RPC retorna erro "não encontrado": tela de erro simples (ícone + título + corpo).

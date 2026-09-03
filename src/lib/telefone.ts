@@ -15,9 +15,7 @@ export function formatTelefone(raw: string): string {
 
   const area = resto.slice(0, 2)
   const numero = resto.slice(2)
-  const numeroFormatado = numero.length > 4
-    ? `${numero.slice(0, -4)}-${numero.slice(-4)}`
-    : numero
+  const numeroFormatado = numero.length > 4 ? `${numero.slice(0, -4)}-${numero.slice(-4)}` : numero
 
   return [hasPlus && ddi ? `+${ddi}` : '', area, numeroFormatado].filter(Boolean).join(' ')
 }

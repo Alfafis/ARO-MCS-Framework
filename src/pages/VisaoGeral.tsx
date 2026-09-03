@@ -14,27 +14,27 @@ import { clientesT } from '@/i18n/clientes'
 import type { ProjStatus } from '@/types/clientes'
 
 interface AtividadeItem {
-  id:          string
-  label:       string
+  id: string
+  label: string
   clienteNome: string
   projetoNome: string
-  projetoId:   string
-  ocorridoEm:  string
+  projetoId: string
+  ocorridoEm: string
 }
 
 interface FeedJoinRow {
-  id:         string
+  id: string
   categoria?: string
-  codigo?:    string
+  codigo?: string
   projeto_id: string
   atualizado_em?: string | null
-  publicado_em?:  string | null
+  publicado_em?: string | null
   projeto: { nome: string; cliente: { nome: string } | null } | null
 }
 
 export default function VisaoGeral() {
   const navigate = useNavigate()
-  const t  = useT(visaoGeralT)
+  const t = useT(visaoGeralT)
   const tc = useT(clientesT)
   const { clientes, projetos, loading } = useProjeto()
   const [atividade, setAtividade] = useState<AtividadeItem[]>([])
@@ -44,11 +44,13 @@ export default function VisaoGeral() {
     let cancelled = false
     async function load() {
       const [{ data: lanc }, { data: rev }] = await Promise.all([
-        supabase.from('lancamentos')
+        supabase
+          .from('lancamentos')
           .select('id, categoria, projeto_id, atualizado_em, projeto:projetos(nome, cliente:clientes(nome))')
           .order('atualizado_em', { ascending: false })
           .limit(10),
-        supabase.from('revisoes')
+        supabase
+          .from('revisoes')
           .select('id, codigo, projeto_id, publicado_em, projeto:projetos(nome, cliente:clientes(nome))')
           .eq('status', 'vigente')
           .order('publicado_em', { ascending: false })
@@ -56,7 +58,7 @@ export default function VisaoGeral() {
       ])
       if (cancelled) return
 
-      const lancItems: AtividadeItem[] = ((lanc ?? []) as unknown as FeedJoinRow[]).map(r => ({
+      const lancItems: AtividadeItem[] = ((lanc ?? []) as unknown as FeedJoinRow[]).map((r) => ({
         id: `lanc-${r.id}`,
         label: t.activityLancamento(r.categoria ?? '—'),
         clienteNome: r.projeto?.cliente?.nome ?? '—',
@@ -64,7 +66,7 @@ export default function VisaoGeral() {
         projetoId: r.projeto_id,
         ocorridoEm: r.atualizado_em ?? '',
       }))
-      const revItems: AtividadeItem[] = ((rev ?? []) as unknown as FeedJoinRow[]).map(r => ({
+      const revItems: AtividadeItem[] = ((rev ?? []) as unknown as FeedJoinRow[]).map((r) => ({
         id: `rev-${r.id}`,
         label: t.activityRevisao(`Rev${(r.codigo ?? '').replace(/\D/g, '')}`),
         clienteNome: r.projeto?.cliente?.nome ?? '—',
@@ -74,7 +76,7 @@ export default function VisaoGeral() {
       }))
 
       const merged = [...lancItems, ...revItems]
-        .filter(item => item.ocorridoEm)
+        .filter((item) => item.ocorridoEm)
         .sort((a, b) => new Date(b.ocorridoEm).getTime() - new Date(a.ocorridoEm).getTime())
         .slice(0, 10)
 
@@ -82,10 +84,12 @@ export default function VisaoGeral() {
       setAtividadeLoading(false)
     }
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [t])
 
-  const clienteNomePorId = useMemo(() => new Map(clientes.map(c => [c.id, c.nome])), [clientes])
+  const clienteNomePorId = useMemo(() => new Map(clientes.map((c) => [c.id, c.nome])), [clientes])
 
   const porStatus = useMemo(() => {
     const acc: Record<ProjStatus, number> = { andamento: 0, aguardando: 0, concluido: 0 }
@@ -94,16 +98,14 @@ export default function VisaoGeral() {
   }, [projetos])
 
   const valorTotalEsperado = useMemo(
-    () => projetos
-      .filter(p => p.status !== 'concluido')
-      .reduce((acc, p) => acc + valorEsperadoNumerico(p.categorias), 0),
+    () =>
+      projetos.filter((p) => p.status !== 'concluido').reduce((acc, p) => acc + valorEsperadoNumerico(p.categorias), 0),
     [projetos]
   )
 
   const projetosRecentes = useMemo(
-    () => [...projetos]
-      .sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime())
-      .slice(0, 8),
+    () =>
+      [...projetos].sort((a, b) => new Date(b.atualizadoEm).getTime() - new Date(a.atualizadoEm).getTime()).slice(0, 8),
     [projetos]
   )
 
@@ -114,8 +116,8 @@ export default function VisaoGeral() {
       porCliente.set(p.clienteId, (porCliente.get(p.clienteId) ?? 0) + valorEsperadoNumerico(p.categorias))
     }
     return clientes
-      .map(c => ({ id: c.id, nome: c.nome, valor: porCliente.get(c.id) ?? 0 }))
-      .filter(c => c.valor > 0)
+      .map((c) => ({ id: c.id, nome: c.nome, valor: porCliente.get(c.id) ?? 0 }))
+      .filter((c) => c.valor > 0)
       .sort((a, b) => b.valor - a.valor)
       .slice(0, 8)
   }, [clientes, projetos])
@@ -123,9 +125,9 @@ export default function VisaoGeral() {
   const maxRanking = rankingClientes[0]?.valor ?? 0
 
   const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
-    andamento:  { label: tc.statusActive,  cls: 'bg-success-bg text-success'    },
+    andamento: { label: tc.statusActive, cls: 'bg-success-bg text-success' },
     aguardando: { label: tc.statusWaiting, cls: 'bg-accent-100 text-accent-700' },
-    concluido:  { label: tc.statusDone,    cls: 'bg-[#f0eeec] text-c-text-2'    },
+    concluido: { label: tc.statusDone, cls: 'bg-[#f0eeec] text-c-text-2' },
   }
 
   return (
@@ -133,11 +135,12 @@ export default function VisaoGeral() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
-
         {/* KPIs */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-24 w-full" />)}
+            {Array.from({ length: 3 }, (_, i) => (
+              <Skeleton key={i} className="h-24 w-full" />
+            ))}
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -171,13 +174,15 @@ export default function VisaoGeral() {
             </div>
             {loading ? (
               <div className="flex flex-col gap-3">
-                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+                {Array.from({ length: 4 }, (_, i) => (
+                  <Skeleton key={i} className="h-10 w-full" />
+                ))}
               </div>
             ) : projetosRecentes.length === 0 ? (
               <p className="text-[0.8125rem] text-c-text-2">{t.recentProjectsEmpty}</p>
             ) : (
               <div className="flex flex-col">
-                {projetosRecentes.map(p => (
+                {projetosRecentes.map((p) => (
                   <div
                     key={p.id}
                     className="flex items-center justify-between gap-3 py-3 border-b border-c-line last:border-b-0 first:pt-0 last:pb-0 cursor-pointer"
@@ -185,10 +190,14 @@ export default function VisaoGeral() {
                   >
                     <div className="min-w-0">
                       <div className="text-[0.8125rem] font-semibold text-c-text truncate">{p.projeto}</div>
-                      <div className="text-[0.75rem] text-c-text-2 truncate">{clienteNomePorId.get(p.clienteId) ?? '—'}</div>
+                      <div className="text-[0.75rem] text-c-text-2 truncate">
+                        {clienteNomePorId.get(p.clienteId) ?? '—'}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_META[p.status].cls}`}>
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold ${STATUS_META[p.status].cls}`}
+                      >
                         {STATUS_META[p.status].label}
                       </span>
                       <span className="text-[0.8125rem] font-semibold text-c-text w-20 text-right">{p.esperado}</span>
@@ -206,7 +215,9 @@ export default function VisaoGeral() {
             </div>
             {loading ? (
               <div className="flex flex-col gap-3">
-                {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-8 w-full" />)}
+                {Array.from({ length: 4 }, (_, i) => (
+                  <Skeleton key={i} className="h-8 w-full" />
+                ))}
               </div>
             ) : rankingClientes.length === 0 ? (
               <p className="text-[0.8125rem] text-c-text-2">{t.rankingEmpty}</p>
@@ -244,13 +255,15 @@ export default function VisaoGeral() {
           </div>
           {atividadeLoading ? (
             <div className="flex flex-col gap-3">
-              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-10 w-full" />)}
+              {Array.from({ length: 4 }, (_, i) => (
+                <Skeleton key={i} className="h-10 w-full" />
+              ))}
             </div>
           ) : atividade.length === 0 ? (
             <p className="text-[0.8125rem] text-c-text-2">{t.activityEmpty}</p>
           ) : (
             <div className="flex flex-col">
-              {atividade.map(item => (
+              {atividade.map((item) => (
                 <div
                   key={item.id}
                   className="flex items-center justify-between gap-3 py-3 border-b border-c-line last:border-b-0 first:pt-0 last:pb-0 cursor-pointer"
@@ -260,16 +273,19 @@ export default function VisaoGeral() {
                     <History size={13} color="var(--c-text-2)" aria-hidden="true" className="shrink-0" />
                     <div className="min-w-0">
                       <div className="text-[0.8125rem] font-semibold text-c-text truncate">{item.label}</div>
-                      <div className="text-[0.75rem] text-c-text-2 truncate">{item.projetoNome} · {item.clienteNome}</div>
+                      <div className="text-[0.75rem] text-c-text-2 truncate">
+                        {item.projetoNome} · {item.clienteNome}
+                      </div>
                     </div>
                   </div>
-                  <span className="font-mono text-[11px] text-c-text-2 shrink-0">{formatRelativeTime(item.ocorridoEm)}</span>
+                  <span className="font-mono text-[11px] text-c-text-2 shrink-0">
+                    {formatRelativeTime(item.ocorridoEm)}
+                  </span>
                 </div>
               ))}
             </div>
           )}
         </div>
-
       </div>
     </div>
   )

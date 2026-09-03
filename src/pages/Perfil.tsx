@@ -16,16 +16,16 @@ const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 export default function Perfil() {
   const t = useT(perfilT)
 
-  const [userId, setUserId]   = useState('')
-  const [email,  setEmail]    = useState('')
-  const [perfil, setPerfil]   = useState<PerfilRow | null>(null)
+  const [userId, setUserId] = useState('')
+  const [email, setEmail] = useState('')
+  const [perfil, setPerfil] = useState<PerfilRow | null>(null)
   const [loading, setLoading] = useState(true)
 
-  const [nome,       setNome]       = useState('')
-  const [profissao,  setProfissao]  = useState('')
-  const [telefone,   setTelefone]   = useState('')
-  const [saving,     setSaving]     = useState(false)
-  const [uploading,  setUploading]  = useState(false)
+  const [nome, setNome] = useState('')
+  const [profissao, setProfissao] = useState('')
+  const [telefone, setTelefone] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
 
   const [toast, setToast] = useState<string | null>(null)
   const [dragOver, setDragOver] = useState(false)
@@ -56,7 +56,9 @@ export default function Perfil() {
     setSaving(true)
     try {
       const { data, error } = await supabase.rpc('atualizar_meu_perfil', {
-        p_nome: nome, p_profissao: profissao, p_telefone: telefone,
+        p_nome: nome,
+        p_profissao: profissao,
+        p_telefone: telefone,
       })
       if (error || !data) throw error ?? new Error('Falha ao salvar perfil')
       setPerfil(data)
@@ -72,7 +74,7 @@ export default function Perfil() {
   async function limparArquivosAntigos() {
     const { data: existentes } = await supabase.storage.from('avatars').list(userId)
     if (existentes && existentes.length > 0) {
-      await supabase.storage.from('avatars').remove(existentes.map(f => `${userId}/${f.name}`))
+      await supabase.storage.from('avatars').remove(existentes.map((f) => `${userId}/${f.name}`))
     }
   }
 
@@ -99,12 +101,14 @@ export default function Perfil() {
       })
       if (uploadError) throw uploadError
 
-      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from('avatars').getPublicUrl(path)
 
       const { error: rpcError } = await supabase.rpc('atualizar_foto_perfil', { p_foto_url: publicUrl })
       if (rpcError) throw rpcError
 
-      setPerfil(p => p ? { ...p, foto_url: publicUrl } : p)
+      setPerfil((p) => (p ? { ...p, foto_url: publicUrl } : p))
       window.dispatchEvent(new CustomEvent('perfil-atualizado'))
       showToast(t.savedToast)
     } catch {
@@ -124,7 +128,7 @@ export default function Perfil() {
       // já registrado em ProjetoContext.atualizarParametroAnual.
       const { error } = await supabase.rpc('atualizar_foto_perfil', { p_foto_url: null as unknown as string })
       if (error) throw error
-      setPerfil(p => p ? { ...p, foto_url: null } : p)
+      setPerfil((p) => (p ? { ...p, foto_url: null } : p))
       window.dispatchEvent(new CustomEvent('perfil-atualizado'))
       showToast(t.savedToast)
     } catch {
@@ -141,34 +145,33 @@ export default function Perfil() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="flex flex-col gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1 max-w-[560px]">
-
         {!loading && (
           <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-6">
-
             {/* Foto */}
             <div className="flex items-center gap-4">
               <div
                 className={`w-16 h-16 rounded-full bg-accent-100 text-accent-700 flex items-center justify-center overflow-hidden shrink-0 transition-shadow ${dragOver ? 'ring-2 ring-accent ring-offset-2' : ''}`}
-                onDragOver={e => { e.preventDefault(); setDragOver(true) }}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  setDragOver(true)
+                }}
                 onDragLeave={() => setDragOver(false)}
-                onDrop={e => {
+                onDrop={(e) => {
                   e.preventDefault()
                   setDragOver(false)
                   const file = e.dataTransfer.files[0]
                   if (file) void handleFotoSelecionada(file)
                 }}
               >
-                {perfil?.foto_url
-                  ? <img src={perfil.foto_url} alt="" className="w-full h-full object-cover" />
-                  : <User size={24} strokeWidth={2} />}
+                {perfil?.foto_url ? (
+                  <img src={perfil.foto_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <User size={24} strokeWidth={2} />
+                )}
               </div>
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    disabled={uploading}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
+                  <Button variant="ghost" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
                     {uploading ? <Loader2 size={14} className="animate-spin" /> : null}
                     {t.photoChange}
                   </Button>
@@ -184,7 +187,7 @@ export default function Perfil() {
                   type="file"
                   accept="image/*"
                   className="sr-only"
-                  onChange={e => {
+                  onChange={(e) => {
                     const file = e.target.files?.[0]
                     if (file) void handleFotoSelecionada(file)
                   }}
@@ -198,15 +201,23 @@ export default function Perfil() {
             <div className="flex flex-col gap-4">
               <div>
                 <Label>{t.labelName}</Label>
-                <Input value={nome} onChange={e => setNome(e.target.value)} placeholder={t.placeholderName} />
+                <Input value={nome} onChange={(e) => setNome(e.target.value)} placeholder={t.placeholderName} />
               </div>
               <div>
                 <Label>{t.labelProfession}</Label>
-                <Input value={profissao} onChange={e => setProfissao(e.target.value)} placeholder={t.placeholderProfession} />
+                <Input
+                  value={profissao}
+                  onChange={(e) => setProfissao(e.target.value)}
+                  placeholder={t.placeholderProfession}
+                />
               </div>
               <div>
                 <Label>{t.labelPhone}</Label>
-                <Input value={telefone} onChange={e => setTelefone(formatTelefone(e.target.value))} placeholder={t.placeholderPhone} />
+                <Input
+                  value={telefone}
+                  onChange={(e) => setTelefone(formatTelefone(e.target.value))}
+                  placeholder={t.placeholderPhone}
+                />
               </div>
               <div>
                 <Label>{t.labelEmail}</Label>
@@ -214,7 +225,9 @@ export default function Perfil() {
               </div>
               <div>
                 <Label>{t.labelRole}</Label>
-                <div><Badge variant="accent">{roleLabel}</Badge></div>
+                <div>
+                  <Badge variant="accent">{roleLabel}</Badge>
+                </div>
               </div>
             </div>
 
@@ -225,27 +238,26 @@ export default function Perfil() {
             </div>
           </div>
         )}
-
       </div>
 
       {/* Toast */}
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          maxWidth:   360,
-          opacity:    toast ? 1 : 0,
-          transform:  toast ? 'translateY(0)' : 'translateY(6px)',
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
+          transform: toast ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

@@ -4,12 +4,12 @@ import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
 
 export interface RevisionTimelineItem {
-  id:    string
+  id: string
   title: string
-  date:  string
-  done:  boolean
-  tag:   string | null
-  desc:  string
+  date: string
+  done: boolean
+  tag: string | null
+  desc: string
 }
 
 interface Props {
@@ -35,16 +35,17 @@ export default function RevisionTimeline({ revisions, emptyLabel, className = ''
           {revisions.map(({ id, title, date, done, tag, desc }, idx) => (
             <div key={id} className="flex gap-3" style={{ opacity: done ? 1 : 0.6 }}>
               <div className="flex flex-col items-center shrink-0">
-                <div className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
-                  style={{ background: done ? 'var(--accent)' : '#d1cec9' }}>
-                  {done
-                    ? <Check size={11} color="#fff" strokeWidth={2.5} aria-hidden="true" />
-                    : <span className="font-mono text-[10px] font-bold text-white">{idx + 1}</span>
-                  }
+                <div
+                  className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
+                  style={{ background: done ? 'var(--accent)' : '#d1cec9' }}
+                >
+                  {done ? (
+                    <Check size={11} color="#fff" strokeWidth={2.5} aria-hidden="true" />
+                  ) : (
+                    <span className="font-mono text-[10px] font-bold text-white">{idx + 1}</span>
+                  )}
                 </div>
-                {idx < revisions.length - 1 && (
-                  <div className="w-px flex-1 min-h-4 bg-[rgba(20,21,26,.08)] my-1" />
-                )}
+                {idx < revisions.length - 1 && <div className="w-px flex-1 min-h-4 bg-[rgba(20,21,26,.08)] my-1" />}
               </div>
 
               <div className={`flex-1 min-w-0${idx < revisions.length - 1 ? ' pb-5' : ''}`}>

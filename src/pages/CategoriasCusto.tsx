@@ -15,18 +15,29 @@ import type { TipoProjeto } from '@/types/tiposProjeto'
 // context. Seleção de tipo é local à página — busca sob demanda ao trocar de
 // tipo, cacheada em `templates` (context) pra não rebuscar ao voltar.
 interface TemplateEditorProps {
-  tipos:   TipoProjeto[]
-  t:       typeof categoriasCustoT['pt-BR']
+  tipos: TipoProjeto[]
+  t: (typeof categoriasCustoT)['pt-BR']
   onToast: (msg: string) => void
 }
 
 function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
   const {
-    catalogo, templates, fetchTemplateCategorias,
-    templateAddCategoria, templateRemoveCategoria, templateUpdateCategoria,
-    templateAddItem, templateRemoveItem, templateUpdateItem, templateSaveItem,
-    templateAddCampoOp, templateRemoveCampoOp, templateUpdateCampoOp, templateSaveCampoOp,
-    templateUpdateCategoriaCustoProvavel, templateUpdateItemDesembolso,
+    catalogo,
+    templates,
+    fetchTemplateCategorias,
+    templateAddCategoria,
+    templateRemoveCategoria,
+    templateUpdateCategoria,
+    templateAddItem,
+    templateRemoveItem,
+    templateUpdateItem,
+    templateSaveItem,
+    templateAddCampoOp,
+    templateRemoveCampoOp,
+    templateUpdateCampoOp,
+    templateSaveCampoOp,
+    templateUpdateCategoriaCustoProvavel,
+    templateUpdateItemDesembolso,
     renomearCategoriaCatalogo,
   } = useProjeto()
   const [tipoSelecionadoId, setTipoSelecionadoId] = useState<string | null>(null)
@@ -48,7 +59,7 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap gap-2">
-        {tipos.map(tipo => (
+        {tipos.map((tipo) => (
           <button
             key={tipo.id}
             type="button"
@@ -64,9 +75,7 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
         ))}
       </div>
 
-      {!tipoSelecionadoId && (
-        <p className="text-[12.5px] text-c-text-2">{t.selectTypeHint}</p>
-      )}
+      {!tipoSelecionadoId && <p className="text-[12.5px] text-c-text-2">{t.selectTypeHint}</p>}
 
       {tipoSelecionadoId && (
         <div className="flex flex-col gap-3">
@@ -82,7 +91,9 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
 
           {carregando && (
             <div className="flex flex-col gap-2">
-              {Array.from({ length: 2 }, (_, i) => <Skeleton key={i} className="h-12 w-full" />)}
+              {Array.from({ length: 2 }, (_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
             </div>
           )}
 
@@ -90,31 +101,60 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
             <p className="text-[12.5px] text-c-text-2 text-center py-6">{t.empty}</p>
           )}
 
-          {!carregando && categorias.map((cat, idx) => (
-            <CategoryBlock
-              key={cat.id}
-              category={cat}
-              nome={catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'}
-              index={idx}
-              onRemove={() => templateRemoveCategoria(tipoSelecionadoId, cat.id).catch(() => onToast(t.removeCategoriaErrorToast))}
-              onChange={(field, value) => templateUpdateCategoria(tipoSelecionadoId, cat.id, field, value).catch(() => onToast(t.saveErrorToast))}
-              onRename={novoNome => {
-                renomearCategoriaCatalogo(cat.catalogoId, novoNome)
-                  .then(() => onToast(t.renameSavedToast))
-                  .catch(() => onToast(t.renameErrorToast))
-              }}
-              onAddItem={() => templateAddItem(tipoSelecionadoId, cat.id).catch(() => onToast(t.saveErrorToast))}
-              onRemoveItem={itemId => templateRemoveItem(tipoSelecionadoId, cat.id, itemId).catch(() => onToast(t.saveErrorToast))}
-              onUpdateItem={(itemId, field, value) => templateUpdateItem(tipoSelecionadoId, cat.id, itemId, field, value)}
-              onSaveItem={(itemId, field, value) => templateSaveItem(itemId, field, value).catch(() => onToast(t.saveErrorToast))}
-              onAddCampoOp={() => templateAddCampoOp(tipoSelecionadoId, cat.id).catch(() => onToast(t.saveErrorToast))}
-              onRemoveCampoOp={campoId => templateRemoveCampoOp(tipoSelecionadoId, cat.id, campoId).catch(() => onToast(t.saveErrorToast))}
-              onUpdateCampoOp={(campoId, field, value) => templateUpdateCampoOp(tipoSelecionadoId, cat.id, campoId, field, value)}
-              onSaveCampoOp={(campoId, field, value) => templateSaveCampoOp(campoId, field, value).catch(() => onToast(t.saveErrorToast))}
-              onSaveCustoProvavel={valor => templateUpdateCategoriaCustoProvavel(tipoSelecionadoId, cat.id, valor).catch(() => onToast(t.saveErrorToast))}
-              onSaveDesembolso={(itemId, valores) => templateUpdateItemDesembolso(tipoSelecionadoId, cat.id, itemId, valores).catch(() => onToast(t.saveErrorToast))}
-            />
-          ))}
+          {!carregando &&
+            categorias.map((cat, idx) => (
+              <CategoryBlock
+                key={cat.id}
+                category={cat}
+                nome={catalogo.find((c) => c.id === cat.catalogoId)?.nome ?? '—'}
+                index={idx}
+                onRemove={() =>
+                  templateRemoveCategoria(tipoSelecionadoId, cat.id).catch(() => onToast(t.removeCategoriaErrorToast))
+                }
+                onChange={(field, value) =>
+                  templateUpdateCategoria(tipoSelecionadoId, cat.id, field, value).catch(() =>
+                    onToast(t.saveErrorToast)
+                  )
+                }
+                onRename={(novoNome) => {
+                  renomearCategoriaCatalogo(cat.catalogoId, novoNome)
+                    .then(() => onToast(t.renameSavedToast))
+                    .catch(() => onToast(t.renameErrorToast))
+                }}
+                onAddItem={() => templateAddItem(tipoSelecionadoId, cat.id).catch(() => onToast(t.saveErrorToast))}
+                onRemoveItem={(itemId) =>
+                  templateRemoveItem(tipoSelecionadoId, cat.id, itemId).catch(() => onToast(t.saveErrorToast))
+                }
+                onUpdateItem={(itemId, field, value) =>
+                  templateUpdateItem(tipoSelecionadoId, cat.id, itemId, field, value)
+                }
+                onSaveItem={(itemId, field, value) =>
+                  templateSaveItem(itemId, field, value).catch(() => onToast(t.saveErrorToast))
+                }
+                onAddCampoOp={() =>
+                  templateAddCampoOp(tipoSelecionadoId, cat.id).catch(() => onToast(t.saveErrorToast))
+                }
+                onRemoveCampoOp={(campoId) =>
+                  templateRemoveCampoOp(tipoSelecionadoId, cat.id, campoId).catch(() => onToast(t.saveErrorToast))
+                }
+                onUpdateCampoOp={(campoId, field, value) =>
+                  templateUpdateCampoOp(tipoSelecionadoId, cat.id, campoId, field, value)
+                }
+                onSaveCampoOp={(campoId, field, value) =>
+                  templateSaveCampoOp(campoId, field, value).catch(() => onToast(t.saveErrorToast))
+                }
+                onSaveCustoProvavel={(valor) =>
+                  templateUpdateCategoriaCustoProvavel(tipoSelecionadoId, cat.id, valor).catch(() =>
+                    onToast(t.saveErrorToast)
+                  )
+                }
+                onSaveDesembolso={(itemId, valores) =>
+                  templateUpdateItemDesembolso(tipoSelecionadoId, cat.id, itemId, valores).catch(() =>
+                    onToast(t.saveErrorToast)
+                  )
+                }
+              />
+            ))}
         </div>
       )}
     </div>
@@ -144,7 +184,9 @@ export default function CategoriasCusto() {
 
           {loading && (
             <div className="flex flex-col gap-2 py-1">
-              {Array.from({ length: 2 }, (_, i) => <Skeleton key={i} className="h-8 w-32" />)}
+              {Array.from({ length: 2 }, (_, i) => (
+                <Skeleton key={i} className="h-8 w-32" />
+              ))}
             </div>
           )}
           {!loading && <TemplateEditor tipos={tiposProjeto} t={t} onToast={showToast} />}
@@ -153,21 +195,21 @@ export default function CategoriasCusto() {
 
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          maxWidth:   360,
-          opacity:    toast ? 1 : 0,
-          transform:  toast ? 'translateY(0)' : 'translateY(6px)',
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
+          transform: toast ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

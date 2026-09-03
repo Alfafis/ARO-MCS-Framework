@@ -17,16 +17,16 @@ export default function CostByCategoryTable({ categories, totals, className = ''
   const t = useT(resumoT)
 
   const PHASE_LABELS: Record<PhaseCategory, { name: string; desc: string; years: string }> = {
-    pre:     { name: t.phasePreLabel,     desc: t.phasePreDesc,     years: t.phasePreYears     },
+    pre: { name: t.phasePreLabel, desc: t.phasePreDesc, years: t.phasePreYears },
     closure: { name: t.phaseClosureLabel, desc: t.phaseClosureDesc, years: t.phaseClosureYears },
-    post:    { name: t.phasePostLabel,    desc: t.phasePostDesc,    years: t.phasePostYears    },
+    post: { name: t.phasePostLabel, desc: t.phasePostDesc, years: t.phasePostYears },
   }
 
   const grouped = groupByPhase
-    ? PHASE_ORDER.map(phase => ({
+    ? PHASE_ORDER.map((phase) => ({
         phase: phase as PhaseCategory | null,
-        items: categories.filter(c => c.phase === phase),
-      })).filter(g => g.items.length > 0)
+        items: categories.filter((c) => c.phase === phase),
+      })).filter((g) => g.items.length > 0)
     : [{ phase: null, items: categories }]
 
   const cols = groupByPhase
@@ -43,7 +43,7 @@ export default function CostByCategoryTable({ categories, totals, className = ''
       <table className="w-full border-collapse">
         <thead>
           <tr>
-            {cols.map(col => (
+            {cols.map((col) => (
               <th
                 key={col}
                 className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 pb-2.5 border-b border-c-line"
@@ -67,9 +67,7 @@ export default function CostByCategoryTable({ categories, totals, className = ''
                       <span className="text-[10px] font-bold uppercase tracking-widest text-accent">
                         {PHASE_LABELS[phase].name}
                       </span>
-                      <span className="text-[10px] text-c-text-2">
-                        {PHASE_LABELS[phase].desc}
-                      </span>
+                      <span className="text-[10px] text-c-text-2">{PHASE_LABELS[phase].desc}</span>
                       <span className="text-[11px] font-semibold text-accent bg-accent/10 rounded-full px-2 py-0.5 leading-none">
                         {PHASE_LABELS[phase].years}
                       </span>
@@ -81,10 +79,16 @@ export default function CostByCategoryTable({ categories, totals, className = ''
                 <tr key={rank}>
                   <td className="py-2.5 border-b border-c-line font-mono text-[11px] text-c-text-2 pr-2 w-8">{rank}</td>
                   <td className="py-2.5 border-b border-c-line text-[0.8125rem] text-c-text">{name}</td>
-                  <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] text-c-text-2 text-right">{min}</td>
-                  <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] text-c-text-2 text-right">{max}</td>
+                  <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] text-c-text-2 text-right">
+                    {min}
+                  </td>
+                  <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] text-c-text-2 text-right">
+                    {max}
+                  </td>
                   {groupByPhase && (
-                    <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] font-semibold text-c-text text-right">{updated}</td>
+                    <td className="py-2.5 border-b border-c-line font-mono text-[0.8125rem] font-semibold text-c-text text-right">
+                      {updated}
+                    </td>
                   )}
                 </tr>
               ))}
@@ -93,10 +97,16 @@ export default function CostByCategoryTable({ categories, totals, className = ''
           <tr>
             <td className="pt-3 border-t-2 border-c-line" />
             <td className="pt-3 border-t-2 border-c-line text-[0.8125rem] font-bold text-c-text">{t.totalLabel}</td>
-            <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">{totals.min}</td>
-            <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">{totals.max}</td>
+            <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">
+              {totals.min}
+            </td>
+            <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">
+              {totals.max}
+            </td>
             {groupByPhase && (
-              <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">{totals.updated}</td>
+              <td className="pt-3 border-t-2 border-c-line font-mono text-[0.8125rem] font-bold text-c-text text-right">
+                {totals.updated}
+              </td>
             )}
           </tr>
         </tbody>

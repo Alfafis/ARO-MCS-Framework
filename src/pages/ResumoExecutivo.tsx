@@ -35,37 +35,44 @@ import { sequenciaMidpoints } from '@/types/parametrosGlobais'
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
 const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
 
-function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPorAno: number[] | null, inflacaoPorAno: number[] | null, dataBaseAno: number | null): string {
+function labelPorMetodo(
+  metodo: MetodoAtualizacao['metodo'],
+  t: ResumoT,
+  selicPorAno: number[] | null,
+  inflacaoPorAno: number[] | null,
+  dataBaseAno: number | null
+): string {
   switch (metodo) {
-    case 'simples':       return t.method1(pct(media(selicPorAno!)))
-    case 'compostos':     return t.method2(pct(media(selicPorAno!)))
-    case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
-    case 'escalonamento': return t.method4(dataBaseAno)
+    case 'simples':
+      return t.method1(pct(media(selicPorAno!)))
+    case 'compostos':
+      return t.method2(pct(media(selicPorAno!)))
+    case 'inflacao':
+      return t.method3(pct(media(inflacaoPorAno!)))
+    case 'escalonamento':
+      return t.method4(dataBaseAno)
   }
 }
 
-type ResumoT = typeof resumoT['pt-BR']
+type ResumoT = (typeof resumoT)['pt-BR']
 
 function revisaoToTimelineItem(rev: RevisaoRow, t: ResumoT): RevisionTimelineItem {
   const numero = rev.codigo.replace(/\D/g, '')
   const ocorridoEm = rev.publicado_em ?? rev.criado_em
-  const desc = rev.status === 'rascunho'
-    ? t.revDraftDesc
-    : rev.status === 'vigente'
-      ? t.revCurrentDesc
-      : t.revReplacedDesc
+  const desc =
+    rev.status === 'rascunho' ? t.revDraftDesc : rev.status === 'vigente' ? t.revCurrentDesc : t.revReplacedDesc
   return {
-    id:    rev.id,
+    id: rev.id,
     title: `Rev${numero}`,
-    date:  formatDateTime(ocorridoEm),
-    done:  rev.status !== 'rascunho',
-    tag:   rev.status === 'vigente' ? t.revCurrent : null,
+    date: formatDateTime(ocorridoEm),
+    done: rev.status !== 'rascunho',
+    tag: rev.status === 'vigente' ? t.revCurrent : null,
     desc,
   }
 }
 
 export default function ResumoExecutivo() {
-  const t   = useT(resumoT)
+  const t = useT(resumoT)
   const tRel = useT(relatorioClienteT)
   const tRem = useT(remediacaoT)
   const navigate = useNavigate()
@@ -82,7 +89,7 @@ export default function ResumoExecutivo() {
     }
   }, [projeto.id, projeto.remediacaoHabilitada, remediacaoCategorias, fetchRemediacao])
   const remediacaoTotal = useMemo(
-    () => remediacaoCategorias ? custoTotalRemediacao(remediacaoCategorias) : 0,
+    () => (remediacaoCategorias ? custoTotalRemediacao(remediacaoCategorias) : 0),
     [remediacaoCategorias]
   )
   const showRemediacaoCard = projeto.remediacaoHabilitada && remediacaoCategorias && remediacaoCategorias.length > 0
@@ -94,7 +101,9 @@ export default function ResumoExecutivo() {
 
   useEffect(() => {
     setLoading(true)
-    const fetchSim = supabase.from('simulacoes').select('*')
+    const fetchSim = supabase
+      .from('simulacoes')
+      .select('*')
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
       .limit(1)
@@ -102,7 +111,9 @@ export default function ResumoExecutivo() {
         if (!error && data && data.length > 0) setSimResult(data[0].resultado as unknown as SimResult)
         else setSimResult(null)
       })
-    const fetchRev = supabase.from('revisoes').select('*')
+    const fetchRev = supabase
+      .from('revisoes')
+      .select('*')
       .eq('projeto_id', projeto.id)
       .order('criado_em', { ascending: false })
       .limit(3)
@@ -128,53 +139,69 @@ export default function ResumoExecutivo() {
   )
 
   const costCategories: CostCategory[] = useMemo(
-    () => categoryParams.map((c, i) => ({
-      rank: String(i + 1).padStart(2, '0'),
-      name: c.name,
-      min:  formatMoedaCompact(c.min, false),
-      max:  formatMoedaCompact(c.max, false),
-    })),
+    () =>
+      categoryParams.map((c, i) => ({
+        rank: String(i + 1).padStart(2, '0'),
+        name: c.name,
+        min: formatMoedaCompact(c.min, false),
+        max: formatMoedaCompact(c.max, false),
+      })),
     [categoryParams]
   )
 
-  const costTotals: CostTotals = useMemo(() => ({
-    min: formatMoedaCompact(categoryParams.reduce((acc, c) => acc + c.min, 0), false),
-    max: formatMoedaCompact(categoryParams.reduce((acc, c) => acc + c.max, 0), false),
-  }), [categoryParams])
+  const costTotals: CostTotals = useMemo(
+    () => ({
+      min: formatMoedaCompact(
+        categoryParams.reduce((acc, c) => acc + c.min, 0),
+        false
+      ),
+      max: formatMoedaCompact(
+        categoryParams.reduce((acc, c) => acc + c.max, 0),
+        false
+      ),
+    }),
+    [categoryParams]
+  )
 
   // Base pro provisionamento: soma do ponto médio de cada categoria real —
   // mesma convenção de ProjetoContext.estimateTotal / PortalClienteRelatorio.
-  const baseTotal         = useMemo(() => categoryParams.reduce((acc, c) => acc + c.mode, 0), [categoryParams])
-  const contingenciaPct   = projeto.contingenciaPct
+  const baseTotal = useMemo(() => categoryParams.reduce((acc, c) => acc + c.mode, 0), [categoryParams])
+  const contingenciaPct = projeto.contingenciaPct
   const baseWithProvision = baseTotal * (1 + contingenciaPct / 100)
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, projeto.horizonteAnos)
+    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, projeto.horizonteAnos)
     const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears: projeto.horizonteAnos }).map(({ metodo, valor }) => ({
+    return computeMonetaryValues(baseWithProvision, {
+      selicPorAno,
+      inflacaoPorAno,
+      horizonYears: projeto.horizonteAnos,
+    }).map(({ metodo, valor }) => ({
       label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),
       value: fmt(valor),
     }))
   }, [baseTotal, baseWithProvision, parametrosAnuais, projeto.dataBase, projeto.horizonteAnos, t])
 
-  const riskMetrics: RiskMetric[] = simResult ? [
-    { label: tRel.riskMean,       value: simResult.mean       },
-    { label: tRel.riskStddev,     value: simResult.stddev     },
-    { label: tRel.riskP80,        value: simResult.p80        },
-    { label: tRel.riskExceedProb, value: simResult.exceedProb },
-  ] : []
+  const riskMetrics: RiskMetric[] = simResult
+    ? [
+        { label: tRel.riskMean, value: simResult.mean },
+        { label: tRel.riskStddev, value: simResult.stddev },
+        { label: tRel.riskP80, value: simResult.p80 },
+        { label: tRel.riskExceedProb, value: simResult.exceedProb },
+      ]
+    : []
 
-  const cvLabel   = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
+  const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
   const confLevel = simResult?.confidenceLevel ?? 95
   const [icLo, icHi] = simResult ? simResult.ic95.replace('M', '').split('–') : ['—', '—']
   const icLoLabel = simResult ? tRel.icLabel(confLevel, icLo) : '—'
   const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
 
-  const revisionItems = useMemo(() => revisoes.map(r => revisaoToTimelineItem(r, t)), [revisoes, t])
+  const revisionItems = useMemo(() => revisoes.map((r) => revisaoToTimelineItem(r, t)), [revisoes, t])
 
   // Curva de desembolso ano-a-ano — matriz por categoria com 3 modos de
   // visualização (Etapa 4 do `_Plan_Curva_Desembolso.md`, `_Dados_Formulas_Planilha.md`).
@@ -189,13 +216,13 @@ export default function ResumoExecutivo() {
     const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
 
     const res = computeDesembolsoMatrix({
-      categorias:      projeto.categorias,
+      categorias: projeto.categorias,
       catalogo,
-      horizonYears:    projeto.horizonteAnos,
+      horizonYears: projeto.horizonteAnos,
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
-      modo:            modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
-      fatorAncoragem:  ancoragem.fator,
+      modo: modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
+      fatorAncoragem: ancoragem.fator,
     })
 
     if (res.totalGeral === 0) return null
@@ -206,10 +233,19 @@ export default function ResumoExecutivo() {
     }))
     const categories: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
-      values: res.matrix[ci].map(v => v > 0 ? formatMoedaCompact(v, false) : null),
+      values: res.matrix[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null)),
     }))
     return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
-  }, [projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
+  }, [
+    projeto.categorias,
+    projeto.horizonteAnos,
+    projeto.contingenciaPct,
+    projeto.dataBase,
+    catalogo,
+    parametrosAnuais,
+    modoDesembolso,
+    ancoragem.fator,
+  ])
 
   // Matriz detalhada item × ano — mesma origem de dados, apenas outra
   // granularidade. Rende só quando `viewDesembolso === 'detalhado'` para não
@@ -221,18 +257,30 @@ export default function ResumoExecutivo() {
     const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
     const modo = modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso
     const res = computeDesembolsoItemMatrix({
-      categorias:      projeto.categorias,
+      categorias: projeto.categorias,
       catalogo,
-      horizonYears:    projeto.horizonteAnos,
+      horizonYears: projeto.horizonteAnos,
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
       modo,
-      fatorAncoragem:  ancoragem.fator,
+      fatorAncoragem: ancoragem.fator,
     })
     if (res.totalGeral === 0) return null
-    const yearsLabels = Array.from({ length: projeto.horizonteAnos }, (_, i) => ({ label: `Ano ${String(i + 1).padStart(2, '0')}` }))
+    const yearsLabels = Array.from({ length: projeto.horizonteAnos }, (_, i) => ({
+      label: `Ano ${String(i + 1).padStart(2, '0')}`,
+    }))
     return { ...res, years: yearsLabels }
-  }, [viewDesembolso, modoDesembolso, projeto.categorias, projeto.horizonteAnos, projeto.contingenciaPct, projeto.dataBase, catalogo, parametrosAnuais, ancoragem.fator])
+  }, [
+    viewDesembolso,
+    modoDesembolso,
+    projeto.categorias,
+    projeto.horizonteAnos,
+    projeto.contingenciaPct,
+    projeto.dataBase,
+    catalogo,
+    parametrosAnuais,
+    ancoragem.fator,
+  ])
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${projeto.id}`
@@ -262,18 +310,25 @@ export default function ResumoExecutivo() {
         actions={
           <>
             <Button variant="ghost" onClick={handleGerarLink}>
-              {linkCopied
-                ? <><Check size={13} /> Link copiado!</>
-                : <><Copy size={13} /> Gerar link do cliente</>}
+              {linkCopied ? (
+                <>
+                  <Check size={13} /> Link copiado!
+                </>
+              ) : (
+                <>
+                  <Copy size={13} /> Gerar link do cliente
+                </>
+              )}
             </Button>
             <Button variant="ghost">{t.exportPdf}</Button>
-            <Button variant="primary" onClick={() => navigate(`/projetos/${projeto.id}/simulacao`)}>{t.runSimulation}</Button>
+            <Button variant="primary" onClick={() => navigate(`/projetos/${projeto.id}/simulacao`)}>
+              {t.runSimulation}
+            </Button>
           </>
         }
       />
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col gap-4">
-
         <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
           <CostByCategoryTable categories={costCategories} totals={costTotals} groupByPhase={false} />
           <RiskMetricsCard
@@ -291,10 +346,16 @@ export default function ResumoExecutivo() {
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
-                <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+                <ModoToggle
+                  current={modoDesembolso}
+                  onChange={setModoDesembolso}
+                  disableIpca={!disbursement.ipcaDisponivel}
+                />
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">{t.viewLabel}</span>
+                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">
+                  {t.viewLabel}
+                </span>
                 <ViewToggle
                   current={viewDesembolso}
                   onChange={setViewDesembolso}
@@ -303,16 +364,17 @@ export default function ResumoExecutivo() {
               </div>
               <AncoragemBadge ancoragem={ancoragem} />
             </div>
-            {viewDesembolso === 'agregado'
-              ? <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
-              : disbursementDetalhado && (
+            {viewDesembolso === 'agregado' ? (
+              <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+            ) : (
+              disbursementDetalhado && (
                 <AnnualDisbursementDetailedCard
                   years={disbursementDetalhado.years}
                   groups={disbursementDetalhado.groups}
                   totaisPorAno={disbursementDetalhado.totaisPorAno}
                 />
               )
-            }
+            )}
           </div>
         )}
 
@@ -328,7 +390,9 @@ export default function ResumoExecutivo() {
             <div className="flex flex-col gap-0.5 flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[13.5px] font-semibold text-c-text">{tRem.headerTitle}</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">{tRem.moduleTag}</span>
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
+                  {tRem.moduleTag}
+                </span>
               </div>
               <span className="text-[12px] text-c-text-2 leading-snug">{tRem.headerSubtitle}</span>
             </div>
@@ -341,7 +405,12 @@ export default function ResumoExecutivo() {
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard className="lg:col-span-7" methods={monetaryMethods} baseLabel={formatMoedaCompact(baseWithProvision)} horizonYears={projeto.horizonteAnos} />
+            <MonetaryMethodsCard
+              className="lg:col-span-7"
+              methods={monetaryMethods}
+              baseLabel={formatMoedaCompact(baseWithProvision)}
+              horizonYears={projeto.horizonteAnos}
+            />
           )}
           <RevisionTimeline
             className={monetaryMethods.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'}
@@ -349,9 +418,7 @@ export default function ResumoExecutivo() {
             emptyLabel={t.revEmpty}
           />
         </div>
-
       </div>
     </>
   )
 }
-

@@ -49,9 +49,9 @@ function TipoRow({ tipo, onRename, onRemove }: TipoRowProps) {
       <Input
         variant="filled"
         value={editing ?? tipo.nome}
-        onChange={e => setEditing(e.target.value)}
+        onChange={(e) => setEditing(e.target.value)}
         onFocus={() => setEditing(tipo.nome)}
-        onKeyDown={e => {
+        onKeyDown={(e) => {
           if (e.key === 'Enter') confirmRename()
           if (e.key === 'Escape') cancelRename()
         }}
@@ -79,7 +79,7 @@ export default function TiposProjeto() {
   const { tiposProjeto, criarTipoProjeto, renomearTipoProjeto, removerTipoProjeto, loading } = useProjeto()
 
   const [novoNome, setNovoNome] = useState('')
-  const [criando, setCriando]   = useState(false)
+  const [criando, setCriando] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
@@ -119,25 +119,29 @@ export default function TiposProjeto() {
           <div className="flex flex-col">
             {loading && (
               <div className="flex flex-col gap-2 py-1">
-                {Array.from({ length: 3 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+                {Array.from({ length: 3 }, (_, i) => (
+                  <Skeleton key={i} className="h-9 w-full" />
+                ))}
               </div>
             )}
-            {!loading && tiposProjeto.map(tipo => (
-              <TipoRow
-                key={tipo.id}
-                tipo={tipo}
-                onRename={async novoNome => {
-                  try {
-                    await renomearTipoProjeto(tipo.id, novoNome)
-                    showToast(t.renameSavedToast)
-                  } catch {
-                    showToast(t.renameErrorToast)
+            {!loading &&
+              tiposProjeto.map((tipo) => (
+                <TipoRow
+                  key={tipo.id}
+                  tipo={tipo}
+                  onRename={async (novoNome) => {
+                    try {
+                      await renomearTipoProjeto(tipo.id, novoNome)
+                      showToast(t.renameSavedToast)
+                    } catch {
+                      showToast(t.renameErrorToast)
+                    }
+                  }}
+                  onRemove={() =>
+                    removerTipoProjeto(tipo.id).catch((err) => showToast(err?.message || t.deleteErrorToast))
                   }
-                }}
-                onRemove={() => removerTipoProjeto(tipo.id)
-                  .catch(err => showToast(err?.message || t.deleteErrorToast))}
-              />
-            ))}
+                />
+              ))}
           </div>
 
           <div className="flex items-center gap-2 pt-2 border-t border-[rgba(20,21,26,.06)]">
@@ -145,8 +149,10 @@ export default function TiposProjeto() {
               variant="filled"
               placeholder={t.placeholderNovoTipo}
               value={novoNome}
-              onChange={e => setNovoNome(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') void handleAdicionar() }}
+              onChange={(e) => setNovoNome(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') void handleAdicionar()
+              }}
             />
             <Button variant="ghost" disabled={criando} onClick={handleAdicionar}>
               <Plus size={14} aria-hidden="true" />
@@ -158,21 +164,21 @@ export default function TiposProjeto() {
 
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          maxWidth:   360,
-          opacity:    toast ? 1 : 0,
-          transform:  toast ? 'translateY(0)' : 'translateY(6px)',
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
+          transform: toast ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

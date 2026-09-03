@@ -20,7 +20,7 @@ export default function ProjetoNovo() {
   const clienteIdFixo = searchParams.get('clienteId')
   const { clientes, tiposProjeto, criarProjeto } = useProjeto()
 
-  const clienteFixo = clienteIdFixo ? clientes.find(c => c.id === clienteIdFixo) : undefined
+  const clienteFixo = clienteIdFixo ? clientes.find((c) => c.id === clienteIdFixo) : undefined
   const clienteLivre = !clienteIdFixo || !clienteFixo
 
   const [projeto, setProjeto] = useState('')
@@ -50,8 +50,8 @@ export default function ProjetoNovo() {
   }, [])
 
   const canSubmit = projeto.trim().length > 0 && !!clienteId && !!tipoProjetoId
-  const clienteOptions = clientes.map(c => ({ value: c.id, label: c.nome }))
-  const tipoOptions = tiposProjeto.map(tp => ({ value: tp.id, label: tp.nome }))
+  const clienteOptions = clientes.map((c) => ({ value: c.id, label: c.nome }))
+  const tipoOptions = tiposProjeto.map((tp) => ({ value: tp.id, label: tp.nome }))
 
   async function handleAvancar() {
     if (!canSubmit) return
@@ -77,7 +77,7 @@ export default function ProjetoNovo() {
               value={clienteId}
               onChange={setClienteId}
               isOpen={clienteOpen}
-              onToggle={() => setClienteOpen(o => !o)}
+              onToggle={() => setClienteOpen((o) => !o)}
             />
           ) : (
             <Input id="pn-cliente" variant="default" value={clienteFixo!.nome} disabled />
@@ -91,7 +91,7 @@ export default function ProjetoNovo() {
             variant="default"
             placeholder={t.placeholderProject}
             value={projeto}
-            onChange={e => setProjeto(e.target.value)}
+            onChange={(e) => setProjeto(e.target.value)}
             autoFocus
           />
         </div>
@@ -104,13 +104,17 @@ export default function ProjetoNovo() {
             value={tipoProjetoId}
             onChange={setTipoProjetoId}
             isOpen={tipoOpen}
-            onToggle={() => setTipoOpen(o => !o)}
+            onToggle={() => setTipoOpen((o) => !o)}
           />
           <p className="text-[11.5px] text-c-text-2">{t.helpProjectType}</p>
         </div>
 
         <div className="flex justify-between items-center mt-2">
-          <button type="button" className="text-[12.5px] font-medium text-c-text-2 hover:underline" onClick={() => navigate(-1)}>
+          <button
+            type="button"
+            className="text-[12.5px] font-medium text-c-text-2 hover:underline"
+            onClick={() => navigate(-1)}
+          >
             {t.voltar}
           </button>
           <Button variant="primary" disabled={!canSubmit || salvando} onClick={handleAvancar}>

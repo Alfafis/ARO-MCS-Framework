@@ -8,10 +8,10 @@ export type ParametroGlobalChave = 'cambio_usd_brl'
 // 'manual' inclui o estado seed ("nunca atualizado", valor=0) — UI distingue
 // os dois por valor, não por fonte (ver ParametrosGlobaisSection).
 export interface ParametroGlobal {
-  chave:        ParametroGlobalChave
-  valor:        number
-  fonte:        'bcb-sgs' | 'manual'
-  serieBcb:     number | null
+  chave: ParametroGlobalChave
+  valor: number
+  fonte: 'bcb-sgs' | 'manual'
+  serieBcb: number | null
   atualizadoEm: string
 }
 
@@ -24,7 +24,7 @@ export function isNaoConfigurado(p: ParametroGlobal): boolean {
 }
 
 export function buscarParametro(parametros: ParametroGlobal[], chave: ParametroGlobalChave): number | null {
-  const p = parametros.find(param => param.chave === chave)
+  const p = parametros.find((param) => param.chave === chave)
   if (!p || isNaoConfigurado(p)) return null
   return p.valor
 }
@@ -48,11 +48,11 @@ export function mapParametroGlobalRow(row: ParametroGlobalRow): ParametroGlobal 
 export type ParametroAnualChave = 'inflacao_ipca' | 'selic'
 
 export interface ParametroAnual {
-  chave:        ParametroAnualChave
-  ano:          number
-  valorMin:     number | null
-  valorMax:     number | null
-  fonte:        'bcb-sgs' | 'manual'
+  chave: ParametroAnualChave
+  ano: number
+  valorMin: number | null
+  valorMax: number | null
+  fonte: 'bcb-sgs' | 'manual'
   atualizadoEm: string
 }
 
@@ -76,9 +76,14 @@ export function mapParametroAnualRow(row: ParametroAnualRow): ParametroAnual {
 // `ano` aqui é ano-calendário absoluto (migration 20260827120000), não relativo
 // ao projeto. Callers precisam passar `anoBase = ano-calendário do 1º ano do
 // horizonte do projeto` (tipicamente derivado de `projeto.dataBase`).
-export function sequenciaMidpoints(parametrosAnuais: ParametroAnual[], chave: ParametroAnualChave, anoBase: number, horizonYears: number): number[] | null {
+export function sequenciaMidpoints(
+  parametrosAnuais: ParametroAnual[],
+  chave: ParametroAnualChave,
+  anoBase: number,
+  horizonYears: number
+): number[] | null {
   if (!Number.isFinite(anoBase)) return null
-  const porAno = new Map(parametrosAnuais.filter(p => p.chave === chave).map(p => [p.ano, p]))
+  const porAno = new Map(parametrosAnuais.filter((p) => p.chave === chave).map((p) => [p.ano, p]))
   const sequencia: number[] = []
   for (let ano = anoBase; ano < anoBase + horizonYears; ano++) {
     const p = porAno.get(ano)

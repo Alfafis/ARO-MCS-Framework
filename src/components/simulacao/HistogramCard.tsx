@@ -4,7 +4,7 @@ import { simulacaoT } from '@/i18n/simulacao'
 import type { SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 interface Props {
-  result:     SimResult | null
+  result: SimResult | null
   iterations: string
 }
 
@@ -12,9 +12,9 @@ export default function HistogramCard({ result, iterations }: Props) {
   const t = useT(simulacaoT)
 
   const UNCERTAINTY_TEXT: Record<UncertaintyLevel, string> = {
-    baixo:    t.uncertainty_low,
+    baixo: t.uncertainty_low,
     moderado: t.uncertainty_mod,
-    alto:     t.uncertainty_high,
+    alto: t.uncertainty_high,
   }
 
   return (
@@ -47,8 +47,7 @@ export default function HistogramCard({ result, iterations }: Props) {
 
           <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
             {UNCERTAINTY_TEXT[result.uncertainty]} —{' '}
-            <strong className="text-c-text font-mono font-bold">{result.range}</strong>{' '}
-            {t.variationSuffix}
+            <strong className="text-c-text font-mono font-bold">{result.range}</strong> {t.variationSuffix}
           </p>
         </>
       ) : (

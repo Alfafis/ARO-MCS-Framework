@@ -17,10 +17,10 @@ export default function ScenariosCard({ result }: Props) {
 
   const { otimista, moderado, pessimista, estresse } = result.scenarios
   const ROWS = [
-    { label: t.scenarioOtimista,   value: otimista   },
-    { label: t.scenarioModerado,   value: moderado   },
+    { label: t.scenarioOtimista, value: otimista },
+    { label: t.scenarioModerado, value: moderado },
     { label: t.scenarioPessimista, value: pessimista },
-    { label: t.scenarioEstresse,   value: estresse   },
+    { label: t.scenarioEstresse, value: estresse },
   ]
 
   return (

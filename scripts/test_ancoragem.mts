@@ -48,31 +48,33 @@ console.log('✔ 2022 → 2023 = (1 + 0,0579) = 1,0579')
 const quatro = computeFatorAncoragem(2022, 2026, historicoOficial)
 const esperado = 1.0579 * 1.0462 * 1.0483 * 1.0483
 assert.ok(Math.abs(quatro.fator - esperado) < 0.0001, `fator 2022→2026 = ${esperado}, got ${quatro.fator}`)
-console.log(`✔ 2022 → 2026 = ∏(1+r_i) = ${quatro.fator.toFixed(4)} (${((quatro.fator-1)*100).toFixed(2)}%)`)
+console.log(`✔ 2022 → 2026 = ∏(1+r_i) = ${quatro.fator.toFixed(4)} (${((quatro.fator - 1) * 100).toFixed(2)}%)`)
 
 // === TESTE 6 — faltando ano no meio → fator=1 + faltantes ===
-const semAno2024 = historicoOficial.filter(p => p.ano !== 2024)
+const semAno2024 = historicoOficial.filter((p) => p.ano !== 2024)
 const faltando = computeFatorAncoragem(2022, 2026, semAno2024)
 assert.equal(faltando.fator, 1)
 assert.deepEqual(faltando.faltantes, [2024])
 console.log('✔ ano faltando no range → fator=1 + faltantes=[2024]')
 
 // === TESTE 7 — múltiplos anos faltando ===
-const soUmAno = historicoOficial.filter(p => p.ano === 2022)
+const soUmAno = historicoOficial.filter((p) => p.ano === 2022)
 const multiFalt = computeFatorAncoragem(2022, 2026, soUmAno)
 assert.equal(multiFalt.fator, 1)
 assert.deepEqual(multiFalt.faltantes, [2023, 2024, 2025])
 console.log('✔ múltiplos anos faltando → faltantes=[2023, 2024, 2025]')
 
 // === TESTE 8 — valor_min ≠ valor_max usa ponto médio ===
-const comRange: ParametroAnual[] = [{
-  chave: 'inflacao_ipca',
-  ano: 2022,
-  valorMin: 5.0,
-  valorMax: 6.58,  // média = 5.79
-  fonte: 'manual',
-  atualizadoEm: '2026-08-29T00:00:00Z',
-}]
+const comRange: ParametroAnual[] = [
+  {
+    chave: 'inflacao_ipca',
+    ano: 2022,
+    valorMin: 5.0,
+    valorMax: 6.58, // média = 5.79
+    fonte: 'manual',
+    atualizadoEm: '2026-08-29T00:00:00Z',
+  },
+]
 const midpoint = computeFatorAncoragem(2022, 2023, comRange)
 assert.ok(Math.abs(midpoint.fator - 1.0579) < 0.0001, 'ponto médio (5.0+6.58)/2 = 5.79')
 console.log('✔ range min≠max usa ponto médio')

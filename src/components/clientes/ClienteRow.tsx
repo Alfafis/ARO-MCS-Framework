@@ -2,9 +2,9 @@ import { ChevronRight } from 'lucide-react'
 import type { Cliente } from '@/types/clientes'
 
 interface Props {
-  cliente:       Cliente
+  cliente: Cliente
   projectsLabel: string
-  onOpen:        () => void
+  onOpen: () => void
 }
 
 export default function ClienteRow({ cliente, projectsLabel, onOpen }: Props) {

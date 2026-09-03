@@ -23,9 +23,12 @@ function mapRowToHistoryRun(row: SimulacaoRow): HistoryRun {
 export function SimulationProvider({ children }: { children: ReactNode }) {
   const [states, setStates] = useState<Record<string, ProjectSimState>>({})
 
-  const getSimState = useCallback((projetoId: string): ProjectSimState => {
-    return states[projetoId] ?? EMPTY_STATE
-  }, [states])
+  const getSimState = useCallback(
+    (projetoId: string): ProjectSimState => {
+      return states[projetoId] ?? EMPTY_STATE
+    },
+    [states]
+  )
 
   // Últimas 4 rodadas — mesma janela que o mock mostrava (atual + 3 no
   // histórico), só que agora sem descartar o resto: fica tudo no banco
@@ -39,7 +42,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       .limit(4)
     if (error || !data || data.length === 0) return
     const [latest] = data
-    setStates(prev => ({
+    setStates((prev) => ({
       ...prev,
       [projetoId]: {
         result: latest.resultado as unknown as SimResult,
@@ -62,7 +65,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
       p_resultado: result as unknown as Json,
     })
     if (error || !data) throw error ?? new Error('Falha ao registrar simulação')
-    setStates(prev => {
+    setStates((prev) => {
       const prevState = prev[projetoId] ?? EMPTY_STATE
       return {
         ...prev,
@@ -78,7 +81,7 @@ export function SimulationProvider({ children }: { children: ReactNode }) {
   // Carrega uma rodada anterior como preview do resultado atual — não conta como nova
   // rodada (não empurra pro histórico), só troca média/status exibidos.
   const previewResult = useCallback((projetoId: string, patch: Pick<SimResult, 'mean' | 'status'>) => {
-    setStates(prev => {
+    setStates((prev) => {
       const prevState = prev[projetoId]
       if (!prevState?.result) return prev
       return { ...prev, [projetoId]: { ...prevState, result: { ...prevState.result, ...patch } } }

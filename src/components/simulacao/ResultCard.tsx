@@ -14,11 +14,11 @@ export default function ResultCard({ result }: Props) {
   const icLabel = result ? `IC ${result.confidenceLevel}%` : 'IC 95%'
 
   const STATS = [
-    { key: 'mean',   label: t.statMean   },
+    { key: 'mean', label: t.statMean },
     { key: 'stddev', label: t.statStddev },
-    { key: 'p10p90', label: 'P10–P90'   },
-    { key: 'ic95',   label: icLabel      },
-    { key: 'var95',  label: t.statVar95  },
+    { key: 'p10p90', label: 'P10–P90' },
+    { key: 'ic95', label: icLabel },
+    { key: 'var95', label: t.statVar95 },
     { key: 'cvar95', label: t.statCvar95 },
   ] as const
 

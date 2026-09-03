@@ -18,7 +18,7 @@ export default function ProjetoConfigInicial() {
   const { projetos, loading, atualizarConfigFinanceira } = useProjeto()
   const [toast, setToast] = useState<string | null>(null)
 
-  const projeto = projetos.find(p => p.id === projetoId)
+  const projeto = projetos.find((p) => p.id === projetoId)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -62,7 +62,7 @@ export default function ProjetoConfigInicial() {
           primaryLabel={t.concluir}
           secondaryAction={{ label: t.pularPorAgora, onClick: irParaWorkspace }}
           onValorInvalido={() => showToast(tCf.valorInvalidoToast)}
-          onSalvar={async form => {
+          onSalvar={async (form) => {
             try {
               await atualizarConfigFinanceira(projetoId, form)
               irParaWorkspace()
@@ -75,11 +75,23 @@ export default function ProjetoConfigInicial() {
 
       <div
         style={{
-          position: 'fixed', bottom: 24, right: 24, display: 'flex', alignItems: 'center', gap: 6,
-          background: '#14151a', color: '#fff', fontSize: 13, fontWeight: 500, padding: '8px 14px',
-          borderRadius: 10, maxWidth: 360, opacity: toast ? 1 : 0,
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: '#14151a',
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: 500,
+          padding: '8px 14px',
+          borderRadius: 10,
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
           transform: toast ? 'translateY(0)' : 'translateY(6px)',
-          transition: 'opacity 180ms ease, transform 180ms ease', pointerEvents: 'none',
+          transition: 'opacity 180ms ease, transform 180ms ease',
+          pointerEvents: 'none',
         }}
       >
         {toast}

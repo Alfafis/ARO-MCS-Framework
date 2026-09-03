@@ -11,8 +11,8 @@ import type { DesembolsoItemGroup } from '@/lib/desembolsoAno'
 // "Total geral" do agregado.
 
 interface Props {
-  years:        { label: string }[]
-  groups:       DesembolsoItemGroup[]
+  years: { label: string }[]
+  groups: DesembolsoItemGroup[]
   totaisPorAno: number[]
 }
 
@@ -38,18 +38,15 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
 
       <div className="overflow-x-auto">
         <div className="grid min-w-[820px]" style={gridStyle}>
-
           {/* Header */}
           <div className="pb-2.5 pr-3 flex items-center">
             <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2">
               {t.detailedActivityHeader}
             </span>
           </div>
-          {years.map(y => (
+          {years.map((y) => (
             <div key={y.label} className="pb-2.5 flex items-center justify-center">
-              <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2">
-                {y.label}
-              </span>
+              <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2">{y.label}</span>
             </div>
           ))}
 
@@ -72,14 +69,12 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
                 </span>
               </div>,
               ...item.valoresPorAno.map((val, yi) => (
-                <div
-                  key={`iv${gi}-${ii}-${yi}`}
-                  className={`${CELL_NUM} border-t border-[rgba(20,21,26,.04)]`}
-                >
-                  {val > 0
-                    ? <span className="font-bold">{formatMoedaCompact(val, false)}</span>
-                    : <span className="text-c-text-2/25">—</span>
-                  }
+                <div key={`iv${gi}-${ii}-${yi}`} className={`${CELL_NUM} border-t border-[rgba(20,21,26,.04)]`}>
+                  {val > 0 ? (
+                    <span className="font-bold">{formatMoedaCompact(val, false)}</span>
+                  ) : (
+                    <span className="text-c-text-2/25">—</span>
+                  )}
                 </div>
               )),
             ]),
@@ -88,10 +83,11 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
             </div>,
             ...group.subtotaisPorAno.map((val, yi) => (
               <div key={`sv${gi}-${yi}`} className={`${CELL_NUM} border-t border-[rgba(20,21,26,.12)]`}>
-                {val > 0
-                  ? <span className="font-bold text-c-text">{formatMoedaCompact(val, false)}</span>
-                  : <span className="text-c-text-2/25">—</span>
-                }
+                {val > 0 ? (
+                  <span className="font-bold text-c-text">{formatMoedaCompact(val, false)}</span>
+                ) : (
+                  <span className="text-c-text-2/25">—</span>
+                )}
               </div>
             )),
           ])}
@@ -108,13 +104,10 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
               <span className="font-bold text-c-text">{formatMoedaCompact(val, false)}</span>
             </div>
           ))}
-
         </div>
       </div>
 
-      <p className="mt-3 text-[11px] leading-relaxed text-c-text-2">
-        {t.detailedFooterNote}
-      </p>
+      <p className="mt-3 text-[11px] leading-relaxed text-c-text-2">{t.detailedFooterNote}</p>
     </div>
   )
 }

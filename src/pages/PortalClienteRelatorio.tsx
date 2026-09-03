@@ -29,18 +29,28 @@ import type { SimResult } from '@/types/simulacao'
 import type { RelatorioPublicoReturns } from '@/types'
 import { sequenciaMidpoints, mapParametroAnualRow } from '@/types/parametrosGlobais'
 
-type ResumoT = typeof resumoT['pt-BR']
+type ResumoT = (typeof resumoT)['pt-BR']
 
 // mesmo formato já usado em ParametroRow (ParametrosGlobais.tsx): "14" → "14,00"
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
 const media = (valores: number[]) => valores.reduce((a, b) => a + b, 0) / valores.length
 
-function labelPorMetodo(metodo: MetodoAtualizacao['metodo'], t: ResumoT, selicPorAno: number[] | null, inflacaoPorAno: number[] | null, dataBaseAno: number | null): string {
+function labelPorMetodo(
+  metodo: MetodoAtualizacao['metodo'],
+  t: ResumoT,
+  selicPorAno: number[] | null,
+  inflacaoPorAno: number[] | null,
+  dataBaseAno: number | null
+): string {
   switch (metodo) {
-    case 'simples':       return t.method1(pct(media(selicPorAno!)))
-    case 'compostos':     return t.method2(pct(media(selicPorAno!)))
-    case 'inflacao':      return t.method3(pct(media(inflacaoPorAno!)))
-    case 'escalonamento': return t.method4(dataBaseAno)
+    case 'simples':
+      return t.method1(pct(media(selicPorAno!)))
+    case 'compostos':
+      return t.method2(pct(media(selicPorAno!)))
+    case 'inflacao':
+      return t.method3(pct(media(inflacaoPorAno!)))
+    case 'escalonamento':
+      return t.method4(dataBaseAno)
   }
 }
 
@@ -54,29 +64,52 @@ function sessionKey(id: string) {
 // modal de código era só um overlay visual sobre dado já carregado.
 export default function PortalClienteRelatorio() {
   const { id: projetoId = '' } = useParams<{ id: string }>()
-  const t     = useT(relatorioClienteT)
+  const t = useT(relatorioClienteT)
   const tBase = useT(resumoT)
 
   const [status, setStatus] = useState<'loading' | 'need-code' | 'not-found' | 'ready'>('loading')
   const [bundle, setBundle] = useState<RelatorioPublicoReturns | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [remediacaoData, setRemediacaoData] = useState<Array<{ id: string; nome: string; area_ha: number | null; ordem: number; itens: Array<{ id: string; descricao: string; unidade: string; quantidade: number | string; custo_unit_min: number | string; custo_unit_max: number | string; fonte: string | null; ordem: number }> }>>([])
+  const [remediacaoData, setRemediacaoData] = useState<
+    Array<{
+      id: string
+      nome: string
+      area_ha: number | null
+      ordem: number
+      itens: Array<{
+        id: string
+        descricao: string
+        unidade: string
+        quantidade: number | string
+        custo_unit_min: number | string
+        custo_unit_max: number | string
+        fonte: string | null
+        ordem: number
+      }>
+    }>
+  >([])
 
-  const fetchRelatorio = useCallback(async (codigo?: string) => {
-    const { data, error } = await supabase.rpc('obter_relatorio_publico', { p_projeto_id: projetoId, p_codigo: codigo })
-    if (error || !data) {
-      setStatus(error?.message.includes('não encontrado') ? 'not-found' : 'need-code')
-      return false
-    }
-    setBundle(data as unknown as RelatorioPublicoReturns)
-    setStatus('ready')
-    return true
-  }, [projetoId])
+  const fetchRelatorio = useCallback(
+    async (codigo?: string) => {
+      const { data, error } = await supabase.rpc('obter_relatorio_publico', {
+        p_projeto_id: projetoId,
+        p_codigo: codigo,
+      })
+      if (error || !data) {
+        setStatus(error?.message.includes('não encontrado') ? 'not-found' : 'need-code')
+        return false
+      }
+      setBundle(data as unknown as RelatorioPublicoReturns)
+      setStatus('ready')
+      return true
+    },
+    [projetoId]
+  )
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session))
     const stored = sessionStorage.getItem(sessionKey(projetoId))
-    fetchRelatorio(stored ?? undefined).then(ok => {
+    fetchRelatorio(stored ?? undefined).then((ok) => {
       if (!ok && stored) sessionStorage.removeItem(sessionKey(projetoId))
     })
   }, [projetoId, fetchRelatorio])
@@ -85,21 +118,29 @@ export default function PortalClienteRelatorio() {
   // da revisão vigente. Se a revisão não marcou opt-in, devolve array vazio.
   useEffect(() => {
     if (status !== 'ready') return
-    supabase.rpc('obter_relatorio_publico_remediacao', { p_projeto_id: projetoId })
-      .then(({ data, error }) => {
-        if (error || !data) return
-        setRemediacaoData(data as never)
-      })
+    supabase.rpc('obter_relatorio_publico_remediacao', { p_projeto_id: projetoId }).then(({ data, error }) => {
+      if (error || !data) return
+      setRemediacaoData(data as never)
+    })
   }, [projetoId, status])
 
   const projeto = bundle?.projeto
   const cliente = bundle?.cliente
 
-  const categorias: Category[] = useMemo(() => (bundle?.categorias ?? []).map(({ categoria, itens }) => ({
-    id: categoria.id, catalogoId: categoria.catalogo_id, preenche: categoria.preenche as Category['preenche'],
-    expanded: false, justAdded: false, items: itens.map(mapItemCustoRow), camposOperacionais: [],
-    custoProvavel: categoria.custo_provavel,
-  })), [bundle])
+  const categorias: Category[] = useMemo(
+    () =>
+      (bundle?.categorias ?? []).map(({ categoria, itens }) => ({
+        id: categoria.id,
+        catalogoId: categoria.catalogo_id,
+        preenche: categoria.preenche as Category['preenche'],
+        expanded: false,
+        justAdded: false,
+        items: itens.map(mapItemCustoRow),
+        camposOperacionais: [],
+        custoProvavel: categoria.custo_provavel,
+      })),
+    [bundle]
+  )
 
   const catalogo: CategoriaCatalogo[] = useMemo(() => {
     const seen = new Map<string, string>()
@@ -116,64 +157,83 @@ export default function PortalClienteRelatorio() {
   // pattern do ResumoExecutivo, ver src/lib/ancoragem.ts. Sem essa multiplicação
   // os valores exibidos ao cliente ficam em base 2022, subestimando N anos de IPCA.
   const ancoragem = useMemo(() => {
-    const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const dataBaseAno =
+      projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
     return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
   }, [projeto?.data_base, parametrosAnuais])
 
-  const categoryParams = useMemo(() => categoryParamsFromCategorias(categorias, catalogo, ancoragem.fator), [categorias, catalogo, ancoragem.fator])
+  const categoryParams = useMemo(
+    () => categoryParamsFromCategorias(categorias, catalogo, ancoragem.fator),
+    [categorias, catalogo, ancoragem.fator]
+  )
 
   const filteredParams = useMemo(
-    () => activeCatSet.size === 0 ? categoryParams : categoryParams.filter(c => activeCatSet.has(c.name)),
+    () => (activeCatSet.size === 0 ? categoryParams : categoryParams.filter((c) => activeCatSet.has(c.name))),
     [categoryParams, activeCatSet]
   )
 
   const costCategories: CostCategory[] = useMemo(
-    () => filteredParams.map((c, i) => ({
-      rank: String(i + 1).padStart(2, '0'),
-      name: c.name,
-      min:  formatMoedaCompact(c.min, false),
-      max:  formatMoedaCompact(c.max, false),
-    })),
+    () =>
+      filteredParams.map((c, i) => ({
+        rank: String(i + 1).padStart(2, '0'),
+        name: c.name,
+        min: formatMoedaCompact(c.min, false),
+        max: formatMoedaCompact(c.max, false),
+      })),
     [filteredParams]
   )
 
-  const costTotals: CostTotals = useMemo(() => ({
-    min: formatMoedaCompact(filteredParams.reduce((acc, c) => acc + c.min, 0), false),
-    max: formatMoedaCompact(filteredParams.reduce((acc, c) => acc + c.max, 0), false),
-  }), [filteredParams])
+  const costTotals: CostTotals = useMemo(
+    () => ({
+      min: formatMoedaCompact(
+        filteredParams.reduce((acc, c) => acc + c.min, 0),
+        false
+      ),
+      max: formatMoedaCompact(
+        filteredParams.reduce((acc, c) => acc + c.max, 0),
+        false
+      ),
+    }),
+    [filteredParams]
+  )
 
   // Base pro provisionamento: soma do ponto médio (min+max)/2 de cada categoria real —
   // mesma convenção usada em ProjetoContext.estimateTotal. "Valor atualizado" por
   // categoria (juros/inflação aplicados individualmente) é gap de modelagem, não existe
   // ainda — ver spec 2026-08-21-simulacao-isolamento-relatorio-design.
-  const baseTotal          = useMemo(() => filteredParams.reduce((acc, c) => acc + c.mode, 0), [filteredParams])
-  const contingenciaPct    = projeto?.contingencia_pct ?? 0
-  const baseWithProvision  = baseTotal * (1 + contingenciaPct / 100)
+  const baseTotal = useMemo(() => filteredParams.reduce((acc, c) => acc + c.mode, 0), [filteredParams])
+  const contingenciaPct = projeto?.contingencia_pct ?? 0
+  const baseWithProvision = baseTotal * (1 + contingenciaPct / 100)
 
   const monetaryMethods = useMemo(() => {
     if (baseTotal === 0) return []
-    const horizonYears   = projeto?.horizonte_anos ?? 10
-    const dataBaseAno = projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const horizonYears = projeto?.horizonte_anos ?? 10
+    const dataBaseAno =
+      projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const selicPorAno    = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, horizonYears)
+    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, horizonYears)
     const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
     const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears }).map(({ metodo, valor }) => ({
-      label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
-      value: fmt(valor),
-    }))
+    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears }).map(
+      ({ metodo, valor }) => ({
+        label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
+        value: fmt(valor),
+      })
+    )
   }, [baseTotal, baseWithProvision, parametrosAnuais, projeto?.data_base, projeto?.horizonte_anos, tBase])
 
-  const riskMetrics: RiskMetric[] = simResult ? [
-    { label: t.riskMean,       value: simResult.mean       },
-    { label: t.riskStddev,     value: simResult.stddev     },
-    { label: t.riskP80,        value: simResult.p80        },
-    { label: t.riskExceedProb, value: simResult.exceedProb },
-  ] : []
+  const riskMetrics: RiskMetric[] = simResult
+    ? [
+        { label: t.riskMean, value: simResult.mean },
+        { label: t.riskStddev, value: simResult.stddev },
+        { label: t.riskP80, value: simResult.p80 },
+        { label: t.riskExceedProb, value: simResult.exceedProb },
+      ]
+    : []
 
   const cvPercent = simResult ? (simResult.cv * 100).toFixed(2) : null
-  const cvLabel   = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
+  const cvLabel = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
   const confLevel = simResult?.confidenceLevel ?? 95
   const [icLo, icHi] = simResult ? simResult.ic95.replace('M', '').split('–') : ['—', '—']
   const icLoLabel = simResult ? t.icLabel(confLevel, icLo) : '—'
@@ -210,7 +270,7 @@ export default function PortalClienteRelatorio() {
     }))
     const cats: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
-      values: res.matrix[ci].map(v => v > 0 ? formatMoedaCompact(v, false) : null),
+      values: res.matrix[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null)),
     }))
     return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
   }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
@@ -235,7 +295,9 @@ export default function PortalClienteRelatorio() {
       fatorAncoragem: ancoragem.fator,
     })
     if (res.totalGeral === 0) return null
-    const yearsLabels = Array.from({ length: horizonYears }, (_, i) => ({ label: `Ano ${String(i + 1).padStart(2, '0')}` }))
+    const yearsLabels = Array.from({ length: horizonYears }, (_, i) => ({
+      label: `Ano ${String(i + 1).padStart(2, '0')}`,
+    }))
     return { ...res, years: yearsLabels }
   }, [viewDesembolso, modoDesembolso, projeto, categorias, catalogo, parametrosAnuais, ancoragem.fator])
 
@@ -269,7 +331,10 @@ export default function PortalClienteRelatorio() {
 
   function handleDownload() {
     setToast(true)
-    setTimeout(() => { setToast(false); window.print() }, 900)
+    setTimeout(() => {
+      setToast(false)
+      window.print()
+    }, 900)
   }
 
   if (status === 'not-found') {
@@ -304,21 +369,20 @@ export default function PortalClienteRelatorio() {
               <input
                 type="text"
                 value={codeInput}
-                onChange={e => { setCodeInput(e.target.value); setCodeError(false) }}
+                onChange={(e) => {
+                  setCodeInput(e.target.value)
+                  setCodeError(false)
+                }}
                 placeholder={t.modalCodePlaceholder}
                 autoFocus
                 autoComplete="off"
                 autoCapitalize="characters"
                 className={[
                   'w-full bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text font-mono tracking-wider outline-none border transition-colors duration-150',
-                  codeError
-                    ? 'border-[#f44] focus:border-[#f44]'
-                    : 'border-transparent focus:border-accent',
+                  codeError ? 'border-[#f44] focus:border-[#f44]' : 'border-transparent focus:border-accent',
                 ].join(' ')}
               />
-              {codeError && (
-                <p className="text-[12px] text-[#e33] mt-1.5">{t.modalCodeError}</p>
-              )}
+              {codeError && <p className="text-[12px] text-[#e33] mt-1.5">{t.modalCodeError}</p>}
             </div>
             <button
               type="submit"
@@ -336,7 +400,6 @@ export default function PortalClienteRelatorio() {
 
   return (
     <div className="min-h-screen print:bg-white">
-
       {/* ── Header fixo ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[rgba(20,21,26,.08)] flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
         <img src="/BePlanned Logo.png" alt="Be Planned" className="h-10 w-auto object-contain" />
@@ -357,9 +420,15 @@ export default function PortalClienteRelatorio() {
             onClick={handleGerarLink}
             className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
           >
-            {linkCopied
-              ? <><Check size={13} strokeWidth={2} /> {t.linkCopiedBtn}</>
-              : <><Copy size={13} strokeWidth={2} /> {t.copyLinkBtn}</>}
+            {linkCopied ? (
+              <>
+                <Check size={13} strokeWidth={2} /> {t.linkCopiedBtn}
+              </>
+            ) : (
+              <>
+                <Copy size={13} strokeWidth={2} /> {t.copyLinkBtn}
+              </>
+            )}
           </button>
           <button
             onClick={handleDownload}
@@ -375,11 +444,12 @@ export default function PortalClienteRelatorio() {
       {/* ── Relatório ── */}
       <div className="pt-[56px] sm:pt-[76px]">
         <div className="max-w-[1040px] mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-5">
-
           {/* Cabeçalho do relatório */}
           <div>
             <div className="flex items-center gap-3 mb-1.5">
-              <h1 className="text-[22px] font-bold text-c-text">{t.reportTitle} — {projeto.nome}</h1>
+              <h1 className="text-[22px] font-bold text-c-text">
+                {t.reportTitle} — {projeto.nome}
+              </h1>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold">
                 {projeto.rev} · {t.reportRevisionCurrent}
               </span>
@@ -411,7 +481,7 @@ export default function PortalClienteRelatorio() {
                 value: baseTotal > 0 ? formatMoedaCompact(baseWithProvision) : '—',
                 sub: t.kpiBaseSub(contingenciaPct),
               },
-            ].map(kpi => (
+            ].map((kpi) => (
               <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
                 <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center shrink-0">
                   {kpi.icon}
@@ -443,10 +513,16 @@ export default function PortalClienteRelatorio() {
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
                   <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
-                  <ModoToggle current={modoDesembolso} onChange={setModoDesembolso} disableIpca={!disbursement.ipcaDisponivel} />
+                  <ModoToggle
+                    current={modoDesembolso}
+                    onChange={setModoDesembolso}
+                    disableIpca={!disbursement.ipcaDisponivel}
+                  />
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">{tBase.viewLabel}</span>
+                  <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">
+                    {tBase.viewLabel}
+                  </span>
                   <ViewToggle
                     current={viewDesembolso}
                     onChange={setViewDesembolso}
@@ -455,29 +531,31 @@ export default function PortalClienteRelatorio() {
                 </div>
                 <AncoragemBadge ancoragem={ancoragem} />
               </div>
-              {viewDesembolso === 'agregado'
-                ? <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
-                : disbursementDetalhado && (
+              {viewDesembolso === 'agregado' ? (
+                <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+              ) : (
+                disbursementDetalhado && (
                   <AnnualDisbursementDetailedCard
                     years={disbursementDetalhado.years}
                     groups={disbursementDetalhado.groups}
                     totaisPorAno={disbursementDetalhado.totaisPorAno}
                   />
                 )
-              }
+              )}
             </div>
           )}
 
           {monetaryMethods.length > 0 && (
-            <MonetaryMethodsCard methods={monetaryMethods} baseLabel={formatMoedaCompact(baseWithProvision)} horizonYears={projeto?.horizonte_anos ?? 10} />
+            <MonetaryMethodsCard
+              methods={monetaryMethods}
+              baseLabel={formatMoedaCompact(baseWithProvision)}
+              horizonYears={projeto?.horizonte_anos ?? 10}
+            />
           )}
 
           {/* Seção Remediação — só aparece se a revisão vigente marcou opt-in.
               Escopo alternativo, totais não somam ao provisionamento principal. */}
-          {remediacaoData.length > 0 && (
-            <RemediacaoSection categorias={remediacaoData} />
-          )}
-
+          {remediacaoData.length > 0 && <RemediacaoSection categorias={remediacaoData} />}
         </div>
       </div>
 
@@ -508,17 +586,26 @@ export default function PortalClienteRelatorio() {
 // --------------------------------------------------------------------------
 interface RemediacaoSectionProps {
   categorias: Array<{
-    id:      string
-    nome:    string
+    id: string
+    nome: string
     area_ha: number | null
-    ordem:   number
-    itens:   Array<{ id: string; descricao: string; unidade: string; quantidade: number | string; custo_unit_min: number | string; custo_unit_max: number | string; fonte: string | null; ordem: number }>
+    ordem: number
+    itens: Array<{
+      id: string
+      descricao: string
+      unidade: string
+      quantidade: number | string
+      custo_unit_min: number | string
+      custo_unit_max: number | string
+      fonte: string | null
+      ordem: number
+    }>
   }>
 }
 
 function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
   const t = useT(remediacaoT)
-  const toNum = (v: number | string | null): number => v == null ? 0 : (typeof v === 'number' ? v : Number(v))
+  const toNum = (v: number | string | null): number => (v == null ? 0 : typeof v === 'number' ? v : Number(v))
   const custoTotalItem = (item: RemediacaoSectionProps['categorias'][number]['itens'][number]): number => {
     const qtd = toNum(item.quantidade)
     const med = (toNum(item.custo_unit_min) + toNum(item.custo_unit_max)) / 2
@@ -533,11 +620,13 @@ function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
       <div className="flex items-center gap-2">
         <Sprout size={14} color="var(--accent)" aria-hidden="true" />
         <h2 className="text-[15px] font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h2>
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">{t.moduleTag}</span>
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
+          {t.moduleTag}
+        </span>
       </div>
       <p className="text-[12.5px] text-c-text-2 leading-snug max-w-[720px]">{t.headerSubtitle}</p>
 
-      {categorias.map(cat => (
+      {categorias.map((cat) => (
         <div key={cat.id} className="card">
           <div className="flex items-baseline justify-between gap-3 mb-3">
             <h3 className="text-[14px] font-bold text-c-text">
@@ -548,7 +637,9 @@ function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
                 </span>
               )}
             </h3>
-            <span className="font-mono text-[13px] font-bold text-c-text">{formatMoedaCompact(totalCategoria(cat))}</span>
+            <span className="font-mono text-[13px] font-bold text-c-text">
+              {formatMoedaCompact(totalCategoria(cat))}
+            </span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-[12px]">
@@ -564,14 +655,22 @@ function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
                 </tr>
               </thead>
               <tbody>
-                {cat.itens.map(item => (
+                {cat.itens.map((item) => (
                   <tr key={item.id} className="border-t border-[rgba(20,21,26,.04)]">
                     <td className="py-1.5 pr-3 text-c-text">{item.descricao}</td>
                     <td className="py-1.5 pr-3 text-center text-c-text-2 font-mono text-[11px]">{item.unidade}</td>
-                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{toNum(item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 3 })}</td>
-                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{formatMoedaCompact(toNum(item.custo_unit_min), false)}</td>
-                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">{formatMoedaCompact(toNum(item.custo_unit_max), false)}</td>
-                    <td className="py-1.5 pr-3 text-right font-mono font-bold text-c-text">{formatMoedaCompact(custoTotalItem(item), false)}</td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">
+                      {toNum(item.quantidade).toLocaleString('pt-BR', { maximumFractionDigits: 3 })}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">
+                      {formatMoedaCompact(toNum(item.custo_unit_min), false)}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right font-mono text-c-text-2">
+                      {formatMoedaCompact(toNum(item.custo_unit_max), false)}
+                    </td>
+                    <td className="py-1.5 pr-3 text-right font-mono font-bold text-c-text">
+                      {formatMoedaCompact(custoTotalItem(item), false)}
+                    </td>
                     <td className="py-1.5 text-c-text-2 text-[11px]">{item.fonte ?? '—'}</td>
                   </tr>
                 ))}
@@ -588,4 +687,3 @@ function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
     </section>
   )
 }
-

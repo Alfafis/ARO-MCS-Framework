@@ -8,10 +8,10 @@ import { supabase } from '@/integrations/supabase/client'
 export default function Login() {
   const navigate = useNavigate()
   const t = useT(loginT)
-  const [email,    setEmail]    = useState('')
+  const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [error,    setError]    = useState('')
-  const [loading,  setLoading]  = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -41,24 +41,18 @@ export default function Login() {
       >
         {/* Marca */}
         <div className="flex flex-col items-center mb-7">
-          <img
-            src="/BePlanned Logo.png"
-            alt="Be Planned"
-            className="w-40 object-contain mb-2"
-          />
+          <img src="/BePlanned Logo.png" alt="Be Planned" className="w-40 object-contain mb-2" />
           <p className="text-[13px] text-c-text-2 mt-1">{t.subtitle}</p>
         </div>
 
         {/* Formulário */}
         <form onSubmit={handleSubmit} className="flex flex-col gap-3" noValidate>
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-c-text-2 uppercase tracking-widest">
-              {t.emailLabel}
-            </label>
+            <label className="text-[12px] font-semibold text-c-text-2 uppercase tracking-widest">{t.emailLabel}</label>
             <input
               type="email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder={t.emailPlaceholder}
               required
               autoComplete="email"
@@ -74,7 +68,7 @@ export default function Login() {
             <input
               type="password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••"
               required
               autoComplete="current-password"
@@ -85,12 +79,7 @@ export default function Login() {
 
           {error && <p className="text-[12.5px] text-accent font-medium">{error}</p>}
 
-          <Button
-            variant="primary"
-            type="submit"
-            className="w-full mt-1 justify-center"
-            disabled={loading}
-          >
+          <Button variant="primary" type="submit" className="w-full mt-1 justify-center" disabled={loading}>
             {loading ? t.entering : t.enter}
           </Button>
         </form>

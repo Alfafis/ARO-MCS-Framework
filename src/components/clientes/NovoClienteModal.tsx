@@ -8,7 +8,7 @@ import { clientesT } from '@/i18n/clientes'
 
 interface Props {
   onConfirm: (nome: string) => void
-  onCancel:  () => void
+  onCancel: () => void
 }
 
 export default function NovoClienteModal({ onConfirm, onCancel }: Props) {
@@ -27,17 +27,15 @@ export default function NovoClienteModal({ onConfirm, onCancel }: Props) {
               variant="filled"
               placeholder={t.placeholderClientName}
               value={nome}
-              onChange={e => setNome(e.target.value)}
+              onChange={(e) => setNome(e.target.value)}
               autoFocus
             />
           </div>
           <div className="flex justify-end gap-2 mt-6">
-            <Button variant="ghost" onClick={() => close(onCancel)}>{t.cancel}</Button>
-            <Button
-              variant="primary"
-              disabled={!canSubmit}
-              onClick={() => canSubmit && close(() => onConfirm(nome))}
-            >
+            <Button variant="ghost" onClick={() => close(onCancel)}>
+              {t.cancel}
+            </Button>
+            <Button variant="primary" disabled={!canSubmit} onClick={() => canSubmit && close(() => onConfirm(nome))}>
               {t.createClient}
             </Button>
           </div>

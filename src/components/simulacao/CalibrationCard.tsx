@@ -13,7 +13,7 @@ interface Props {
 const BADGE_VARIANT: Record<NivelRisco, 'success' | 'warning' | 'danger'> = {
   Baixo: 'success',
   Médio: 'warning',
-  Alto:  'danger',
+  Alto: 'danger',
 }
 
 export default function CalibrationCard({ result }: Props) {
@@ -24,10 +24,10 @@ export default function CalibrationCard({ result }: Props) {
   if (!result || result.p50Raw == null || result.cvar95Raw == null) return null
 
   const cal = calibrarProvisao({
-    cv:     result.cv,
-    p50:    result.p50Raw,
-    p90:    result.p90Raw,
-    p95:    result.p95Raw,
+    cv: result.cv,
+    p50: result.p50Raw,
+    p90: result.p90Raw,
+    p95: result.p95Raw,
     cvar95: result.cvar95Raw,
   })
 
@@ -43,16 +43,28 @@ export default function CalibrationCard({ result }: Props) {
       <p className="text-[12px] text-c-text-2 leading-snug mb-4">{t.calibrationHint}</p>
       <div className="grid grid-cols-3 gap-2.5">
         <div className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{t.calibrationBase}</div>
-          <div className="font-mono text-base font-bold text-c-text tracking-tight">{formatMoedaCompact(cal.provisaoBase)}</div>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
+            {t.calibrationBase}
+          </div>
+          <div className="font-mono text-base font-bold text-c-text tracking-tight">
+            {formatMoedaCompact(cal.provisaoBase)}
+          </div>
         </div>
         <div className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{t.calibrationMargin}</div>
-          <div className="font-mono text-base font-bold text-c-text tracking-tight">{(cal.margemSeguranca * 100).toFixed(0)}%</div>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
+            {t.calibrationMargin}
+          </div>
+          <div className="font-mono text-base font-bold text-c-text tracking-tight">
+            {(cal.margemSeguranca * 100).toFixed(0)}%
+          </div>
         </div>
         <div className="bg-accent-100 rounded-[14px] px-4 py-3.5">
-          <div className="text-[11px] font-semibold tracking-widest uppercase text-accent-700 mb-1.5">{t.calibrationFinal}</div>
-          <div className="font-mono text-base font-bold text-accent-700 tracking-tight">{formatMoedaCompact(cal.provisaoFinal)}</div>
+          <div className="text-[11px] font-semibold tracking-widest uppercase text-accent-700 mb-1.5">
+            {t.calibrationFinal}
+          </div>
+          <div className="font-mono text-base font-bold text-accent-700 tracking-tight">
+            {formatMoedaCompact(cal.provisaoFinal)}
+          </div>
         </div>
       </div>
     </div>

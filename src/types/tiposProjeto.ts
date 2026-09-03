@@ -1,4 +1,4 @@
 export interface TipoProjeto {
-  id:   string
+  id: string
   nome: string
 }

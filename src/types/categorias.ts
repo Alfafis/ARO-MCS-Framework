@@ -1,11 +1,11 @@
 import type { Fase } from './setores'
 
 export interface CategoryItem {
-  id:     string
-  name:   string
-  unit:   string
-  min:    string
-  max:    string
+  id: string
+  name: string
+  unit: string
+  min: string
+  max: string
   source: string
 
   // Modelagem estruturada (migration 20260824120000_setores_fase_ano.sql).
@@ -16,15 +16,15 @@ export interface CategoryItem {
   // - anoInicio / anoFim: range 1..20 dentro do horizonte do projeto.
   //   Iguais = ano único. Ambos null = ano não definido.
   aplicabilidadeSetores: number[] | null
-  fase:                  Fase | null
-  anoInicio:             number | null
-  anoFim:                number | null
+  fase: Fase | null
+  anoInicio: number | null
+  anoFim: number | null
 
   // Legado (transitório) — mantidos nullable no banco durante rollout da
   // migration. Nova UI escreve nos campos estruturados acima; fallback só
   // renderiza esses até o backfill rodar.
   aplicabilidade: string
-  anoPrevisto:    string
+  anoPrevisto: string
 
   // Detalhamento de desembolso por ano (`desembolso_item_ano` /
   // `desembolso_item_template_ano`). null = usa fallback uniforme entre
@@ -35,25 +35,25 @@ export interface CategoryItem {
 // Um par (ano relativo do horizonte, valor). Ordenado por ano na leitura,
 // sem duplicata (PK composta no banco).
 export interface DesembolsoAno {
-  ano:   number
+  ano: number
   valor: number
 }
 
 // Nome/estrutura da categoria — compartilhado entre todos os projetos do sistema.
 // Renomear aqui reflete em todo projeto que referencia este id.
 export interface CategoriaCatalogo {
-  id:   string
+  id: string
   nome: string
 }
 
 // Fato operacional preenchido pelo cliente (área, perímetro, quantidade de estruturas...) —
 // formato diferente de CategoryItem: cliente informa fato bruto, não estima custo.
 export interface CampoOperacional {
-  id:       string
-  label:    string
-  valor:    string
-  unidade:  string
-  status:   'pendente' | 'preenchido'
+  id: string
+  label: string
+  valor: string
+  unidade: string
+  status: 'pendente' | 'preenchido'
 }
 
 // Shape do template (por categoria template, editável pelo admin em
@@ -63,11 +63,11 @@ export interface CampoOperacional {
 // planilha (ex: "1.643" m, "12,9" ha) e é copiado como padrão quando a
 // categoria for herdada em um projeto.
 export interface CampoOperacionalTemplate {
-  id:              string
-  label:           string
-  unidade:         string
+  id: string
+  label: string
+  unidade: string
   valorReferencia: string
-  ordem:           number
+  ordem: number
 }
 
 // Instância por projeto — referencia o catálogo pelo nome, mas itens/valores são
@@ -76,12 +76,12 @@ export interface CampoOperacionalTemplate {
 // `/categorias-custo`); no modo projeto fica `undefined`. Foi optado por
 // campo opcional em vez de shape separado pra manter `CategoryBlock` único.
 export interface Category {
-  id:         string
+  id: string
   catalogoId: string
-  preenche:   'Consultor' | 'Cliente' | 'Ambos'
-  expanded:   boolean
-  justAdded:  boolean
-  items:      CategoryItem[]
+  preenche: 'Consultor' | 'Cliente' | 'Ambos'
+  expanded: boolean
+  justAdded: boolean
+  items: CategoryItem[]
   camposOperacionais: CampoOperacional[]
   camposOperacionaisTemplate?: CampoOperacionalTemplate[]
 

@@ -12,7 +12,7 @@ import { aroSimSensibilidadeAno10 } from '@/lib/aroSimulacao'
 // mostra estatísticas + histograma de 12 bins.
 
 interface Props {
-  baseAno10:  number
+  baseAno10: number
   modoIpcaDisponivel: boolean
   iterations?: number
 }
@@ -44,9 +44,7 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
             <span className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">
               {t.sensAno10Base}:
             </span>
-            <span className="font-mono text-[15px] font-bold text-c-text">
-              {formatMoedaCompact(result.base)}
-            </span>
+            <span className="font-mono text-[15px] font-bold text-c-text">{formatMoedaCompact(result.base)}</span>
             <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
               {modoIpcaDisponivel ? t.sensAno10ModeIpca : t.sensAno10ModeProv}
             </span>
@@ -73,12 +71,12 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4">
-            <StatCell label={t.sensAno10Mean}    value={formatMoedaCompact(result.mean)} />
-            <StatCell label={t.sensAno10Stddev}  value={formatMoedaCompact(result.stddev)} />
-            <StatCell label={t.sensAno10P50}     value={formatMoedaCompact(result.p50)} />
-            <StatCell label={t.sensAno10P80}     value={formatMoedaCompact(result.p80)} />
-            <StatCell label={t.sensAno10P95}     value={formatMoedaCompact(result.p95)} />
-            <StatCell label={t.sensAno10CV}      value={`${(result.cv * 100).toFixed(2).replace('.', ',')}%`} />
+            <StatCell label={t.sensAno10Mean} value={formatMoedaCompact(result.mean)} />
+            <StatCell label={t.sensAno10Stddev} value={formatMoedaCompact(result.stddev)} />
+            <StatCell label={t.sensAno10P50} value={formatMoedaCompact(result.p50)} />
+            <StatCell label={t.sensAno10P80} value={formatMoedaCompact(result.p80)} />
+            <StatCell label={t.sensAno10P95} value={formatMoedaCompact(result.p95)} />
+            <StatCell label={t.sensAno10CV} value={`${(result.cv * 100).toFixed(2).replace('.', ',')}%`} />
           </div>
 
           <p className="mt-4 text-[11px] leading-relaxed text-c-text-2">
@@ -93,9 +91,7 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-[#f6f5f3] rounded-[8px] p-2 flex flex-col items-start">
-      <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-0.5">
-        {label}
-      </span>
+      <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-0.5">{label}</span>
       <span className="font-mono text-[13px] font-bold text-c-text">{value}</span>
     </div>
   )

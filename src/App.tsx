@@ -63,10 +63,7 @@ function ProtectedLayout({
     return (
       <>
         {mobileOpen && (
-          <div
-            className="fixed inset-0 z-40 bg-[rgba(20,21,26,.4)]"
-            onClick={() => setMobileOpen(false)}
-          />
+          <div className="fixed inset-0 z-40 bg-[rgba(20,21,26,.4)]" onClick={() => setMobileOpen(false)} />
         )}
 
         <div
@@ -94,11 +91,7 @@ function ProtectedLayout({
             >
               <Menu size={18} strokeWidth={2} />
             </button>
-            <img
-              src="/BePlanned Logo.png"
-              alt="Be Planned"
-              className="h-9 w-auto object-contain"
-            />
+            <img src="/BePlanned Logo.png" alt="Be Planned" className="h-9 w-auto object-contain" />
             <div className="w-9" />
           </div>
           <main className="flex-1 overflow-auto">
@@ -114,11 +107,7 @@ function ProtectedLayout({
 
   return (
     <div className="appgrid" style={{ gridTemplateColumns: `${sidebarWidth} 1fr` }}>
-      <Sidebar
-        collapsed={effectiveCollapsed}
-        onToggle={() => setCollapsed(v => !v)}
-        onLogout={onLogout}
-      />
+      <Sidebar collapsed={effectiveCollapsed} onToggle={() => setCollapsed((v) => !v)} onLogout={onLogout} />
       <main className="overflow-auto">
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
@@ -135,7 +124,9 @@ export default function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setAuthStatus(session ? 'authenticated' : 'unauthenticated')
     })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setAuthStatus(session ? 'authenticated' : 'unauthenticated')
     })
     return () => subscription.unsubscribe()
@@ -151,148 +142,148 @@ export default function App() {
 
   return (
     <LangProvider>
-    <ProjetoProvider>
-    <SimulationProvider>
-    <BrowserRouter>
-      <DocumentTitle />
-      <Routes>
-        {/* Rota pública */}
-        <Route
-          path="/login"
-          element={
-            isLoggedIn ? (
-              <Navigate to="/visao-geral" replace />
-            ) : (
-              <Suspense fallback={<SplashScreen />}>
-                <Login />
-              </Suspense>
-            )
-          }
-        />
+      <ProjetoProvider>
+        <SimulationProvider>
+          <BrowserRouter>
+            <DocumentTitle />
+            <Routes>
+              {/* Rota pública */}
+              <Route
+                path="/login"
+                element={
+                  isLoggedIn ? (
+                    <Navigate to="/visao-geral" replace />
+                  ) : (
+                    <Suspense fallback={<SplashScreen />}>
+                      <Login />
+                    </Suspense>
+                  )
+                }
+              />
 
-        {/* Rotas protegidas */}
-        <Route
-          path="/visao-geral"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <VisaoGeral />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/projetos"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Projetos />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/projetos/novo"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ProjetoNovo />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/projetos/:projetoId/config-inicial"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ProjetoConfigInicial />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/projetos/:projetoId"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ProjetoWorkspace />
-            </ProtectedLayout>
-          }
-        >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<ResumoExecutivo />} />
-          <Route path="categorias" element={<Categorias />} />
-          <Route path="simulacao" element={<Simulacao />} />
-          <Route path="remediacao" element={<Remediacao />} />
-          <Route path="revisoes" element={<Revisoes />} />
-          <Route path="lancamentos" element={<Lancamentos />} />
-          <Route path="config" element={<ProjetoConfiguracoes />} />
-        </Route>
-        <Route
-          path="/perfil"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Perfil />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/tipos-projeto"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <TiposProjeto />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/categorias-custo"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <CategoriasCusto />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/parametros-globais"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ParametrosGlobais />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/setores"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Setores />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/clientes"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <Clientes />
-            </ProtectedLayout>
-          }
-        />
-        <Route
-          path="/clientes/:clienteId"
-          element={
-            <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
-              <ClienteProjetos />
-            </ProtectedLayout>
-          }
-        />
+              {/* Rotas protegidas */}
+              <Route
+                path="/visao-geral"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <VisaoGeral />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/projetos"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <Projetos />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/projetos/novo"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ProjetoNovo />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/projetos/:projetoId/config-inicial"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ProjetoConfigInicial />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/projetos/:projetoId"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ProjetoWorkspace />
+                  </ProtectedLayout>
+                }
+              >
+                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route path="dashboard" element={<ResumoExecutivo />} />
+                <Route path="categorias" element={<Categorias />} />
+                <Route path="simulacao" element={<Simulacao />} />
+                <Route path="remediacao" element={<Remediacao />} />
+                <Route path="revisoes" element={<Revisoes />} />
+                <Route path="lancamentos" element={<Lancamentos />} />
+                <Route path="config" element={<ProjetoConfiguracoes />} />
+              </Route>
+              <Route
+                path="/perfil"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <Perfil />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/tipos-projeto"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <TiposProjeto />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/categorias-custo"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <CategoriasCusto />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/parametros-globais"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ParametrosGlobais />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/setores"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <Setores />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/clientes"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <Clientes />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/clientes/:clienteId"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ClienteProjetos />
+                  </ProtectedLayout>
+                }
+              />
 
-        {/* Portal standalone — sem sidebar */}
-        <Route
-          path="/relatorio/:id"
-          element={
-            <Suspense fallback={<SplashScreen />}>
-              <PortalClienteRelatorio />
-            </Suspense>
-          }
-        />
+              {/* Portal standalone — sem sidebar */}
+              <Route
+                path="/relatorio/:id"
+                element={
+                  <Suspense fallback={<SplashScreen />}>
+                    <PortalClienteRelatorio />
+                  </Suspense>
+                }
+              />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/login'} replace />} />
-      </Routes>
-    </BrowserRouter>
-    </SimulationProvider>
-    </ProjetoProvider>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/login'} replace />} />
+            </Routes>
+          </BrowserRouter>
+        </SimulationProvider>
+      </ProjetoProvider>
     </LangProvider>
   )
 }

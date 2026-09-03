@@ -27,10 +27,17 @@ export default function Remediacao() {
   const t = useT(remediacaoT)
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const {
-    remediacaoByProjeto, remediacaoLoading,
-    fetchRemediacao, setRemediacaoHabilitada, carregarRemediacaoPadrao,
-    addRemediacaoCategoria, updateRemediacaoCategoria, removeRemediacaoCategoria,
-    addRemediacaoItem, updateRemediacaoItem, removeRemediacaoItem,
+    remediacaoByProjeto,
+    remediacaoLoading,
+    fetchRemediacao,
+    setRemediacaoHabilitada,
+    carregarRemediacaoPadrao,
+    addRemediacaoCategoria,
+    updateRemediacaoCategoria,
+    removeRemediacaoCategoria,
+    addRemediacaoItem,
+    updateRemediacaoItem,
+    removeRemediacaoItem,
   } = useProjeto()
 
   const categorias = remediacaoByProjeto[projeto.id]
@@ -58,7 +65,10 @@ export default function Remediacao() {
             <Button variant="primary" onClick={() => setRemediacaoHabilitada(projeto.id, true)}>
               {t.disabledStateEnable}
             </Button>
-            <NavLink to={`/projetos/${projeto.id}/config`} className="text-[12.5px] font-medium text-c-text-2 hover:text-accent transition-colors">
+            <NavLink
+              to={`/projetos/${projeto.id}/config`}
+              className="text-[12.5px] font-medium text-c-text-2 hover:text-accent transition-colors"
+            >
               → {t.configToggleLabel}
             </NavLink>
           </div>
@@ -110,7 +120,7 @@ export default function Remediacao() {
 
         {carregado && categorias.length > 0 && (
           <>
-            {categorias.map(cat => (
+            {categorias.map((cat) => (
               <CategoriaCard
                 key={cat.id}
                 cat={cat}
@@ -145,16 +155,29 @@ export default function Remediacao() {
 // CategoriaCard — bloco por categoria com nome/área editáveis + tabela de itens
 // --------------------------------------------------------------------------
 interface CategoriaCardProps {
-  cat:              CategoriaRemediacao
-  onRenameCategoria:(nome: string) => void
-  onChangeArea:     (areaHa: number | null) => void
-  onRemoveCategoria:() => void
-  onAddItem:        () => void
-  onUpdateItem:     (id: string, patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>>) => void
-  onRemoveItem:     (id: string) => void
+  cat: CategoriaRemediacao
+  onRenameCategoria: (nome: string) => void
+  onChangeArea: (areaHa: number | null) => void
+  onRemoveCategoria: () => void
+  onAddItem: () => void
+  onUpdateItem: (
+    id: string,
+    patch: Partial<
+      Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>
+    >
+  ) => void
+  onRemoveItem: (id: string) => void
 }
 
-function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria, onAddItem, onUpdateItem, onRemoveItem }: CategoriaCardProps) {
+function CategoriaCard({
+  cat,
+  onRenameCategoria,
+  onChangeArea,
+  onRemoveCategoria,
+  onAddItem,
+  onUpdateItem,
+  onRemoveItem,
+}: CategoriaCardProps) {
   const t = useT(remediacaoT)
   const [nome, setNome] = useState(cat.nome)
   const [areaStr, setAreaStr] = useState(cat.areaHa != null ? fmtDecimalBR(cat.areaHa) : '')
@@ -171,8 +194,10 @@ function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria
           <Input
             variant="filled"
             value={nome}
-            onChange={e => setNome(e.target.value)}
-            onBlur={() => { if (nome.trim() && nome !== cat.nome) onRenameCategoria(nome.trim()) }}
+            onChange={(e) => setNome(e.target.value)}
+            onBlur={() => {
+              if (nome.trim() && nome !== cat.nome) onRenameCategoria(nome.trim())
+            }}
           />
         </div>
         <div className="flex flex-col gap-1 w-[140px]">
@@ -180,7 +205,7 @@ function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria
           <Input
             variant="filled"
             value={areaStr}
-            onChange={e => setAreaStr(e.target.value)}
+            onChange={(e) => setAreaStr(e.target.value)}
             onBlur={() => {
               const parsed = parseDecimalBR(areaStr)
               if (parsed !== cat.areaHa) onChangeArea(parsed)
@@ -189,7 +214,12 @@ function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria
             inputMode="decimal"
           />
         </div>
-        <Button variant="icon-danger" onClick={onRemoveCategoria} aria-label={t.categoriaRemove} title={t.categoriaRemove}>
+        <Button
+          variant="icon-danger"
+          onClick={onRemoveCategoria}
+          aria-label={t.categoriaRemove}
+          title={t.categoriaRemove}
+        >
           <Trash2 size={14} aria-hidden="true" />
         </Button>
       </div>
@@ -199,20 +229,32 @@ function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria
           className="grid gap-2 min-w-[880px] items-center"
           style={{ gridTemplateColumns: 'minmax(220px, 2fr) 80px 90px 120px 120px 120px minmax(120px, 1fr) 36px' }}
         >
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5">{t.colDescricao}</div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-center">{t.colUnidade}</div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colQuantidade}</div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colCustoUnitMin}</div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colCustoUnitMax}</div>
-          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">{t.colTotal}</div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5">
+            {t.colDescricao}
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-center">
+            {t.colUnidade}
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">
+            {t.colQuantidade}
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">
+            {t.colCustoUnitMin}
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">
+            {t.colCustoUnitMax}
+          </div>
+          <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5 text-right">
+            {t.colTotal}
+          </div>
           <div className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pb-1.5">{t.colFonte}</div>
           <div className="pb-1.5" />
 
-          {cat.items.map(item => (
+          {cat.items.map((item) => (
             <ItemRow
               key={item.id}
               item={item}
-              onUpdate={patch => onUpdateItem(item.id, patch)}
+              onUpdate={(patch) => onUpdateItem(item.id, patch)}
               onRemove={() => onRemoveItem(item.id)}
             />
           ))}
@@ -237,19 +279,23 @@ function CategoriaCard({ cat, onRenameCategoria, onChangeArea, onRemoveCategoria
 // ItemRow — 8 células dentro do grid da categoria. Blur commita cada campo.
 // --------------------------------------------------------------------------
 interface ItemRowProps {
-  item:     ItemRemediacao
-  onUpdate: (patch: Partial<Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>>) => void
+  item: ItemRemediacao
+  onUpdate: (
+    patch: Partial<
+      Pick<ItemRemediacao, 'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte'>
+    >
+  ) => void
   onRemove: () => void
 }
 
 function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
   const t = useT(remediacaoT)
-  const [descricao, setDescricao]     = useState(item.descricao)
-  const [unidade, setUnidade]         = useState(item.unidade)
-  const [qtdStr, setQtdStr]           = useState(fmtDecimalBR(item.quantidade, item.quantidade % 1 === 0 ? 0 : 3))
+  const [descricao, setDescricao] = useState(item.descricao)
+  const [unidade, setUnidade] = useState(item.unidade)
+  const [qtdStr, setQtdStr] = useState(fmtDecimalBR(item.quantidade, item.quantidade % 1 === 0 ? 0 : 3))
   const [custoMinStr, setCustoMinStr] = useState(fmtDecimalBR(item.custoUnitMin))
   const [custoMaxStr, setCustoMaxStr] = useState(fmtDecimalBR(item.custoUnitMax))
-  const [fonte, setFonte]             = useState(item.fonte ?? '')
+  const [fonte, setFonte] = useState(item.fonte ?? '')
 
   useEffect(() => setDescricao(item.descricao), [item.descricao])
   useEffect(() => setUnidade(item.unidade), [item.unidade])
@@ -283,20 +329,24 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
       <Input
         variant="filled"
         value={descricao}
-        onChange={e => setDescricao(e.target.value)}
-        onBlur={() => { if (descricao !== item.descricao) onUpdate({ descricao }) }}
+        onChange={(e) => setDescricao(e.target.value)}
+        onBlur={() => {
+          if (descricao !== item.descricao) onUpdate({ descricao })
+        }}
       />
       <Input
         variant="filled"
         value={unidade}
-        onChange={e => setUnidade(e.target.value)}
-        onBlur={() => { if (unidade !== item.unidade) onUpdate({ unidade }) }}
+        onChange={(e) => setUnidade(e.target.value)}
+        onBlur={() => {
+          if (unidade !== item.unidade) onUpdate({ unidade })
+        }}
         className="text-center"
       />
       <Input
         variant="filled"
         value={qtdStr}
-        onChange={e => setQtdStr(e.target.value)}
+        onChange={(e) => setQtdStr(e.target.value)}
         onBlur={commitQtd}
         inputMode="decimal"
         className="text-right font-mono"
@@ -304,7 +354,7 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
       <Input
         variant="filled"
         value={custoMinStr}
-        onChange={e => setCustoMinStr(e.target.value)}
+        onChange={(e) => setCustoMinStr(e.target.value)}
         onBlur={commitMin}
         inputMode="decimal"
         className="text-right font-mono"
@@ -312,7 +362,7 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
       <Input
         variant="filled"
         value={custoMaxStr}
-        onChange={e => setCustoMaxStr(e.target.value)}
+        onChange={(e) => setCustoMaxStr(e.target.value)}
         onBlur={commitMax}
         inputMode="decimal"
         className="text-right font-mono"
@@ -323,8 +373,10 @@ function ItemRow({ item, onUpdate, onRemove }: ItemRowProps) {
       <Input
         variant="filled"
         value={fonte}
-        onChange={e => setFonte(e.target.value)}
-        onBlur={() => { if (fonte !== (item.fonte ?? '')) onUpdate({ fonte: fonte.trim() || null }) }}
+        onChange={(e) => setFonte(e.target.value)}
+        onBlur={() => {
+          if (fonte !== (item.fonte ?? '')) onUpdate({ fonte: fonte.trim() || null })
+        }}
         placeholder="—"
       />
       <Button variant="icon-danger" onClick={onRemove} aria-label={t.itemRemove}>

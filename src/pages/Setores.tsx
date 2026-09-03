@@ -9,14 +9,14 @@ import { setoresT } from '@/i18n/setores'
 import { useProjeto } from '@/context/useProjeto'
 import type { Setor } from '@/types/setores'
 
-type SetoresLabels = typeof setoresT['pt-BR']
+type SetoresLabels = (typeof setoresT)['pt-BR']
 
 interface SetorRowProps {
-  setor:      Setor
+  setor: Setor
   usageCount: number
-  onRename:   (novoNome: string) => Promise<void>
-  onRemove:   () => Promise<void>
-  labels:     SetoresLabels
+  onRename: (novoNome: string) => Promise<void>
+  onRemove: () => Promise<void>
+  labels: SetoresLabels
 }
 
 // Mesmo padrão de inline-rename do TiposProjeto: edição inline, ícones de
@@ -63,9 +63,9 @@ function SetorRow({ setor, usageCount, onRename, onRemove, labels }: SetorRowPro
         <Input
           variant="filled"
           value={editing ?? setor.nome}
-          onChange={e => setEditing(e.target.value)}
+          onChange={(e) => setEditing(e.target.value)}
           onFocus={() => setEditing(setor.nome)}
-          onKeyDown={e => {
+          onKeyDown={(e) => {
             if (e.key === 'Enter') confirmRename()
             if (e.key === 'Escape') cancelRename()
           }}
@@ -134,7 +134,7 @@ export default function Setores() {
 
   const proxId = useMemo(() => {
     if (setores.length === 0) return 1
-    return Math.min(99, Math.max(...setores.map(s => s.id)) + 1)
+    return Math.min(99, Math.max(...setores.map((s) => s.id)) + 1)
   }, [setores])
 
   function openNovo() {
@@ -147,7 +147,7 @@ export default function Setores() {
     // ID é sempre o próximo livre calculado por `proxId`. Se todos os slots
     // 1..99 estiverem preenchidos (praticamente inatingível na prática),
     // devolve erro amigável em vez de tentar inserir e falhar no check da PK.
-    if (proxId > 99 || setores.some(s => s.id === proxId)) {
+    if (proxId > 99 || setores.some((s) => s.id === proxId)) {
       setNovoError(t.errIdInvalid)
       return
     }
@@ -193,7 +193,9 @@ export default function Setores() {
             <div className="rounded-[12px] border border-dashed border-[rgba(20,21,26,.16)] p-4 flex flex-col gap-3 animate-[catIn_320ms_cubic-bezier(.2,.8,.2,1)]">
               <div className="flex items-end gap-3">
                 <div className="flex flex-col gap-1 shrink-0">
-                  <span className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">{t.newSetorIdLabel}</span>
+                  <span className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">
+                    {t.newSetorIdLabel}
+                  </span>
                   <span
                     className="inline-flex items-center justify-center min-w-[56px] h-[38px] px-3 rounded-[11px] bg-[#f6f5f3] font-mono text-[15px] font-bold text-c-text"
                     title={t.newSetorIdHint}
@@ -202,13 +204,17 @@ export default function Setores() {
                   </span>
                 </div>
                 <div className="flex flex-col gap-1 flex-1 min-w-0">
-                  <label className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">{t.newSetorNomeLabel}</label>
+                  <label className="text-[11px] font-semibold uppercase tracking-widest text-c-text-2">
+                    {t.newSetorNomeLabel}
+                  </label>
                   <Input
                     autoFocus
                     variant="default"
                     value={novoNome}
-                    onChange={e => setNovoNome(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') void handleAdicionar() }}
+                    onChange={(e) => setNovoNome(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') void handleAdicionar()
+                    }}
                     placeholder="Ex.: Áreas de descarte de estéril"
                   />
                 </div>
@@ -220,7 +226,14 @@ export default function Setores() {
                   <Plus size={14} aria-hidden="true" />
                   {t.newSetorConfirm}
                 </Button>
-                <Button variant="ghost" onClick={() => { setShowNovo(false); setNovoError(null); setNovoNome('') }}>
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    setShowNovo(false)
+                    setNovoError(null)
+                    setNovoNome('')
+                  }}
+                >
                   {t.newSetorCancel}
                 </Button>
               </div>
@@ -231,61 +244,64 @@ export default function Setores() {
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colId}</span>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colNome}</span>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colUsage}</span>
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pr-1">{t.colActions}</span>
+            <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2 pr-1">
+              {t.colActions}
+            </span>
           </div>
 
           {loading && (
             <div className="flex flex-col gap-2 py-1">
-              {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-9 w-full" />)}
+              {Array.from({ length: 5 }, (_, i) => (
+                <Skeleton key={i} className="h-9 w-full" />
+              ))}
             </div>
           )}
 
-          {!loading && setores.length === 0 && (
-            <p className="text-[13px] text-c-text-2 py-4">{t.emptyState}</p>
-          )}
+          {!loading && setores.length === 0 && <p className="text-[13px] text-c-text-2 py-4">{t.emptyState}</p>}
 
-          {!loading && setores.map(setor => (
-            <SetorRow
-              key={setor.id}
-              setor={setor}
-              usageCount={usageBySetorId.get(setor.id) ?? 0}
-              onRename={async novoNome => {
-                try {
-                  await renomearSetor(setor.id, novoNome)
-                } catch {
-                  showToast(t.savingError)
-                }
-              }}
-              onRemove={async () => {
-                try {
-                  await removerSetor(setor.id)
-                } catch {
-                  showToast(t.savingError)
-                }
-              }}
-              labels={t}
-            />
-          ))}
+          {!loading &&
+            setores.map((setor) => (
+              <SetorRow
+                key={setor.id}
+                setor={setor}
+                usageCount={usageBySetorId.get(setor.id) ?? 0}
+                onRename={async (novoNome) => {
+                  try {
+                    await renomearSetor(setor.id, novoNome)
+                  } catch {
+                    showToast(t.savingError)
+                  }
+                }}
+                onRemove={async () => {
+                  try {
+                    await removerSetor(setor.id)
+                  } catch {
+                    showToast(t.savingError)
+                  }
+                }}
+                labels={t}
+              />
+            ))}
         </div>
       </div>
 
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          maxWidth:   360,
-          opacity:    toast ? 1 : 0,
-          transform:  toast ? 'translateY(0)' : 'translateY(6px)',
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
+          transform: toast ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

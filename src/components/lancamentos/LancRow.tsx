@@ -7,17 +7,17 @@ import { lancamentosT } from '@/i18n/lancamentos'
 import type { IconKey, LancStatus, Lancamento } from '@/types/lancamentos'
 
 const ICON_MAP: Record<IconKey, React.ElementType> = {
-  barragem:      Layers,
+  barragem: Layers,
   monitoramento: Clock,
-  cavas:         Activity,
-  default:       Users,
+  cavas: Activity,
+  default: Users,
 }
 
 interface Props {
-  row:          Lancamento
-  isMenuOpen:   boolean
+  row: Lancamento
+  isMenuOpen: boolean
   onMenuToggle: (e: React.MouseEvent) => void
-  onAction:     (action: 'validado' | 'revisao' | 'delete') => void
+  onAction: (action: 'validado' | 'revisao' | 'delete') => void
 }
 
 export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Props) {
@@ -25,11 +25,11 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
 
   const STATUS_META: Record<LancStatus, { label: string; cls: string }> = {
     validado: { label: t.statusValidated, cls: 'pill-validado' },
-    revisao:  { label: t.statusReview,    cls: 'pill-revisao'  },
-    pendente: { label: t.statusPending,   cls: 'pill-pendente' },
+    revisao: { label: t.statusReview, cls: 'pill-revisao' },
+    pendente: { label: t.statusPending, cls: 'pill-pendente' },
   }
 
-  const Icon   = ICON_MAP[row.iconKey]
+  const Icon = ICON_MAP[row.iconKey]
   const status = STATUS_META[row.status]
   const btnRef = useRef<HTMLButtonElement>(null)
   const [menuPos, setMenuPos] = useState({ top: 0, right: 0 })
@@ -38,7 +38,7 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
     if (isMenuOpen && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect()
       setMenuPos({
-        top:   rect.bottom + 4,
+        top: rect.bottom + 4,
         right: window.innerWidth - rect.right,
       })
     }
@@ -84,14 +84,14 @@ export default function LancRow({ row, isMenuOpen, onMenuToggle, onAction }: Pro
             className="row-menu"
             role="menu"
             style={{
-              position:      'fixed',
-              top:           menuPos.top,
-              right:         menuPos.right,
-              width:         180,
-              opacity:       isMenuOpen ? 1 : 0,
-              transform:     isMenuOpen ? 'translateY(0) scale(1)' : 'translateY(-4px) scale(0.97)',
+              position: 'fixed',
+              top: menuPos.top,
+              right: menuPos.right,
+              width: 180,
+              opacity: isMenuOpen ? 1 : 0,
+              transform: isMenuOpen ? 'translateY(0) scale(1)' : 'translateY(-4px) scale(0.97)',
               pointerEvents: isMenuOpen ? 'auto' : 'none',
-              transition:    'opacity 140ms ease, transform 140ms ease',
+              transition: 'opacity 140ms ease, transform 140ms ease',
             }}
           >
             <Button variant="menu" role="menuitem" onClick={() => onAction('validado')}>

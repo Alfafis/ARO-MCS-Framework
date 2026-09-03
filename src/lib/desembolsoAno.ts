@@ -31,19 +31,27 @@ export interface DesembolsoMatrixResult {
 export type ModoDesembolso = 'base' | 'provisao' | 'ipca'
 
 interface ComputeArgs {
-  categorias:      Category[]
-  catalogo:        CategoriaCatalogo[]
-  horizonYears:    number
+  categorias: Category[]
+  catalogo: CategoriaCatalogo[]
+  horizonYears: number
   contingenciaPct: number
-  ipcaPorAno:      number[] | null    // frações (0.034 = 3,4%), tamanho horizonYears — null se não configurado
-  modo:            ModoDesembolso
+  ipcaPorAno: number[] | null // frações (0.034 = 3,4%), tamanho horizonYears — null se não configurado
+  modo: ModoDesembolso
   // Multiplicador de ancoragem base_template → data_base_projeto (default 1).
   // Aplicado antes dos modos 'provisao' e 'ipca' — todas as células da matriz
   // são shift-ajustadas. Ver `computeFatorAncoragem` em src/lib/ancoragem.ts.
   fatorAncoragem?: number
 }
 
-export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, contingenciaPct, ipcaPorAno, modo, fatorAncoragem = 1 }: ComputeArgs): DesembolsoMatrixResult {
+export function computeDesembolsoMatrix({
+  categorias,
+  catalogo,
+  horizonYears,
+  contingenciaPct,
+  ipcaPorAno,
+  modo,
+  fatorAncoragem = 1,
+}: ComputeArgs): DesembolsoMatrixResult {
   const matrix: number[][] = []
   const categoriasNomes: string[] = []
 
@@ -66,8 +74,8 @@ export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, co
       } else if (item.anoInicio !== null && item.anoFim !== null) {
         // Distribuição uniforme entre anoInicio..anoFim (fallback comum)
         const inicio = Math.max(1, Math.min(horizonYears, item.anoInicio))
-        const fim    = Math.max(inicio, Math.min(horizonYears, item.anoFim))
-        const spanN  = fim - inicio + 1
+        const fim = Math.max(inicio, Math.min(horizonYears, item.anoFim))
+        const spanN = fim - inicio + 1
         const porAno = custoMax / spanN
         for (let ano = inicio; ano <= fim; ano++) {
           valoresAno[ano - 1] += porAno
@@ -82,7 +90,7 @@ export function computeDesembolsoMatrix({ categorias, catalogo, horizonYears, co
     }
 
     if (algumValor) {
-      const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+      const nome = catalogo.find((c) => c.id === cat.catalogoId)?.nome ?? '—'
       categoriasNomes.push(nome)
       matrix.push(valoresAno)
     }
@@ -149,8 +157,8 @@ function distribuirItem(item: CategoryItem, horizonYears: number): { valoresPorA
   }
   if (item.anoInicio !== null && item.anoFim !== null) {
     const inicio = Math.max(1, Math.min(horizonYears, item.anoInicio))
-    const fim    = Math.max(inicio, Math.min(horizonYears, item.anoFim))
-    const spanN  = fim - inicio + 1
+    const fim = Math.max(inicio, Math.min(horizonYears, item.anoFim))
+    const spanN = fim - inicio + 1
     const porAno = custoMax / spanN
     for (let ano = inicio; ano <= fim; ano++) valoresAno[ano - 1] += porAno
     return { valoresPorAno: valoresAno, hasValue: true }
@@ -172,24 +180,24 @@ function distribuirItem(item: CategoryItem, horizonYears: number): { valoresPorA
 //   - provisao: (1 + cont/100)
 //   - ipca:     (1 + cont/100) × ∏(1 + r_i) do ano 1..N
 export interface DesembolsoItemGroup {
-  categoriaNome:     string
-  items:             Array<{ nome: string; unidade: string; valoresPorAno: number[] }>
-  subtotaisPorAno:   number[]
+  categoriaNome: string
+  items: Array<{ nome: string; unidade: string; valoresPorAno: number[] }>
+  subtotaisPorAno: number[]
 }
 
 export interface DesembolsoItemMatrixResult {
-  groups:       DesembolsoItemGroup[]
-  totaisPorAno: number[]  // soma total por ano — já com modo aplicado
-  totalGeral:   number
+  groups: DesembolsoItemGroup[]
+  totaisPorAno: number[] // soma total por ano — já com modo aplicado
+  totalGeral: number
 }
 
 interface ComputeItemMatrixArgs {
-  categorias:      Category[]
-  catalogo:        CategoriaCatalogo[]
-  horizonYears:    number
+  categorias: Category[]
+  catalogo: CategoriaCatalogo[]
+  horizonYears: number
   contingenciaPct: number
-  ipcaPorAno:      number[] | null
-  modo:            ModoDesembolso
+  ipcaPorAno: number[] | null
+  modo: ModoDesembolso
   fatorAncoragem?: number
 }
 
@@ -206,7 +214,7 @@ export function computeDesembolsoItemMatrix({
   // calculada em uma pass para reusar por item. `provFator` = (1+cont/100)
   // aplicado em todos os anos quando modo != 'base'. `ipcaAcum[ano]` = ∏(1+r_i)
   // do ano 1 até N; array de 1s quando ipca ausente ou modo != 'ipca'.
-  const provFator = modo === 'base' ? 1 : (1 + contingenciaPct / 100)
+  const provFator = modo === 'base' ? 1 : 1 + contingenciaPct / 100
   const ipcaAcum = new Array<number>(horizonYears).fill(1)
   if (modo === 'ipca' && ipcaPorAno && ipcaPorAno.length >= horizonYears) {
     let acum = 1
@@ -215,7 +223,7 @@ export function computeDesembolsoItemMatrix({
       ipcaAcum[i] = acum
     }
   }
-  const modoMultiplierPorAno = ipcaAcum.map(f => provFator * f)
+  const modoMultiplierPorAno = ipcaAcum.map((f) => provFator * f)
 
   const groups: DesembolsoItemGroup[] = []
   const totaisPorAno = new Array<number>(horizonYears).fill(0)
@@ -242,7 +250,7 @@ export function computeDesembolsoItemMatrix({
     }
 
     if (items.length > 0) {
-      const nome = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+      const nome = catalogo.find((c) => c.id === cat.catalogoId)?.nome ?? '—'
       groups.push({ categoriaNome: nome, items, subtotaisPorAno })
     }
   }

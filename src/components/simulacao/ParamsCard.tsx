@@ -18,33 +18,45 @@ const CONF_OPTIONS = [
 ]
 
 interface Props {
-  dist:               Distribution
-  iterations:         string
-  confidence:         string
-  running:            boolean
-  disabled?:          boolean
-  categoryNames:      string[]
-  onDistChange:       (d: Distribution) => void
+  dist: Distribution
+  iterations: string
+  confidence: string
+  running: boolean
+  disabled?: boolean
+  categoryNames: string[]
+  onDistChange: (d: Distribution) => void
   onIterationsChange: (v: string) => void
   onConfidenceChange: (v: string) => void
-  onRun:              () => void
+  onRun: () => void
   onCategoriesChange: (cats: Set<string>) => void
 }
 
-export default function ParamsCard({ dist, iterations, confidence, running, disabled, categoryNames, onDistChange, onIterationsChange, onConfidenceChange, onRun, onCategoriesChange }: Props) {
+export default function ParamsCard({
+  dist,
+  iterations,
+  confidence,
+  running,
+  disabled,
+  categoryNames,
+  onDistChange,
+  onIterationsChange,
+  onConfidenceChange,
+  onRun,
+  onCategoriesChange,
+}: Props) {
   const t = useT(simulacaoT)
 
   const CAT_OPTIONS = [
-    { value: 'all',    label: t.catAll    },
+    { value: 'all', label: t.catAll },
     { value: 'custom', label: t.catCustom },
   ]
 
-  const [cats,         setCats]         = useState('all')
+  const [cats, setCats] = useState('all')
   const [selectedCats, setSelectedCats] = useState<Set<string>>(new Set(categoryNames))
-  const [openSelect,   setOpenSelect]   = useState<string | null>(null)
+  const [openSelect, setOpenSelect] = useState<string | null>(null)
 
   function toggleCat(cat: string) {
-    setSelectedCats(prev => {
+    setSelectedCats((prev) => {
       const next = new Set(prev)
       if (next.has(cat) && next.size > 1) next.delete(cat)
       else next.add(cat)
@@ -66,7 +78,7 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
   }, [])
 
   function toggle(id: string) {
-    setOpenSelect(prev => prev === id ? null : id)
+    setOpenSelect((prev) => (prev === id ? null : id))
   }
 
   return (
@@ -79,7 +91,7 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
       <div className="flex flex-col gap-1.5">
         <span className="text-[0.78125rem] font-semibold text-c-text-2">{t.statDist}</span>
         <div className="seg" role="group" aria-label={t.statDist}>
-          {DIST_OPTIONS.map(opt => (
+          {DIST_OPTIONS.map((opt) => (
             <button
               key={opt}
               type="button"
@@ -100,18 +112,24 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
           variant="filled"
           inputMode="numeric"
           value={iterations}
-          onChange={e => onIterationsChange(maskIterations(e.target.value))}
-          onBlur={e => onIterationsChange(clampIterations(e.target.value))}
+          onChange={(e) => onIterationsChange(maskIterations(e.target.value))}
+          onBlur={(e) => onIterationsChange(clampIterations(e.target.value))}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="sim-cats">{t.categoriesIncluded}</Label>
-        <CustomSelect id="sim-cats" options={CAT_OPTIONS} value={cats} onChange={setCats}
-          isOpen={openSelect === 'cats'} onToggle={() => toggle('cats')} />
+        <CustomSelect
+          id="sim-cats"
+          options={CAT_OPTIONS}
+          value={cats}
+          onChange={setCats}
+          isOpen={openSelect === 'cats'}
+          onToggle={() => toggle('cats')}
+        />
         {cats === 'custom' && (
           <div className="flex flex-col gap-0.5 mt-1 pl-1">
-            {categoryNames.map(cat => {
+            {categoryNames.map((cat) => {
               const checked = selectedCats.has(cat)
               return (
                 <button
@@ -120,10 +138,14 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
                   onClick={() => toggleCat(cat)}
                   className="flex items-center gap-2.5 py-[5px] text-left bg-transparent border-0 cursor-pointer rounded-[6px] hover:bg-[#f6f5f3] px-1.5 transition-colors duration-150"
                 >
-                  <div className={`w-[15px] h-[15px] rounded-[4px] flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? 'bg-accent' : 'bg-[#e4e1de]'}`}>
+                  <div
+                    className={`w-[15px] h-[15px] rounded-[4px] flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? 'bg-accent' : 'bg-[#e4e1de]'}`}
+                  >
                     {checked && <Check size={9} strokeWidth={3} color="white" aria-hidden="true" />}
                   </div>
-                  <span className={`text-[12.5px] leading-tight transition-colors duration-150 ${checked ? 'text-c-text' : 'text-c-text-2'}`}>
+                  <span
+                    className={`text-[12.5px] leading-tight transition-colors duration-150 ${checked ? 'text-c-text' : 'text-c-text-2'}`}
+                  >
                     {cat}
                   </span>
                 </button>
@@ -135,8 +157,14 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
 
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="sim-conf">{t.confidenceLevel}</Label>
-        <CustomSelect id="sim-conf" options={CONF_OPTIONS} value={confidence} onChange={onConfidenceChange}
-          isOpen={openSelect === 'conf'} onToggle={() => toggle('conf')} />
+        <CustomSelect
+          id="sim-conf"
+          options={CONF_OPTIONS}
+          value={confidence}
+          onChange={onConfidenceChange}
+          isOpen={openSelect === 'conf'}
+          onToggle={() => toggle('conf')}
+        />
       </div>
 
       <p className="text-[0.8125rem] text-c-text-2 leading-relaxed m-0">{t.simDesc(iterations)}</p>
@@ -152,7 +180,16 @@ export default function ParamsCard({ dist, iterations, confidence, running, disa
         {running ? (
           <>
             {t.running}
-            <svg className="spinner" width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} aria-hidden="true">
+            <svg
+              className="spinner"
+              width={16}
+              height={16}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2.5}
+              aria-hidden="true"
+            >
               <circle cx={12} cy={12} r={9} strokeOpacity={0.28} />
               <path d="M12 3a9 9 0 0 1 9 9" strokeLinecap="round" />
             </svg>

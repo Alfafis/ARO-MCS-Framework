@@ -40,7 +40,7 @@ export default function ProjetoConfiguracoes() {
             }}
             primaryLabel={tW.salvar}
             onValorInvalido={() => showToast(t.valorInvalidoToast)}
-            onSalvar={async form => {
+            onSalvar={async (form) => {
               try {
                 await atualizarConfigFinanceira(projeto.id, form)
                 showToast(t.savedToast)
@@ -66,7 +66,7 @@ export default function ProjetoConfiguracoes() {
                 type="checkbox"
                 className="sr-only peer"
                 checked={projeto.remediacaoHabilitada}
-                onChange={e => void setRemediacaoHabilitada(projeto.id, e.target.checked)}
+                onChange={(e) => void setRemediacaoHabilitada(projeto.id, e.target.checked)}
               />
               <span className="w-9 h-5 rounded-full bg-[#e0ddd9] peer-checked:bg-[color:var(--accent)] transition-colors relative">
                 <span className="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white transition-transform peer-checked:translate-x-4" />
@@ -78,11 +78,23 @@ export default function ProjetoConfiguracoes() {
 
       <div
         style={{
-          position: 'fixed', bottom: 24, right: 24, display: 'flex', alignItems: 'center', gap: 6,
-          background: '#14151a', color: '#fff', fontSize: 13, fontWeight: 500, padding: '8px 14px',
-          borderRadius: 10, maxWidth: 360, opacity: toast ? 1 : 0,
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: '#14151a',
+          color: '#fff',
+          fontSize: 13,
+          fontWeight: 500,
+          padding: '8px 14px',
+          borderRadius: 10,
+          maxWidth: 360,
+          opacity: toast ? 1 : 0,
           transform: toast ? 'translateY(0)' : 'translateY(6px)',
-          transition: 'opacity 180ms ease, transform 180ms ease', pointerEvents: 'none',
+          transition: 'opacity 180ms ease, transform 180ms ease',
+          pointerEvents: 'none',
         }}
       >
         {toast}

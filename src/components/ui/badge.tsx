@@ -6,27 +6,25 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default:  'bg-[#f0eeec] text-c-text-2',
-        accent:   'bg-accent-100 text-accent-700',
-        success:  'bg-success-bg text-success',
-        warning:  'bg-yellow-50 text-yellow-700',
-        danger:   'bg-red-50 text-red-700',
+        default: 'bg-[#f0eeec] text-c-text-2',
+        accent: 'bg-accent-100 text-accent-700',
+        success: 'bg-success-bg text-success',
+        warning: 'bg-yellow-50 text-yellow-700',
+        danger: 'bg-red-50 text-red-700',
         validado: 'bg-success-bg text-success',
-        revisao:  'bg-[#f0eeec] text-c-text-2',
+        revisao: 'bg-[#f0eeec] text-c-text-2',
         pendente: 'bg-[#fff3e0] text-[#b45309] whitespace-normal text-center leading-snug',
-        rev:      'bg-[#f0eeec] text-c-text-2 font-mono',
-        mono:     'bg-[#f0eeec] text-c-text font-mono',
-        line:     'bg-[#f0eeec] text-c-text-2',
-        status:   'bg-success-bg text-success',
+        rev: 'bg-[#f0eeec] text-c-text-2 font-mono',
+        mono: 'bg-[#f0eeec] text-c-text font-mono',
+        line: 'bg-[#f0eeec] text-c-text-2',
+        status: 'bg-success-bg text-success',
       },
     },
     defaultVariants: { variant: 'default' },
   }
 )
 
-export interface BadgeProps
-  extends React.HTMLAttributes<HTMLSpanElement>,
-    VariantProps<typeof badgeVariants> {}
+export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement>, VariantProps<typeof badgeVariants> {}
 
 export function Badge({ className, variant, ...props }: BadgeProps) {
   return <span className={cn(badgeVariants({ variant }), className)} {...props} />

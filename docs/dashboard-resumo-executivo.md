@@ -16,22 +16,29 @@ Corpo: `flex flex-col gap-4`, padding `px-4 sm:px-8 pb-6 sm:pb-8`. Cards empilha
 ## Blocos (na ordem em que aparecem)
 
 ### 1. Custo por categoria + Métricas de risco (lado a lado)
+
 Grid `md:grid-cols-[1.3fr_1fr]`.
+
 - `CostByCategoryTable`: tabela de 8 categorias com colunas Min / Max / Atualizado + linha "Total geral" em destaque.
 - `RiskMetricsCard`: rótulo de risco (Baixo/Moderado/Alto), CV, IC 95% com barra fina, lista de 4 métricas (Média, σ, P80, Prob. excedência), rodapé "Contingência aplicada".
 
 ### 2. Curva de desembolso ano-a-ano
+
 Renderizado só quando `disbursement.totalGeral > 0`. Barra de controles com:
+
 - **Modo** (`ModoToggle` em `components/resumo-executivo/DesembolsoControls.tsx`): Sem provisão / Com provisão 20% / Com IPCA acumulado. IPCA desabilitado se `parametros_anuais.inflacao_ipca` não tem série completa do horizonte.
 - **Visão** (`ViewToggle`): Agregado por categoria (aba `0. Síntese Por Setor` da planilha) / Detalhado por atividade (aba `9. Síntese Por Atividade`).
 - **`AncoragemBadge`**: badge informacional cinza "ancoragem 2022→AAAA (+X%)" ou amber "⚠ ancoragem incompleta" se faltarem anos em `parametros_anuais`.
 
 Card correspondente à visão:
+
 - **Agregado**: `AnnualDisbursementCard` — grid categoria × ano, com "Total geral" no rodapé.
 - **Detalhado**: `AnnualDisbursementDetailedCard` — grid item × ano agrupado por categoria (categoria como sub-header, itens embaixo, subtotal por categoria por ano), linha de contingência por ano (`SUM(itens_col) × cont%`), linha "Total por ano (base + contingência)", e — no modo `ipca` com IPCA disponível — linhas extras "Multiplicador IPCA acumulado" (×1.XXX) e "Total corrigido por IPCA".
 
 ### 3. Métodos de atualização monetária + Timeline de revisões
+
 Grid `lg:grid-cols-12`.
+
 - `MonetaryMethodsCard` (`lg:col-span-7` se aparecer) — 4 linhas: Juros simples, Juros compostos, Inflação constante, Escalonamento (IPCA variável). Base = `baseWithProvision`. Só renderiza se `baseTotal > 0`.
 - `RevisionTimeline` (`lg:col-span-5` ou `12` se sem métodos) — últimas 3 revisões (`revisoes` ordenadas por `criado_em`, mostrando `Rev{N}` + data + pill "Vigente" quando aplicável + descrição por status).
 
@@ -52,5 +59,6 @@ Grid `lg:grid-cols-12`.
 - Card `AnnualDisbursementDetailedCard` tem scroll horizontal se `min-width` excede o container (`overflow-x-auto`, `min-w-[820px]`).
 
 ## Referências
+
 - `_Dados_Formulas_Planilha.md` §Etapa 3 (Síntese Por Setor) e §Etapa 4 (Síntese Por Atividade) — cálculo por trás dos dois modos de visualização.
 - `_Session.md` — estado atual da implementação e pendências.

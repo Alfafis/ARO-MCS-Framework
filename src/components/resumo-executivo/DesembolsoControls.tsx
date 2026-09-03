@@ -7,28 +7,28 @@ import type { ModoDesembolso } from '@/lib/desembolsoAno'
 // ResumoExecutivo.tsx e PortalClienteRelatorio.tsx (TODO conhecido desde
 // ecc543a, sessão 28-08).
 interface ModoToggleProps {
-  current:     ModoDesembolso
-  onChange:    (m: ModoDesembolso) => void
+  current: ModoDesembolso
+  onChange: (m: ModoDesembolso) => void
   disableIpca: boolean
-  labels?:     { base: string; provisao: string; ipca: string; disabledTitle: string }
+  labels?: { base: string; provisao: string; ipca: string; disabledTitle: string }
 }
 
 const DEFAULT_MODO_LABELS = {
-  base:          'Sem provisão',
-  provisao:      'Com provisão 20%',
-  ipca:          'Com IPCA acumulado',
+  base: 'Sem provisão',
+  provisao: 'Com provisão 20%',
+  ipca: 'Com IPCA acumulado',
   disabledTitle: 'IPCA anual não configurado em Parâmetros Globais',
 }
 
 export function ModoToggle({ current, onChange, disableIpca, labels = DEFAULT_MODO_LABELS }: ModoToggleProps) {
   const opts: { key: ModoDesembolso; label: string }[] = [
-    { key: 'base',     label: labels.base },
+    { key: 'base', label: labels.base },
     { key: 'provisao', label: labels.provisao },
-    { key: 'ipca',     label: labels.ipca },
+    { key: 'ipca', label: labels.ipca },
   ]
   return (
     <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
-      {opts.map(opt => {
+      {opts.map((opt) => {
         const disabled = opt.key === 'ipca' && disableIpca
         const active = current === opt.key
         return (
@@ -59,19 +59,19 @@ export function ModoToggle({ current, onChange, disableIpca, labels = DEFAULT_MO
 // Atividade`). Mesmo visual do ModoToggle pra consistência da linha de
 // controles.
 interface ViewToggleProps {
-  current:  'agregado' | 'detalhado'
+  current: 'agregado' | 'detalhado'
   onChange: (v: 'agregado' | 'detalhado') => void
-  labels:   { agregado: string; detalhado: string }
+  labels: { agregado: string; detalhado: string }
 }
 
 export function ViewToggle({ current, onChange, labels }: ViewToggleProps) {
   const opts: { key: 'agregado' | 'detalhado'; label: string }[] = [
-    { key: 'agregado',  label: labels.agregado },
+    { key: 'agregado', label: labels.agregado },
     { key: 'detalhado', label: labels.detalhado },
   ]
   return (
     <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
-      {opts.map(opt => {
+      {opts.map((opt) => {
         const active = current === opt.key
         return (
           <button

@@ -5,17 +5,17 @@ import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
 
 interface Props {
-  reportId:    string  // projeto_id
-  clientName:  string
+  reportId: string // projeto_id
+  clientName: string
   projectName: string
-  onClose:     () => void
+  onClose: () => void
 }
 
 export default function CodigoAcessoModal({ reportId, clientName, projectName, onClose }: Props) {
-  const [code,         setCode]         = useState<string>('')
-  const [manualInput,  setManualInput]  = useState('')
-  const [manualError,  setManualError]  = useState('')
-  const [copied,       setCopied]       = useState(false)
+  const [code, setCode] = useState<string>('')
+  const [manualInput, setManualInput] = useState('')
+  const [manualError, setManualError] = useState('')
+  const [copied, setCopied] = useState(false)
 
   useEffect(() => {
     supabase.rpc('obter_codigo_acesso', { p_projeto_id: reportId }).then(({ data }) => {
@@ -59,7 +59,6 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
     <Dialog title="Código de acesso" onClose={onClose}>
       {(close) => (
         <div className="flex flex-col gap-5">
-
           {/* Projeto info */}
           <div className="flex flex-col gap-0.5">
             <span className="text-[0.875rem] font-semibold text-c-text">{projectName}</span>
@@ -69,9 +68,7 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
           {/* Código atual */}
           {code ? (
             <div className="flex flex-col gap-1.5">
-              <span className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2">
-                Código ativo
-              </span>
+              <span className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2">Código ativo</span>
               <div className="flex items-center gap-2">
                 <span className="flex-1 bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono font-bold tracking-wider text-c-text">
                   {code}
@@ -80,17 +77,20 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
                   onClick={handleCopy}
                   className="flex items-center gap-1.5 px-3 py-[10px] rounded-[11px] border border-[rgba(20,21,26,.12)] bg-white text-[12px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer whitespace-nowrap"
                 >
-                  {copied
-                    ? <><Check size={13} className="text-success" /> Copiado</>
-                    : <><Copy size={13} /> Copiar</>
-                  }
+                  {copied ? (
+                    <>
+                      <Check size={13} className="text-success" /> Copiado
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={13} /> Copiar
+                    </>
+                  )}
                 </button>
               </div>
             </div>
           ) : (
-            <p className="text-[13px] text-c-text-2">
-              Nenhum código gerado ainda para este relatório.
-            </p>
+            <p className="text-[13px] text-c-text-2">Nenhum código gerado ainda para este relatório.</p>
           )}
 
           <div className="h-px bg-[rgba(20,21,26,.08)]" />
@@ -102,11 +102,7 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
               <RefreshCw size={13} strokeWidth={2} />
               {code ? 'Gerar novo código' : 'Gerar código'}
             </Button>
-            {code && (
-              <p className="text-[11.5px] text-c-text-2">
-                Gerar um novo código invalida o anterior.
-              </p>
-            )}
+            {code && <p className="text-[11.5px] text-c-text-2">Gerar um novo código invalida o anterior.</p>}
           </div>
 
           <div className="h-px bg-[rgba(20,21,26,.08)]" />
@@ -119,20 +115,19 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
                 <input
                   type="text"
                   value={manualInput}
-                  onChange={e => { setManualInput(e.target.value); setManualError('') }}
+                  onChange={(e) => {
+                    setManualInput(e.target.value)
+                    setManualError('')
+                  }}
                   placeholder="Ex: NXGOLD-2024"
                   autoComplete="off"
                   autoCapitalize="characters"
                   className={[
                     'w-full bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono tracking-wider text-c-text outline-none border transition-colors duration-150',
-                    manualError
-                      ? 'border-[#f44] focus:border-[#f44]'
-                      : 'border-transparent focus:border-accent',
+                    manualError ? 'border-[#f44] focus:border-[#f44]' : 'border-transparent focus:border-accent',
                   ].join(' ')}
                 />
-                {manualError && (
-                  <p className="text-[11.5px] text-[#e33]">{manualError}</p>
-                )}
+                {manualError && <p className="text-[11.5px] text-[#e33]">{manualError}</p>}
               </div>
               <Button type="submit" variant="primary" disabled={!manualInput.trim()}>
                 Salvar
@@ -141,9 +136,10 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
           </div>
 
           <div className="flex justify-end mt-1">
-            <Button variant="ghost" onClick={() => close(onClose)}>Fechar</Button>
+            <Button variant="ghost" onClick={() => close(onClose)}>
+              Fechar
+            </Button>
           </div>
-
         </div>
       )}
     </Dialog>

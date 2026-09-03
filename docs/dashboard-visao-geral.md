@@ -14,7 +14,9 @@ Corpo em `flex flex-col gap-4`, padding `px-4 sm:px-8 pb-6 sm:pb-8`:
 ## Blocos
 
 ### 1. KPIs cross-cliente
+
 Linha de `KpiCard` (`src/components/dashboard/KpiCard.tsx`) mostrando totais agregados do portfólio do consultor logado:
+
 - Nº total de clientes ativos
 - Nº total de projetos ativos
 - Custo esperado somado (soma do valor esperado numérico de todos os projetos)
@@ -23,9 +25,11 @@ Linha de `KpiCard` (`src/components/dashboard/KpiCard.tsx`) mostrando totais agr
 Cada card tem ícone (Lucide outline 14–18px) em badge quadrado 26×26 (`--accent-100`/`--accent-700`), rótulo em `text-c-text-2`, valor grande em `text-c-text` peso 700, e sub-informação em cinza (12.5px).
 
 ### 2. Feed de atividade recente
+
 Lista das últimas ações no portfólio (revisões publicadas, lançamentos criados/atualizados, etc.), agregada a partir de queries paralelas a `revisoes` e `lancamentos`, ordenadas por `publicado_em`/`atualizado_em` DESC.
 
 Cada item tem:
+
 - Ícone contextual (categoria da ação)
 - Cliente + Projeto (link navegando pra `/projetos/{id}/...`)
 - Timestamp relativo (`formatRelativeTime`) — "há 2 dias", etc.
@@ -42,5 +46,6 @@ Cada item tem:
 - Feed de atividade: click em item navega para o projeto correspondente (`navigate(/projetos/{id}/...)`).
 
 ## Referências
+
 - `KpiCard` compartilhado com outras telas de dashboard.
 - Consultar `_Session.md` no vault (`projetos/aro-mcs/`) para o estado atual e pendências específicas dessa tela.

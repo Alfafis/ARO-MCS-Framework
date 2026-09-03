@@ -4,9 +4,9 @@ import { parseMoedaBR } from '@/lib/financeiro'
 
 export interface CategoryParam {
   name: string
-  min:  number
+  min: number
   mode: number
-  max:  number
+  max: number
 }
 
 // Deriva os parâmetros da simulação a partir dos itens cadastrados em Categorias.
@@ -19,26 +19,31 @@ export interface CategoryParam {
 // `fatorAncoragem` multiplica min/mode/max uniformemente (default 1 = no-op).
 // Aplicado APÓS o clamp de mode em [min, max] usando os valores base — assim o
 // invariante da Triangular (min <= mode <= max) é preservado no escalamento.
-export function categoryParamsFromCategorias(categorias: Category[], catalogo: CategoriaCatalogo[], fatorAncoragem: number = 1): CategoryParam[] {
+export function categoryParamsFromCategorias(
+  categorias: Category[],
+  catalogo: CategoriaCatalogo[],
+  fatorAncoragem: number = 1
+): CategoryParam[] {
   return categorias
-    .map(cat => {
-      let min = 0, max = 0
+    .map((cat) => {
+      let min = 0,
+        max = 0
       for (const item of cat.items) {
         min += parseMoedaBR(item.min)
         max += parseMoedaBR(item.max)
       }
-      const nome    = catalogo.find(c => c.id === cat.catalogoId)?.nome ?? '—'
+      const nome = catalogo.find((c) => c.id === cat.catalogoId)?.nome ?? '—'
       const midMode = (min + max) / 2
       const rawMode = cat.custoProvavel ?? midMode
-      const mode    = Math.max(min, Math.min(max, rawMode))
+      const mode = Math.max(min, Math.min(max, rawMode))
       return {
         name: nome,
-        min:  min  * fatorAncoragem,
-        max:  max  * fatorAncoragem,
+        min: min * fatorAncoragem,
+        max: max * fatorAncoragem,
         mode: mode * fatorAncoragem,
       }
     })
-    .filter(c => c.min > 0 || c.max > 0)
+    .filter((c) => c.min > 0 || c.max > 0)
 }
 
 // RB-03 (metodologia ARO-MCS Framework): mínimo de 10.000 iterações por
@@ -73,16 +78,16 @@ export function maskIterations(input: string): string {
 // resultado da simulação.
 export function categoryStddev(cat: CategoryParam, dist: Distribution): number {
   if (dist === 'Uniforme') return (cat.max - cat.min) / Math.sqrt(12)
-  if (dist === 'Normal')   return (cat.max - cat.min) / 6 // PERT 3-sigma, ver sampleNormal
+  if (dist === 'Normal') return (cat.max - cat.min) / 6 // PERT 3-sigma, ver sampleNormal
   // Triangular: σ = sqrt((a²+b²+c²-ab-ac-bc)/18)
   const { min: a, mode: b, max: c } = cat
-  return Math.sqrt((a*a + b*b + c*c - a*b - a*c - b*c) / 18)
+  return Math.sqrt((a * a + b * b + c * c - a * b - a * c - b * c) / 18)
 }
 
 // Analytical mean per category based on distribution type
 export function categoryMean(cat: CategoryParam, dist: Distribution): number {
   if (dist === 'Triangular') return (cat.min + cat.mode + cat.max) / 3
-  if (dist === 'Normal')     return (cat.min + 4 * cat.mode + cat.max) / 6 // PERT, ver sampleNormal
+  if (dist === 'Normal') return (cat.min + 4 * cat.mode + cat.max) / 6 // PERT, ver sampleNormal
   return (cat.min + cat.max) / 2
 }
 
@@ -112,7 +117,7 @@ function randomSeed(): number {
 }
 
 function sampleTriangular(min: number, mode: number, max: number, rng: Rng): number {
-  const u  = rng()
+  const u = rng()
   const fc = (mode - min) / (max - min)
   if (u < fc) return min + Math.sqrt(u * (max - min) * (mode - min))
   return max - Math.sqrt((1 - u) * (max - min) * (max - mode))
@@ -129,10 +134,10 @@ function sampleTriangular(min: number, mode: number, max: number, rng: Rng): num
 function sampleNormal(cat: CategoryParam, rng: Rng): number {
   const { min, mode, max } = cat
   const mean = (min + 4 * mode + max) / 6
-  const sd   = (max - min) / 6
-  const u1   = rng() || 1e-10
-  const u2   = rng()
-  const z    = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
+  const sd = (max - min) / 6
+  const u1 = rng() || 1e-10
+  const u2 = rng()
+  const z = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
   return Math.max(min, Math.min(max, mean + z * sd))
 }
 
@@ -146,18 +151,26 @@ function sampleUniform(min: number, max: number, rng: Rng): number {
 // calculado ANTES de `results`/`sorted` serem ordenados em `runAroSimulacao`,
 // senão o pareamento por índice se perde).
 export interface RiskDriver {
-  name:        string
+  name: string
   correlation: number
 }
 
 function pearsonCorrelation(x: Float64Array, y: Float64Array, n: number): number {
-  let sumX = 0, sumY = 0
-  for (let i = 0; i < n; i++) { sumX += x[i]; sumY += y[i] }
-  const meanX = sumX / n, meanY = sumY / n
-
-  let num = 0, denomX = 0, denomY = 0
+  let sumX = 0,
+    sumY = 0
   for (let i = 0; i < n; i++) {
-    const dx = x[i] - meanX, dy = y[i] - meanY
+    sumX += x[i]
+    sumY += y[i]
+  }
+  const meanX = sumX / n,
+    meanY = sumY / n
+
+  let num = 0,
+    denomX = 0,
+    denomY = 0
+  for (let i = 0; i < n; i++) {
+    const dx = x[i] - meanX,
+      dy = y[i] - meanY
     num += dx * dy
     denomX += dx * dx
     denomY += dy * dy
@@ -174,54 +187,54 @@ function pearsonCorrelation(x: Float64Array, y: Float64Array, n: number): number
 // mesmo tempo). Não "corrigido" pra rigor probabilístico porque é a
 // definição explícita do §9, não um bug.
 export interface ScenarioSet {
-  otimista:   number // Soma dos P5 de todas as categorias
-  moderado:   number // Soma dos P50 — orçamento base de referência
+  otimista: number // Soma dos P5 de todas as categorias
+  moderado: number // Soma dos P50 — orçamento base de referência
   pessimista: number // Soma dos P95 — limite superior de provisão
-  estresse:   number // Soma dos P99 — cenário de estresse regulatório
+  estresse: number // Soma dos P99 — cenário de estresse regulatório
 }
 
 export interface MCResult {
-  mean:        number
-  stddev:      number
-  p5:          number
-  p10:         number
-  p25:         number
-  p50:         number
-  p75:         number
-  p80:         number
-  p90:         number
-  p95:         number
-  p99:         number
-  icLo:        number
-  icHi:        number
-  minVal:      number
-  maxVal:      number
-  cv:          number
-  exceedProb:  number
-  bars:        number[]
+  mean: number
+  stddev: number
+  p5: number
+  p10: number
+  p25: number
+  p50: number
+  p75: number
+  p80: number
+  p90: number
+  p95: number
+  p99: number
+  icLo: number
+  icHi: number
+  minVal: number
+  maxVal: number
+  cv: number
+  exceedProb: number
+  bars: number[]
   // Value at Risk / Conditional Value at Risk a 95% — RB da metodologia
   // ARO-MCS Framework §6.3. VaR_95 = P95 (perda máxima esperada a 95% de
   // confiança); CVaR_95 = média da cauda que excede o VaR (Expected
   // Shortfall, captura risco de cauda além do percentil sozinho).
-  var95:       number
-  cvar95:      number
+  var95: number
+  cvar95: number
   // Seed do PRNG usada nesta execução — sempre presente, gerada
   // internamente quando o chamador não passa uma (RB-04: reprodutibilidade
   // exige registrar a semente, não só o resultado).
-  seed:        number
+  seed: number
   // RB-03: convergência dinâmica em blocos de 1.000 iterações,
   // Δμ < 0,001% entre blocos consecutivos, mínimo MIN_ITERATIONS.
   // `converged=false` quando o teto MAX_ITERATIONS foi atingido antes de
   // convergir — sinal de que a distribuição de entrada é muito dispersa
   // pro critério de tolerância, não um bug.
-  converged:   boolean
+  converged: boolean
   iterationsRun: number
   // Engine 6 — categorias ordenadas por |correlação| desc (maior impacto na
   // variância total primeiro). Vazio quando só 1 categoria está ativa
   // (correlação contra si mesma é sempre 1,0, sem informação nova).
   riskDrivers: RiskDriver[]
   // §9 — cenários determinísticos, ver ScenarioSet.
-  scenarios:   ScenarioSet
+  scenarios: ScenarioSet
 }
 
 // Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
@@ -229,26 +242,26 @@ export interface MCResult {
 // runAroSimulacao com activeCategories = {param.name}, mas com nome
 // explícito pra o call-site ficar legível.
 export function aroSimForOneCategory(
-  dist:       Distribution,
+  dist: Distribution,
   iterations: number,
-  param:      CategoryParam,
-  confidence = 95,
+  param: CategoryParam,
+  confidence = 95
 ): MCResult {
   return runAroSimulacao(dist, iterations, [param], new Set([param.name]), confidence)
 }
 
-const BLOCO_SIZE     = 1_000
+const BLOCO_SIZE = 1_000
 const CONVERGENCE_EPSILON = 0.00001 // 0,001% (RB-03)
 
 export function runAroSimulacao(
-  dist:             Distribution,
-  iterations:       number,
-  categoryParams:   CategoryParam[],
+  dist: Distribution,
+  iterations: number,
+  categoryParams: CategoryParam[],
   activeCategories: Set<string>,
   confidence = 95,
-  seed?:            number,
+  seed?: number
 ): MCResult {
-  const cats = categoryParams.filter(c => activeCategories.has(c.name))
+  const cats = categoryParams.filter((c) => activeCategories.has(c.name))
   const seedUsed = seed ?? randomSeed()
   const rng = mulberry32(seedUsed)
 
@@ -275,9 +288,9 @@ export function runAroSimulacao(
       for (let ci = 0; ci < cats.length; ci++) {
         const cat = cats[ci]
         let val: number
-        if (dist === 'Triangular')   val = sampleTriangular(cat.min, cat.mode, cat.max, rng)
-        else if (dist === 'Normal')  val = sampleNormal(cat, rng)
-        else                         val = sampleUniform(cat.min, cat.max, rng)
+        if (dist === 'Triangular') val = sampleTriangular(cat.min, cat.mode, cat.max, rng)
+        else if (dist === 'Normal') val = sampleNormal(cat, rng)
+        else val = sampleUniform(cat.min, cat.max, rng)
         perCat[ci][filled] = val
         total += val
       }
@@ -301,20 +314,22 @@ export function runAroSimulacao(
 
   // Engine 6 + §9 precisam do pareamento por-iteração de `results` — calcular
   // ANTES de ordenar (sort abaixo é in-place e destrói a ordem original).
-  const riskDrivers: RiskDriver[] = cats.map((cat, ci) => ({
-    name:        cat.name,
-    correlation: cats.length > 1 ? pearsonCorrelation(perCat[ci], results, n) : 0,
-  })).sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation))
+  const riskDrivers: RiskDriver[] = cats
+    .map((cat, ci) => ({
+      name: cat.name,
+      correlation: cats.length > 1 ? pearsonCorrelation(perCat[ci], results, n) : 0,
+    }))
+    .sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation))
 
   const pctOf = (arr: Float64Array, p: number) => arr[Math.min(n - 1, Math.floor(n * p))]
   const scenarios: ScenarioSet = { otimista: 0, moderado: 0, pessimista: 0, estresse: 0 }
   for (let ci = 0; ci < cats.length; ci++) {
     const catSorted = perCat[ci].subarray(0, n)
     catSorted.sort()
-    scenarios.otimista   += pctOf(catSorted, 0.05)
-    scenarios.moderado   += pctOf(catSorted, 0.50)
+    scenarios.otimista += pctOf(catSorted, 0.05)
+    scenarios.moderado += pctOf(catSorted, 0.5)
     scenarios.pessimista += pctOf(catSorted, 0.95)
-    scenarios.estresse   += pctOf(catSorted, 0.99)
+    scenarios.estresse += pctOf(catSorted, 0.99)
   }
 
   const sorted = results.subarray(0, n)
@@ -329,13 +344,13 @@ export function runAroSimulacao(
   const stddev = Math.sqrt(sumSq / n)
 
   const pct = (p: number) => sorted[Math.min(n - 1, Math.floor(n * p))]
-  const p5  = pct(0.05)
-  const p10 = pct(0.10)
+  const p5 = pct(0.05)
+  const p10 = pct(0.1)
   const p25 = pct(0.25)
-  const p50 = pct(0.50)
+  const p50 = pct(0.5)
   const p75 = pct(0.75)
-  const p80 = pct(0.80)
-  const p90 = pct(0.90)
+  const p80 = pct(0.8)
+  const p90 = pct(0.9)
   const p95 = pct(0.95)
   const p99 = pct(0.99)
   const half = (1 - confidence / 100) / 2
@@ -343,20 +358,25 @@ export function runAroSimulacao(
   const icHi = pct(1 - half)
   const minVal = sorted[0]
   const maxVal = sorted[n - 1]
-  const cv     = stddev / mean
+  const cv = stddev / mean
 
   // VaR_95 = P95 (perda máxima esperada a 95% de confiança). CVaR_95 =
   // média dos cenários que excedem o VaR (Expected Shortfall / tail risk).
   const var95 = p95
-  let tailSum = 0, tailCount = 0
+  let tailSum = 0,
+    tailCount = 0
   for (let i = 0; i < n; i++) {
-    if (sorted[i] > var95) { tailSum += sorted[i]; tailCount++ }
+    if (sorted[i] > var95) {
+      tailSum += sorted[i]
+      tailCount++
+    }
   }
   const cvar95 = tailCount > 0 ? tailSum / tailCount : var95
 
   // P(X > soma das modas) — probabilidade de ultrapassar o custo-base mais provável
   const modeSum = cats.reduce((s, c) => s + c.mode, 0)
-  let lo = 0, hi = n
+  let lo = 0,
+    hi = n
   while (lo < hi) {
     const mid = (lo + hi) >>> 1
     if (sorted[mid] <= modeSum) lo = mid + 1
@@ -364,21 +384,42 @@ export function runAroSimulacao(
   }
   const exceedProb = (n - lo) / n
 
-  const range   = maxVal - minVal || 1
+  const range = maxVal - minVal || 1
   const binSize = range / 12
-  const bins    = new Array<number>(12).fill(0)
+  const bins = new Array<number>(12).fill(0)
   for (let i = 0; i < n; i++) {
     const idx = Math.min(11, Math.floor((sorted[i] - minVal) / binSize))
     bins[idx]++
   }
   const maxBin = Math.max(...bins)
-  const bars   = bins.map(b => Math.max(2, Math.round((b / maxBin) * 100)))
+  const bars = bins.map((b) => Math.max(2, Math.round((b / maxBin) * 100)))
 
   return {
-    mean, stddev, p5, p10, p25, p50, p75, p80, p90, p95, p99, icLo, icHi,
-    minVal, maxVal, cv, exceedProb, bars, var95, cvar95,
-    seed: seedUsed, converged, iterationsRun: n,
-    riskDrivers, scenarios,
+    mean,
+    stddev,
+    p5,
+    p10,
+    p25,
+    p50,
+    p75,
+    p80,
+    p90,
+    p95,
+    p99,
+    icLo,
+    icHi,
+    minVal,
+    maxVal,
+    cv,
+    exceedProb,
+    bars,
+    var95,
+    cvar95,
+    seed: seedUsed,
+    converged,
+    iterationsRun: n,
+    riskDrivers,
+    scenarios,
   }
 }
 
@@ -392,10 +433,10 @@ export function runAroSimulacao(
 export type NivelRisco = 'Baixo' | 'Médio' | 'Alto'
 
 export interface CalibrationResult {
-  nivelRisco:      NivelRisco
-  provisaoBase:    number
+  nivelRisco: NivelRisco
+  provisaoBase: number
   margemSeguranca: number // fração, ex.: 0.10 = 10%
-  provisaoFinal:   number
+  provisaoFinal: number
 }
 
 // Aceita um subconjunto do MCResult (não o objeto inteiro) — SimResult
@@ -404,10 +445,10 @@ export interface CalibrationResult {
 // não o MCResult completo (que tem `bars`, arrays grandes etc., sem sentido
 // serializar de novo pro jsonb da revisão).
 export interface CalibrationInput {
-  cv:     number
-  p50:    number
-  p90:    number
-  p95:    number
+  cv: number
+  p50: number
+  p90: number
+  p95: number
   cvar95: number
 }
 
@@ -418,18 +459,18 @@ export function calibrarProvisao(result: CalibrationInput): CalibrationResult {
   let provisaoBase: number
   let margemSeguranca: number
 
-  if (cv < 0.10) {
+  if (cv < 0.1) {
     nivelRisco = 'Baixo'
     provisaoBase = p50
-    margemSeguranca = 0.10
-  } else if (cv <= 0.20) {
+    margemSeguranca = 0.1
+  } else if (cv <= 0.2) {
     nivelRisco = 'Médio'
     provisaoBase = p90
     margemSeguranca = 0.15
   } else {
     nivelRisco = 'Alto'
     provisaoBase = Math.max(p95, cvar95)
-    margemSeguranca = 0.20
+    margemSeguranca = 0.2
   }
 
   return {
@@ -456,28 +497,28 @@ export function calibrarProvisao(result: CalibrationInput): CalibrationResult {
 // Retorna média, σ, percentis P10/P50/P80/P90/P95, CV, min/max e histograma
 // de 12 bins (mesmo shape do `runAroSimulacao` pra reusar o HistogramCard).
 export interface MCSensibilidadeAno10Result {
-  base:   number
-  mean:   number
+  base: number
+  mean: number
   stddev: number
-  p10:    number
-  p50:    number
-  p80:    number
-  p90:    number
-  p95:    number
+  p10: number
+  p50: number
+  p80: number
+  p90: number
+  p95: number
   minVal: number
   maxVal: number
-  cv:     number
-  bars:   number[]
+  cv: number
+  bars: number[]
   taxaMinPct: number
   taxaMaxPct: number
   iterations: number
 }
 
 export function aroSimSensibilidadeAno10(
-  baseAno10:  number,
+  baseAno10: number,
   iterations = 10_000,
   taxaMinPct = 1,
-  taxaMaxPct = 10,
+  taxaMaxPct = 10
 ): MCSensibilidadeAno10Result {
   const n = Math.max(100, Math.min(100_000, iterations))
   const results = new Float64Array(n)
@@ -500,28 +541,40 @@ export function aroSimSensibilidadeAno10(
   for (let i = 0; i < n; i++) sumSq += (results[i] - mean) ** 2
   const stddev = Math.sqrt(sumSq / n)
 
-  const p10  = results[Math.floor(n * 0.10)]
-  const p50  = results[Math.floor(n * 0.50)]
-  const p80  = results[Math.floor(n * 0.80)]
-  const p90  = results[Math.floor(n * 0.90)]
-  const p95  = results[Math.floor(n * 0.95)]
+  const p10 = results[Math.floor(n * 0.1)]
+  const p50 = results[Math.floor(n * 0.5)]
+  const p80 = results[Math.floor(n * 0.8)]
+  const p90 = results[Math.floor(n * 0.9)]
+  const p95 = results[Math.floor(n * 0.95)]
   const minVal = results[0]
   const maxVal = results[n - 1]
-  const cv     = mean > 0 ? stddev / mean : 0
+  const cv = mean > 0 ? stddev / mean : 0
 
-  const range   = maxVal - minVal || 1
+  const range = maxVal - minVal || 1
   const binSize = range / 12
-  const bins    = new Array<number>(12).fill(0)
+  const bins = new Array<number>(12).fill(0)
   for (let i = 0; i < n; i++) {
     const idx = Math.min(11, Math.floor((results[i] - minVal) / binSize))
     bins[idx]++
   }
   const maxBin = Math.max(...bins)
-  const bars   = bins.map(b => Math.max(2, Math.round((b / maxBin) * 100)))
+  const bars = bins.map((b) => Math.max(2, Math.round((b / maxBin) * 100)))
 
   return {
     base: baseAno10,
-    mean, stddev, p10, p50, p80, p90, p95, minVal, maxVal, cv, bars,
-    taxaMinPct, taxaMaxPct, iterations: n,
+    mean,
+    stddev,
+    p10,
+    p50,
+    p80,
+    p90,
+    p95,
+    minVal,
+    maxVal,
+    cv,
+    bars,
+    taxaMinPct,
+    taxaMaxPct,
+    iterations: n,
   }
 }

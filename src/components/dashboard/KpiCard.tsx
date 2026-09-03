@@ -13,7 +13,9 @@ interface KpiCardProps {
 
 export default function KpiCard({ icon, label, value, sub, delta, deltaPositive, highlight }: KpiCardProps) {
   return (
-    <div className={`card transition-[box-shadow,border-color] duration-500${highlight ? ' ring-2 ring-accent/30' : ''}`}>
+    <div
+      className={`card transition-[box-shadow,border-color] duration-500${highlight ? ' ring-2 ring-accent/30' : ''}`}
+    >
       <div className="flex items-center gap-2 mb-2">
         <div className="w-[22px] h-[22px] rounded-[7px] bg-accent-100 text-accent-700 flex items-center justify-center shrink-0">
           {icon}
@@ -22,9 +24,7 @@ export default function KpiCard({ icon, label, value, sub, delta, deltaPositive,
       </div>
       <div className="flex items-center gap-2">
         <span className="text-[28px] font-bold text-c-text tracking-tight">{value}</span>
-        {delta && (
-          <Badge variant={deltaPositive ? 'success' : 'accent'}>{delta}</Badge>
-        )}
+        {delta && <Badge variant={deltaPositive ? 'success' : 'accent'}>{delta}</Badge>}
       </div>
       {sub && <p className="text-[12.5px] text-c-text-2 mt-1.5">{sub}</p>}
     </div>

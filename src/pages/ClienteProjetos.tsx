@@ -15,8 +15,8 @@ import type { FilterTab } from '@/types/clientes'
 function initials(name: string): string {
   return name
     .split(/\s+/)
-    .filter(w => w.length > 0)
-    .map(w => w[0].toUpperCase())
+    .filter((w) => w.length > 0)
+    .map((w) => w[0].toUpperCase())
     .slice(0, 2)
     .join('')
 }
@@ -27,38 +27,42 @@ export default function ClienteProjetos() {
   const t = useT(clientesT)
   const { clientes, projetos: allProjetos, tiposProjeto, loading } = useProjeto()
 
-  const cliente = clientes.find(c => c.id === clienteId)
-  const rows = allProjetos.filter(p => p.clienteId === clienteId)
+  const cliente = clientes.find((c) => c.id === clienteId)
+  const rows = allProjetos.filter((p) => p.clienteId === clienteId)
   const { handleAction: sharedHandleAction, linkCopied, codeModalFor, setCodeModalFor } = useProjetoRowActions(rows)
 
   const FILTER_OPTS: { value: FilterTab; label: string }[] = [
-    { value: 'all',        label: t.filterAll     },
-    { value: 'andamento',  label: t.filterActive  },
+    { value: 'all', label: t.filterAll },
+    { value: 'andamento', label: t.filterActive },
     { value: 'aguardando', label: t.filterWaiting },
-    { value: 'concluido',  label: t.filterDone    },
+    { value: 'concluido', label: t.filterDone },
   ]
 
-  const [search,      setSearch]      = useState('')
-  const [filter,      setFilter]      = useState<FilterTab>('all')
-  const [openMenu,    setOpenMenu]    = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<FilterTab>('all')
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
 
   useEffect(() => {
-    function onMouseDown() { setOpenMenu(null) }
+    function onMouseDown() {
+      setOpenMenu(null)
+    }
     document.addEventListener('mousedown', onMouseDown)
     return () => document.removeEventListener('mousedown', onMouseDown)
   }, [])
 
-  const ativos = rows.filter(r => r.status !== 'concluido').length
+  const ativos = rows.filter((r) => r.status !== 'concluido').length
 
-  const filtered = rows.filter(r =>
-    r.projeto.toLowerCase().includes(search.toLowerCase()) &&
-    (filter === 'all' || r.status === filter)
+  const filtered = rows.filter(
+    (r) => r.projeto.toLowerCase().includes(search.toLowerCase()) && (filter === 'all' || r.status === filter)
   )
 
-  const handleAction = useCallback((id: string, action: Parameters<typeof sharedHandleAction>[1]) => {
-    setOpenMenu(null)
-    sharedHandleAction(id, action)
-  }, [sharedHandleAction])
+  const handleAction = useCallback(
+    (id: string, action: Parameters<typeof sharedHandleAction>[1]) => {
+      setOpenMenu(null)
+      sharedHandleAction(id, action)
+    },
+    [sharedHandleAction]
+  )
 
   if (loading) {
     return (
@@ -73,7 +77,9 @@ export default function ClienteProjetos() {
     return (
       <div className="flex flex-col h-full items-center justify-center gap-3">
         <p className="text-[0.875rem] text-c-text-2">Cliente não encontrado.</p>
-        <Button variant="ghost" onClick={() => navigate('/clientes')}>{t.backToClients}</Button>
+        <Button variant="ghost" onClick={() => navigate('/clientes')}>
+          {t.backToClients}
+        </Button>
       </div>
     )
   }
@@ -92,11 +98,14 @@ export default function ClienteProjetos() {
         title={cliente.nome}
         badge={t.activesBadge(ativos)}
         subtitle={t.headerSubtitle}
-        actions={<Button variant="primary" onClick={() => navigate(`/projetos/novo?clienteId=${clienteId}`)}>{t.newProject}</Button>}
+        actions={
+          <Button variant="primary" onClick={() => navigate(`/projetos/novo?clienteId=${clienteId}`)}>
+            {t.newProject}
+          </Button>
+        }
       />
 
       <div className="flex flex-col gap-4 px-4 sm:px-8 pb-6 sm:pb-8 overflow-y-auto flex-1">
-
         {/* Toolbar */}
         <div className="flex flex-wrap items-center gap-3">
           <label className="lnc-search-pill flex-1 min-w-[180px]">
@@ -105,12 +114,12 @@ export default function ClienteProjetos() {
               className="lnc-search"
               placeholder={t.searchPlaceholder}
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={(e) => setSearch(e.target.value)}
               aria-label={t.searchPlaceholder}
             />
           </label>
           <div className="flex flex-wrap gap-1" role="group" aria-label={t.searchPlaceholder}>
-            {FILTER_OPTS.map(opt => (
+            {FILTER_OPTS.map((opt) => (
               <button
                 key={opt.value}
                 className={`filter-chip${filter === opt.value ? ' active' : ''}`}
@@ -143,29 +152,26 @@ export default function ClienteProjetos() {
 
             {/* Rows */}
             {filtered.length === 0 ? (
-              <div className="py-12 text-center text-[0.875rem] text-c-text-2">
-                {t.empty}
-              </div>
+              <div className="py-12 text-center text-[0.875rem] text-c-text-2">{t.empty}</div>
             ) : (
-              filtered.map(row => (
+              filtered.map((row) => (
                 <CltRow
                   key={row.id}
                   row={row}
                   badgeLabel={initials(row.projeto)}
-                  subtitle={tiposProjeto.find(tp => tp.id === row.tipoProjetoId)?.nome ?? '—'}
+                  subtitle={tiposProjeto.find((tp) => tp.id === row.tipoProjetoId)?.nome ?? '—'}
                   isMenuOpen={openMenu === row.id}
                   onOpen={() => navigate(`/projetos/${row.id}/dashboard`)}
-                  onMenuToggle={e => {
+                  onMenuToggle={(e) => {
                     e.stopPropagation()
-                    setOpenMenu(prev => prev === row.id ? null : row.id)
+                    setOpenMenu((prev) => (prev === row.id ? null : row.id))
                   }}
-                  onAction={action => handleAction(row.id, action)}
+                  onAction={(action) => handleAction(row.id, action)}
                 />
               ))
             )}
           </div>
         </div>
-
       </div>
 
       {codeModalFor && (
@@ -179,20 +185,20 @@ export default function ClienteProjetos() {
 
       <div
         style={{
-          position:   'fixed',
-          bottom:     24,
-          right:      24,
-          display:    'flex',
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          display: 'flex',
           alignItems: 'center',
-          gap:        6,
+          gap: 6,
           background: '#14151a',
-          color:      '#fff',
-          fontSize:   13,
+          color: '#fff',
+          fontSize: 13,
           fontWeight: 500,
-          padding:    '8px 14px',
+          padding: '8px 14px',
           borderRadius: 10,
-          opacity:    linkCopied ? 1 : 0,
-          transform:  linkCopied ? 'translateY(0)' : 'translateY(6px)',
+          opacity: linkCopied ? 1 : 0,
+          transform: linkCopied ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
         }}

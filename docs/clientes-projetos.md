@@ -17,6 +17,7 @@ Lista global (cross-cliente), equivalente mais próximo da tela antiga. Toolbar:
 ### Menu de ações por linha (`useProjetoRowActions`, compartilhado entre `/clientes/:id` e `/projetos`)
 
 Não é mais só "Ver categorias/Concluir/Arquivar" como a spec antiga descrevia — 6 ações reais:
+
 - **Ver categorias de custo** → navega `/projetos/:id/categorias`
 - **Marcar como concluído** / **Arquivar projeto** → `concluirProjeto`/`arquivarProjeto` via `ProjetoContext`
 - **Ver relatório** → navega `/relatorio/:id` (Portal do Cliente)

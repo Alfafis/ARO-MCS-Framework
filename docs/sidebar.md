@@ -11,12 +11,8 @@ Componente de navegação lateral presente em todas as telas internas do sistema
   <aside class="bsidebar">
     <div class="bsidebar-topline">…logo…</div>
     <button class="bsidebar-toggle">…chevron duplo…</button>
-    <div class="bsidebar-scroll">
-      …6 links de navegação…
-    </div>
-    <div style="position:relative;flex:none;padding:8px 0 20px">
-      …cartão de perfil + dropdown…
-    </div>
+    <div class="bsidebar-scroll">…6 links de navegação…</div>
+    <div style="position:relative;flex:none;padding:8px 0 20px">…cartão de perfil + dropdown…</div>
   </aside>
   <div class="app-main">…conteúdo da página…</div>
 </div>
@@ -37,6 +33,7 @@ Componente de navegação lateral presente em todas as telas internas do sistema
 `.bsidebar-scroll { flex:1; min-height:0; overflow-y:auto; display:flex; flex-direction:column; gap:4px }` — cresce para ocupar o espaço disponível e rola independentemente se a lista crescer.
 
 Ordem fixa dos 6 itens (sempre os mesmos, em todas as telas — `NAV_ITEMS` em `Sidebar.tsx`):
+
 1. Visão Geral → `/visao-geral`
 2. Clientes → `/clientes`
 3. Projetos → `/projetos` (destaque também ativo dentro de `/projetos/:id/*`, o workspace de projeto)
@@ -45,6 +42,7 @@ Ordem fixa dos 6 itens (sempre os mesmos, em todas as telas — `NAV_ITEMS` em `
 6. Parâmetros Globais → `/parametros-globais`
 
 Cada link (`.bsidebar-link`): ícone Lucide 14px dentro de um chip `.ico` (28×28px, radius 9px, fundo `#f0eeec`) + label de texto (escondido quando recolhida, `title` no `<a>` serve de tooltip nesse estado).
+
 - **Ativo** (`.bsidebar-link.active`): o chip `.ico` fica com fundo `var(--accent)` e ícone branco + `box-shadow: var(--shadow-1)` — a linha inteira NÃO muda de fundo, só o chip do ícone.
 - **Hover** (não ativo): chip `.ico` vai para `#e7e4e1`, texto para `var(--c-text)`.
 
@@ -57,6 +55,7 @@ Container: `flex:none; padding:8px 0 20px` (fora do scroll, colado na base real 
 `.bsidebar-foot`: avatar circular 26px (iniciais "CA", fundo `--accent-100`, texto `--accent-700`) + nome "Cesar Aro" + cargo "Consultor" (escondidos quando recolhida) + ícone "···" de menu. Fundo `#f6f5f3`, radius 14px, hover `#efece9`. Clicável — abre/fecha o dropdown de perfil.
 
 ### Interatividade
+
 - `state.profileOpen` (boolean) — toggla ao clicar no cartão.
 - Dropdown (`profileMenuStyle`) ancorado ACIMA do cartão: `position:absolute; bottom:calc(100% + 8px); left:0; right:0`, fundo `--c-card`, radius 14px, `box-shadow: var(--shadow-2)`, padding 6px.
 - Animação de abrir/fechar: **nunca desmontado via `sc-if`** — sempre presente no DOM, controlado por `opacity` (0→1) + `transform: translateY(6px) scale(0.96)` → `translateY(0) scale(1)`, `transition: opacity 160ms ease, transform 160ms ease`, `pointerEvents: 'none'` quando fechado (evita cliques fantasmas).
@@ -71,7 +70,7 @@ Bloco fixo no topo da sidebar, primeira coisa vista ao carregar qualquer tela do
 ## Estado (lógica JS)
 
 ```js
-state = { collapsed: false, profileOpen: false };
+state = { collapsed: false, profileOpen: false }
 // renderVals() expõe: sidebarWidth, showLabel, brandJustify, chevronStyle,
 // toggle (fn), profileOpen, toggleProfile (fn), profileMenuStyle (objeto de estilo)
 ```

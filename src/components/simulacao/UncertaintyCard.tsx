@@ -6,29 +6,28 @@ import { categoryStddev, categoryMean, type CategoryParam } from '@/lib/aroSimul
 import type { Distribution, SimResult } from '@/types/simulacao'
 
 interface Props {
-  result:           SimResult | null
-  dist:             Distribution
+  result: SimResult | null
+  dist: Distribution
   activeCategories: Set<string>
-  categoryParams:   CategoryParam[]
+  categoryParams: CategoryParam[]
 }
 
 export default function UncertaintyCard({ result, dist, activeCategories, categoryParams }: Props) {
   const t = useT(simulacaoT)
 
   const rows = useMemo(() => {
-    const cats = categoryParams.filter(c => activeCategories.has(c.name))
+    const cats = categoryParams.filter((c) => activeCategories.has(c.name))
     const totalMean = cats.reduce((s, c) => s + categoryMean(c, dist), 0) || 1
 
     return cats
-      .map(cat => ({
+      .map((cat) => ({
         name: cat.name,
-        pct:  (categoryStddev(cat, dist) / totalMean) * 100,
+        pct: (categoryStddev(cat, dist) / totalMean) * 100,
       }))
       .sort((a, b) => b.pct - a.pct)
   }, [dist, activeCategories, categoryParams])
 
-  const fmt = (pct: number) =>
-    `±${pct.toFixed(1).replace('.', ',')}%`
+  const fmt = (pct: number) => `±${pct.toFixed(1).replace('.', ',')}%`
 
   return (
     <div className="card">
@@ -39,7 +38,10 @@ export default function UncertaintyCard({ result, dist, activeCategories, catego
 
       {result ? (
         rows.map(({ name, pct }) => (
-          <div key={name} className="flex items-center justify-between py-2.5 border-b border-[rgba(20,21,26,.08)] last:border-b-0">
+          <div
+            key={name}
+            className="flex items-center justify-between py-2.5 border-b border-[rgba(20,21,26,.08)] last:border-b-0"
+          >
             <span className="text-[0.875rem] text-c-text">{name}</span>
             <span className="font-mono font-bold text-sm text-c-text">{fmt(pct)}</span>
           </div>

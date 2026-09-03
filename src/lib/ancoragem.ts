@@ -11,16 +11,16 @@ export const ANO_BASE_TEMPLATE = 2022
 
 export interface FatorAncoragem {
   // Multiplicador base_template → data_base_projeto. 1 = sem ajuste.
-  fator:      number
+  fator: number
   // Anos ausentes em parametros_anuais dentro do range [anoBaseTemplate,
   // anoBaseProjeto). Quando não-vazio, `fator` volta 1 e a UI mostra aviso —
   // preferimos NÃO ajustar do que ajustar errado com buraco no meio (mesmo
   // princípio de sequenciaMidpoints).
-  faltantes:  number[]
+  faltantes: number[]
   // Range inclusivo de anos considerados na multiplicação — útil pra tooltip
   // e pra i18n do badge de ancoragem.
-  anoInicio:  number
-  anoFim:     number
+  anoInicio: number
+  anoFim: number
 }
 
 // Constrói o fator de ancoragem base_template → data_base_projeto.
@@ -34,8 +34,8 @@ export interface FatorAncoragem {
 // 2022, o consultor deve corrigir a data-base manualmente).
 export function computeFatorAncoragem(
   anoBaseTemplate: number,
-  anoBaseProjeto:  number,
-  parametrosAnuais: ParametroAnual[],
+  anoBaseProjeto: number,
+  parametrosAnuais: ParametroAnual[]
 ): FatorAncoragem {
   if (!Number.isFinite(anoBaseProjeto) || anoBaseProjeto <= anoBaseTemplate) {
     return { fator: 1, faltantes: [], anoInicio: anoBaseTemplate, anoFim: anoBaseProjeto }

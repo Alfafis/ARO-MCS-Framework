@@ -15,7 +15,7 @@ export default function RiskDriversCard({ result }: Props) {
   if (!result || !result.riskDrivers) return null
 
   const drivers = result.riskDrivers
-  const maxAbs = Math.max(...drivers.map(d => Math.abs(d.correlation)), 1e-9)
+  const maxAbs = Math.max(...drivers.map((d) => Math.abs(d.correlation)), 1e-9)
 
   return (
     <div className="card">
@@ -39,7 +39,8 @@ export default function RiskDriversCard({ result }: Props) {
                 />
               </div>
               <span className="font-mono text-[0.8125rem] font-bold text-c-text w-[52px] text-right shrink-0">
-                {correlation >= 0 ? '+' : ''}{correlation.toFixed(2)}
+                {correlation >= 0 ? '+' : ''}
+                {correlation.toFixed(2)}
               </span>
             </div>
           ))}

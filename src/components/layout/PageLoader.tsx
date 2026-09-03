@@ -11,7 +11,11 @@ export function PageLoader() {
 
 export function SplashScreen() {
   return (
-    <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#f4f3f1]" role="status" aria-label="Carregando">
+    <div
+      className="fixed inset-0 z-[999] flex flex-col items-center justify-center gap-4 bg-[#f4f3f1]"
+      role="status"
+      aria-label="Carregando"
+    >
       <img src="/logo.png" alt="Be Planned" className="h-10 w-auto object-contain animate-pulse" />
       <div
         className="h-6 w-6 rounded-full border-2 border-[rgba(20,21,26,.08)] border-t-accent animate-spin"

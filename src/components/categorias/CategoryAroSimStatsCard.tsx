@@ -41,11 +41,14 @@ export default function CategoryAroSimStatsCard({ param }: Props) {
         {t.simStatsTitle(sim.iterationsRun.toLocaleString('pt-BR'))}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <StatCell label={t.simStatsMean}   value={formatMoedaCompact(sim.mean)} />
+        <StatCell label={t.simStatsMean} value={formatMoedaCompact(sim.mean)} />
         <StatCell label={t.simStatsStddev} value={formatMoedaCompact(sim.stddev)} />
-        <StatCell label={t.simStatsP80}    value={formatMoedaCompact(sim.p80)} />
-        <StatCell label={t.simStatsIC(CONFIDENCE)} value={`${formatMoedaCompact(sim.icLo)} – ${formatMoedaCompact(sim.icHi)}`} />
-        <StatCell label={t.simStatsCV}     value={cvPct} />
+        <StatCell label={t.simStatsP80} value={formatMoedaCompact(sim.p80)} />
+        <StatCell
+          label={t.simStatsIC(CONFIDENCE)}
+          value={`${formatMoedaCompact(sim.icLo)} – ${formatMoedaCompact(sim.icHi)}`}
+        />
+        <StatCell label={t.simStatsCV} value={cvPct} />
       </div>
     </div>
   )

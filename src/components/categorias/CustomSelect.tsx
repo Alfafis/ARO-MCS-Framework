@@ -15,10 +15,10 @@ interface CustomSelectProps {
 }
 
 export default function CustomSelect({ options, value, onChange, isOpen, onToggle, id }: CustomSelectProps) {
-  const selected = options.find(o => o.value === value)
+  const selected = options.find((o) => o.value === value)
 
   return (
-    <div style={{ position: 'relative' }} onClick={e => e.stopPropagation()}>
+    <div style={{ position: 'relative' }} onClick={(e) => e.stopPropagation()}>
       <button
         id={id}
         className="csel-btn"
@@ -31,7 +31,11 @@ export default function CustomSelect({ options, value, onChange, isOpen, onToggl
         <ChevronDown
           size={14}
           aria-hidden="true"
-          style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 140ms ease', flex: 'none' }}
+          style={{
+            transform: isOpen ? 'rotate(180deg)' : 'rotate(0)',
+            transition: 'transform 140ms ease',
+            flex: 'none',
+          }}
         />
       </button>
 
@@ -46,13 +50,16 @@ export default function CustomSelect({ options, value, onChange, isOpen, onToggl
           transition: 'opacity 140ms ease, transform 140ms ease',
         }}
       >
-        {options.map(opt => (
+        {options.map((opt) => (
           <div
             key={opt.value}
             role="option"
             aria-selected={opt.value === value}
             className={`csel-opt${opt.value === value ? ' selected' : ''}`}
-            onClick={() => { onChange(opt.value); onToggle() }}
+            onClick={() => {
+              onChange(opt.value)
+              onToggle()
+            }}
           >
             {opt.label}
           </div>

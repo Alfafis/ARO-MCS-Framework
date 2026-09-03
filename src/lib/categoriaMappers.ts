@@ -6,31 +6,31 @@ import { formatMoedaBR } from '@/lib/financeiro'
 // conteúdo, FK pra tabela pai diferente) — permite reaproveitar o mapper pros
 // dois sem duplicar a função só por causa do tipo gerado divergir.
 interface ItemCustoLikeRow {
-  id:                       string
-  nome:                     string
-  unidade:                  string
-  custo_min:                number
-  custo_max:                number
-  fonte:                    string | null
+  id: string
+  nome: string
+  unidade: string
+  custo_min: number
+  custo_max: number
+  fonte: string | null
   // Novos (migration 20260824120000_setores_fase_ano.sql).
   // `fase` é `text` com CHECK no banco — tipos gerados vêm como string, o
   // mapper faz o narrow pra Fase (valores fora do enum caem em null).
-  aplicabilidade_setores?:  number[] | null
-  fase?:                    string | null
-  ano_inicio?:              number | null
-  ano_fim?:                 number | null
+  aplicabilidade_setores?: number[] | null
+  fase?: string | null
+  ano_inicio?: number | null
+  ano_fim?: number | null
   // Legado (transitório)
-  aplicabilidade:           string | null
-  ano_previsto:             string | null
+  aplicabilidade: string | null
+  ano_previsto: string | null
   // Embed do Supabase — nome do array vem do nome da tabela filha. Só uma das
   // duas keys estará presente conforme o contexto (item de projeto vs. de
   // template). numeric(14,2) chega como string do driver.
-  desembolso_item_ano?:          DesembolsoAnoRow[] | null
+  desembolso_item_ano?: DesembolsoAnoRow[] | null
   desembolso_item_template_ano?: DesembolsoAnoRow[] | null
 }
 
 interface DesembolsoAnoRow {
-  ano:   number
+  ano: number
   valor: string | number
 }
 
@@ -41,29 +41,29 @@ function narrowFase(valor: string | null | undefined): Fase | null {
 }
 
 interface CampoOperacionalTemplateRow {
-  id:               string
-  label:            string
-  unidade:          string | null
+  id: string
+  label: string
+  unidade: string | null
   valor_referencia: string | null
-  ordem:            number
+  ordem: number
 }
 
 export function mapCampoOperacionalTemplateRow(row: CampoOperacionalTemplateRow): CampoOperacionalTemplate {
   return {
-    id:              row.id,
-    label:           row.label,
-    unidade:         row.unidade ?? '',
+    id: row.id,
+    label: row.label,
+    unidade: row.unidade ?? '',
     valorReferencia: row.valor_referencia ?? '',
-    ordem:           row.ordem,
+    ordem: row.ordem,
   }
 }
 
 interface CampoOperacionalLikeRow {
-  id:      string
-  label:   string
-  valor:   string | null
+  id: string
+  label: string
+  valor: string | null
   unidade: string | null
-  status:  string
+  status: string
 }
 
 // Instância por projeto — herdada de campos_operacionais_template ao rodar
@@ -71,11 +71,11 @@ interface CampoOperacionalLikeRow {
 // valor_referencia), aqui há status editável pelo consultor/cliente.
 export function mapCampoOperacionalRow(row: CampoOperacionalLikeRow): CampoOperacional {
   return {
-    id:      row.id,
-    label:   row.label,
-    valor:   row.valor ?? '',
+    id: row.id,
+    label: row.label,
+    valor: row.valor ?? '',
     unidade: row.unidade ?? '',
-    status:  row.status === 'preenchido' ? 'preenchido' : 'pendente',
+    status: row.status === 'preenchido' ? 'preenchido' : 'pendente',
   }
 }
 
@@ -84,25 +84,29 @@ export function mapCampoOperacionalRow(row: CampoOperacionalLikeRow): CampoOpera
 // de custo pro mesmo shape de tela.
 export function mapItemCustoRow(row: ItemCustoLikeRow): CategoryItem {
   const desembolsoRows = row.desembolso_item_ano ?? row.desembolso_item_template_ano ?? null
-  const desembolsoPorAno = desembolsoRows && desembolsoRows.length > 0
-    ? [...desembolsoRows]
-        .map<DesembolsoAno>(r => ({ ano: r.ano, valor: typeof r.valor === 'string' ? parseFloat(r.valor) : r.valor }))
-        .sort((a, b) => a.ano - b.ano)
-    : null
+  const desembolsoPorAno =
+    desembolsoRows && desembolsoRows.length > 0
+      ? [...desembolsoRows]
+          .map<DesembolsoAno>((r) => ({
+            ano: r.ano,
+            valor: typeof r.valor === 'string' ? parseFloat(r.valor) : r.valor,
+          }))
+          .sort((a, b) => a.ano - b.ano)
+      : null
 
   return {
-    id:                    row.id,
-    name:                  row.nome,
-    unit:                  row.unidade,
-    min:                   formatMoedaBR(row.custo_min),
-    max:                   formatMoedaBR(row.custo_max),
-    source:                row.fonte ?? '',
+    id: row.id,
+    name: row.nome,
+    unit: row.unidade,
+    min: formatMoedaBR(row.custo_min),
+    max: formatMoedaBR(row.custo_max),
+    source: row.fonte ?? '',
     aplicabilidadeSetores: row.aplicabilidade_setores ?? null,
-    fase:                  narrowFase(row.fase),
-    anoInicio:             row.ano_inicio ?? null,
-    anoFim:                row.ano_fim ?? null,
-    aplicabilidade:        row.aplicabilidade ?? '',
-    anoPrevisto:           row.ano_previsto ?? '',
+    fase: narrowFase(row.fase),
+    anoInicio: row.ano_inicio ?? null,
+    anoFim: row.ano_fim ?? null,
+    aplicabilidade: row.aplicabilidade ?? '',
+    anoPrevisto: row.ano_previsto ?? '',
     desembolsoPorAno,
   }
 }

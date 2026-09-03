@@ -16,7 +16,7 @@ interface Props {
   initial: ConfigFinanceiraFormValue
   onSalvar: (form: ConfigFinanceiraFormValue) => Promise<void>
   primaryLabel: string
-  secondaryAction?: { label: string, onClick: () => void }
+  secondaryAction?: { label: string; onClick: () => void }
   onValorInvalido: () => void
   // 'filled' (default) é pra dentro de card branco (aba Configurações) — mesmo fundo cinza usado
   // em todo formulário sobre card. 'default' é pra tela cheia sem card (wizard): fundo branco +
@@ -29,7 +29,14 @@ interface Props {
 // Formulário compartilhado entre o step 2 do wizard (/projetos/:id/config-inicial) e a aba
 // "Configurações" do workspace do projeto — mesmos campos, mesma RPC, só muda o rótulo do botão
 // principal e se existe uma ação secundária (o wizard tem "Pular por agora", a aba de edição não).
-export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, secondaryAction, onValorInvalido, variant = 'filled' }: Props) {
+export default function ConfigFinanceiraForm({
+  initial,
+  onSalvar,
+  primaryLabel,
+  secondaryAction,
+  onValorInvalido,
+  variant = 'filled',
+}: Props) {
   const t = useT(configFinanceiraT)
   const METODO_OPTIONS = [
     { value: 'a-definir', label: t.metodoADefinir },
@@ -69,7 +76,11 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
     setSalvando(true)
     try {
       await onSalvar({
-        moeda, dataBase, horizonteAnos: horizonte, metodoAtualizacao, contingenciaPct: contingencia,
+        moeda,
+        dataBase,
+        horizonteAnos: horizonte,
+        metodoAtualizacao,
+        contingenciaPct: contingencia,
       })
     } finally {
       setSalvando(false)
@@ -86,7 +97,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
           value={moeda}
           onChange={setMoeda}
           isOpen={moedaOpen}
-          onToggle={() => setMoedaOpen(o => !o)}
+          onToggle={() => setMoedaOpen((o) => !o)}
         />
       </div>
 
@@ -98,7 +109,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
           inputMode="numeric"
           maxLength={4}
           value={dataBase}
-          onChange={e => setDataBase(e.target.value.replace(/\D/g, ''))}
+          onChange={(e) => setDataBase(e.target.value.replace(/\D/g, ''))}
         />
       </div>
 
@@ -109,7 +120,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
           variant={variant}
           inputMode="numeric"
           value={horizonteAnos}
-          onChange={e => setHorizonteAnos(e.target.value.replace(/\D/g, ''))}
+          onChange={(e) => setHorizonteAnos(e.target.value.replace(/\D/g, ''))}
         />
         <p className="text-[11.5px] text-c-text-2">{t.helpHorizonte}</p>
       </div>
@@ -122,7 +133,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
           value={metodoAtualizacao}
           onChange={setMetodoAtualizacao}
           isOpen={metodoOpen}
-          onToggle={() => setMetodoOpen(o => !o)}
+          onToggle={() => setMetodoOpen((o) => !o)}
         />
         <p className="text-[11.5px] text-c-text-2">{t.helpMetodo}</p>
       </div>
@@ -134,7 +145,7 @@ export default function ConfigFinanceiraForm({ initial, onSalvar, primaryLabel, 
           variant={variant}
           inputMode="decimal"
           value={contingenciaPct}
-          onChange={e => setContingenciaPct(e.target.value.replace(/[^\d,.-]/g, ''))}
+          onChange={(e) => setContingenciaPct(e.target.value.replace(/[^\d,.-]/g, ''))}
         />
       </div>
 

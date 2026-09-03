@@ -7,22 +7,22 @@ import type { Category } from '@/types/categorias'
 // fontes diferentes: esta é a referência congelada da planilha original: nunca
 // muda; a de `selicPorAno`/`inflacaoPorAno` é editável pelo consultor e reflete
 // a expectativa atual. Ver specs/2026-08-23-parametros-anuais-design.md.
-const IPCA_RATES = [0.034, 0.003, 0.028, 0.031, 0.040, 0.042, 0.050, 0.030, 0.0211, 0.034]
+const IPCA_RATES = [0.034, 0.003, 0.028, 0.031, 0.04, 0.042, 0.05, 0.03, 0.0211, 0.034]
 
 export interface ParametrosCalculo {
-  selicPorAno:    number[] | null  // frações (0.14 = 14%), 1 por ano do horizonte — null = algum ano sem parâmetro, omite simples/compostos
-  inflacaoPorAno: number[] | null  // idem, omite inflação constante
-  horizonYears:   number
+  selicPorAno: number[] | null // frações (0.14 = 14%), 1 por ano do horizonte — null = algum ano sem parâmetro, omite simples/compostos
+  inflacaoPorAno: number[] | null // idem, omite inflação constante
+  horizonYears: number
 }
 
 export interface MetodoAtualizacao {
   metodo: 'simples' | 'compostos' | 'inflacao' | 'escalonamento'
-  valor:  number
+  valor: number
 }
 
 function compostoSequencial(base: number, taxas: number[]): number {
   let fv = base
-  for (const rate of taxas) fv *= (1 + rate)
+  for (const rate of taxas) fv *= 1 + rate
   return fv
 }
 
@@ -35,13 +35,16 @@ export function computeMonetaryValues(filteredBase: number, params: ParametrosCa
 
   if (params.selicPorAno !== null) {
     const media = params.selicPorAno.reduce((a, b) => a + b, 0) / params.selicPorAno.length
-    resultados.push({ metodo: 'simples',   valor: filteredBase * (1 + media * params.horizonYears) })
+    resultados.push({ metodo: 'simples', valor: filteredBase * (1 + media * params.horizonYears) })
     resultados.push({ metodo: 'compostos', valor: compostoSequencial(filteredBase, params.selicPorAno) })
   }
   if (params.inflacaoPorAno !== null) {
     resultados.push({ metodo: 'inflacao', valor: compostoSequencial(filteredBase, params.inflacaoPorAno) })
   }
-  resultados.push({ metodo: 'escalonamento', valor: compostoSequencial(filteredBase, IPCA_RATES.slice(0, params.horizonYears)) })
+  resultados.push({
+    metodo: 'escalonamento',
+    valor: compostoSequencial(filteredBase, IPCA_RATES.slice(0, params.horizonYears)),
+  })
 
   return resultados
 }
@@ -85,7 +88,10 @@ export function maskNumeroBR(input: string): string {
 
 // "R$ 1.234.567" ou "1.234.567,89" → 1234567(.89). Retorna 0 se não conseguir extrair número.
 export function parseMoedaBR(str: string): number {
-  const cleaned = str.replace(/[^\d,.-]/g, '').replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.')
+  const cleaned = str
+    .replace(/[^\d,.-]/g, '')
+    .replace(/\.(?=\d{3}(?:\D|$))/g, '')
+    .replace(',', '.')
   const n = parseFloat(cleaned)
   return Number.isFinite(n) ? n : 0
 }
@@ -108,8 +114,8 @@ export function formatMoedaCompact(n: number, withPrefix: boolean = true): strin
   const sign = n < 0 ? '-' : ''
   const prefix = withPrefix ? 'R$ ' : ''
   if (abs >= 1_000_000_000) return `${sign}${prefix}${(abs / 1_000_000_000).toFixed(2).replace('.', ',')} B`
-  if (abs >= 1_000_000)     return `${sign}${prefix}${(abs / 1_000_000).toFixed(2).replace('.', ',')} M`
-  if (abs >= 1_000)         return `${sign}${prefix}${(abs / 1_000).toFixed(1).replace('.', ',')} k`
+  if (abs >= 1_000_000) return `${sign}${prefix}${(abs / 1_000_000).toFixed(2).replace('.', ',')} M`
+  if (abs >= 1_000) return `${sign}${prefix}${(abs / 1_000).toFixed(1).replace('.', ',')} k`
   return `${sign}${prefix}${abs.toFixed(0)}`
 }
 
@@ -127,7 +133,8 @@ export function formatMoedaBR(n: number): string {
 // existia formatada ("R$ 1,2 M") e string compacta não reverte pra número
 // sem perder precisão.
 export function valorEsperadoNumerico(categorias: Category[]): number {
-  let min = 0, max = 0
+  let min = 0,
+    max = 0
   for (const cat of categorias) {
     for (const item of cat.items) {
       min += parseMoedaBR(item.min)
