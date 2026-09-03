@@ -9,7 +9,7 @@ import { tiposProjetoT } from '@/i18n/tipos-projeto'
 import { categoriasCustoT } from '@/i18n/categorias-custo'
 import { parametrosGlobaisT } from '@/i18n/parametros-globais'
 
-const APP_NAME = 'ARO-MCS Framework'
+const APP_NAME = 'Be Planned'
 
 // Sem client name no título de propósito — histórico do browser é visível
 // localmente no dispositivo, dado de cliente não precisa vazar pra lá.
