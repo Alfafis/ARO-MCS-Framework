@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from 'react'
-import { Check, ChevronDown, ChevronUp, RefreshCw, SlidersHorizontal, X } from 'lucide-react'
+import { Check, ChevronDown, ChevronUp, RefreshCw, SlidersHorizontal, TrendingUp, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -14,7 +14,7 @@ import type {
   ParametroAnualChave,
 } from '@/types/parametrosGlobais'
 import { isNaoConfigurado } from '@/types/parametrosGlobais'
-import { SERIE_BCB, SERIE_BCB_ANUAL, buscarValorBcb } from '@/lib/bcb'
+import { SERIE_BCB, SERIE_BCB_ANUAL, buscarValorBcb, buscarProjecoesFocus } from '@/lib/bcb'
 import { formatRelativeTime } from '@/lib/utils'
 
 const PARAMETRO_ORDEM: ParametroGlobalChave[] = ['cambio_usd_brl']
@@ -191,6 +191,7 @@ function ParametroAnualTable({
 }: ParametroAnualTableProps) {
   const porAno = new Map(linhas.map((l) => [l.ano, l]))
   const [buscandoAnoAtual, setBuscandoAnoAtual] = useState(false)
+  const [buscandoFocus, setBuscandoFocus] = useState(false)
   const [edicoes, setEdicoes] = useState<Record<number, { min?: string; max?: string }>>({})
   const [mostrarAnteriores, setMostrarAnteriores] = useState(false)
 
@@ -260,6 +261,29 @@ function ParametroAnualTable({
     }
   }
 
+  // Boletim Focus só publica consenso pros próximos ~5 anos — preenche o que
+  // vier, um ano de cada vez (RPC grava uma linha por chamada). Anos além do
+  // que o Focus cobre continuam manuais, sem tentativa de extrapolar.
+  async function atualizarProjecaoFocus() {
+    setBuscandoFocus(true)
+    try {
+      let porAnoFocus: Map<number, number>
+      try {
+        porAnoFocus = await buscarProjecoesFocus(chave)
+      } catch {
+        onBuscaFalhou()
+        return
+      }
+      for (const ano of anosFuturos) {
+        const mediana = porAnoFocus.get(ano)
+        if (mediana === undefined) continue
+        await onSalvar(ano, mediana, mediana, 'bcb-focus')
+      }
+    } finally {
+      setBuscandoFocus(false)
+    }
+  }
+
   function renderLinha(ano: number, passado: boolean) {
     return (
       <Fragment key={ano}>
@@ -300,6 +324,15 @@ function ParametroAnualTable({
             title={t.atualizarAnoAtualTitle}
           >
             <RefreshCw size={14} className={buscandoAnoAtual ? 'animate-spin' : ''} aria-hidden="true" />
+          </Button>
+          <Button
+            variant="icon-btn"
+            disabled={buscandoFocus}
+            onClick={() => void atualizarProjecaoFocus()}
+            aria-label={t.atualizarProjecaoFocusTitle}
+            title={t.atualizarProjecaoFocusTitle}
+          >
+            <TrendingUp size={14} className={buscandoFocus ? 'animate-pulse' : ''} aria-hidden="true" />
           </Button>
         </div>
       </div>

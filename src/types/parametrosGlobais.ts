@@ -52,7 +52,7 @@ export interface ParametroAnual {
   ano: number
   valorMin: number | null
   valorMax: number | null
-  fonte: 'bcb-sgs' | 'manual'
+  fonte: 'bcb-sgs' | 'bcb-focus' | 'manual'
   atualizadoEm: string
 }
 

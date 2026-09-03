@@ -20,6 +20,7 @@ export const parametrosGlobaisT: Record<
     colMinPct: string
     colMaxPct: string
     atualizarAnoAtualTitle: string
+    atualizarProjecaoFocusTitle: string
     verAnosAnteriores: string
     ocultarAnosAnteriores: string
     anosAnterioresHeader: string
@@ -43,6 +44,7 @@ export const parametrosGlobaisT: Record<
     colMinPct: 'Mín %',
     colMaxPct: 'Máx %',
     atualizarAnoAtualTitle: 'Atualizar ano atual da API',
+    atualizarProjecaoFocusTitle: 'Preencher projeção do Boletim Focus (consenso de mercado, próximos anos)',
     verAnosAnteriores: 'Ver anos anteriores',
     ocultarAnosAnteriores: 'Ocultar anos anteriores',
     anosAnterioresHeader: 'Anos anteriores',
@@ -65,6 +67,7 @@ export const parametrosGlobaisT: Record<
     colMinPct: 'Min %',
     colMaxPct: 'Max %',
     atualizarAnoAtualTitle: 'Update current year from API',
+    atualizarProjecaoFocusTitle: 'Fill projection from Boletim Focus (market consensus, next years)',
     verAnosAnteriores: 'Show previous years',
     ocultarAnosAnteriores: 'Hide previous years',
     anosAnterioresHeader: 'Previous years',
@@ -87,6 +90,7 @@ export const parametrosGlobaisT: Record<
     colMinPct: 'Mín %',
     colMaxPct: 'Máx %',
     atualizarAnoAtualTitle: 'Actualizar año actual de la API',
+    atualizarProjecaoFocusTitle: 'Rellenar proyección del Boletim Focus (consenso de mercado, próximos años)',
     verAnosAnteriores: 'Ver años anteriores',
     ocultarAnosAnteriores: 'Ocultar años anteriores',
     anosAnterioresHeader: 'Años anteriores',
