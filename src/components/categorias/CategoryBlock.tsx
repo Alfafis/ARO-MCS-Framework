@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronUp, ChevronDown, Trash2, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -694,6 +694,7 @@ interface CustoProvavelRowProps {
 }
 
 function CustoProvavelRow({ value, onSave, label, placeholder, hint }: CustoProvavelRowProps) {
+  const inputId = useId()
   const [texto, setTexto] = useState(value === null ? '' : formatMoedaBR(value))
 
   // Sincroniza quando o valor externo muda (ex: carregar template)
@@ -714,15 +715,17 @@ function CustoProvavelRow({ value, onSave, label, placeholder, hint }: CustoProv
 
   return (
     <div className="flex items-center gap-2 py-2 mb-2 border-b border-[rgba(20,21,26,.06)]">
-      <label className="text-[0.75rem] font-semibold uppercase tracking-wide text-c-text-2">{label}</label>
+      <label htmlFor={inputId} className="text-[0.75rem] font-semibold uppercase tracking-wide text-c-text-2">
+        {label}
+      </label>
       <input
+        id={inputId}
         className="row-input mono max-w-[180px]"
         value={texto}
         inputMode="decimal"
         placeholder={placeholder}
         onChange={(e) => setTexto(maskMoedaBR(e.target.value))}
         onBlur={commit}
-        aria-label={label}
       />
       <span className="text-[0.7rem] text-c-text-2/70 truncate">{hint}</span>
     </div>
@@ -892,14 +895,35 @@ function SetoresPicker({ selected, onChange, t }: SetoresPickerProps) {
   }
 
   useEffect(() => {
+    // Portal renderiza no fim do <body> — Tab a partir do botão NÃO chega
+    // nos checkboxes por ordem natural do DOM. Sem foco programático aqui,
+    // quem abre via teclado abre um popover que nenhum Tab alcança.
+    if (open) menuRef.current?.querySelector<HTMLInputElement>('input[type="checkbox"]')?.focus()
+  }, [open])
+
+  useEffect(() => {
     if (!open) return
     function onMouseDown(e: MouseEvent) {
       if (btnRef.current?.contains(e.target as Node)) return
       if (menuRef.current?.contains(e.target as Node)) return
       setOpen(false)
     }
+    // Esc fecha e devolve foco pro botão — sem isso, quem abre via teclado
+    // não tinha NENHUM jeito de sair do popover (mousedown-fora era o único
+    // fechamento, e as opções internas não eram focáveis pra começo de conversa).
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        e.stopPropagation()
+        setOpen(false)
+        btnRef.current?.focus()
+      }
+    }
     document.addEventListener('mousedown', onMouseDown)
-    return () => document.removeEventListener('mousedown', onMouseDown)
+    document.addEventListener('keydown', onKeyDown, true)
+    return () => {
+      document.removeEventListener('mousedown', onMouseDown)
+      document.removeEventListener('keydown', onKeyDown, true)
+    }
   }, [open])
 
   function toggleSetor(id: number) {
@@ -945,8 +969,8 @@ function SetoresPicker({ selected, onChange, t }: SetoresPickerProps) {
       {createPortal(
         <div
           ref={menuRef}
-          role="listbox"
-          aria-multiselectable="true"
+          role="group"
+          aria-label="Setores de aplicabilidade"
           style={{
             position: 'fixed',
             top: pos.top,
@@ -963,43 +987,54 @@ function SetoresPicker({ selected, onChange, t }: SetoresPickerProps) {
             transition: 'opacity 140ms ease, transform 140ms ease',
           }}
         >
-          {/* "Todos os setores" — opção especial que zera a lista */}
-          <div
-            role="option"
-            aria-selected={selected === null}
-            onClick={marcarTodos}
-            className={`px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap ${
+          {/* "Todos os setores" — opção especial que zera a lista. Checkbox nativo
+              (não role="option" div): foco/toggle por teclado de graça, sem
+              reimplementar roving tabindex à mão. */}
+          <label
+            className={`flex items-center px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-1 ${
               selected === null
                 ? 'bg-accent-100 text-accent-700 font-bold'
                 : 'text-c-text font-medium hover:bg-[#f2f2f0]'
             }`}
           >
+            <input
+              type="checkbox"
+              className="sr-only"
+              checked={selected === null}
+              onChange={marcarTodos}
+              tabIndex={open ? 0 : -1}
+            />
             {t.setoresTodos}
-          </div>
+          </label>
           <div className="h-px bg-[rgba(20,21,26,.08)] my-1" />
           {setores.map((s) => {
             const marcado = selected?.includes(s.id) ?? false
             return (
-              <div
+              <label
                 key={s.id}
-                role="option"
-                aria-selected={marcado}
-                onClick={() => toggleSetor(s.id)}
-                className={`px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap flex items-center gap-2 ${
+                className={`px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap flex items-center gap-2 focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-1 ${
                   marcado ? 'bg-accent-100 text-accent-700 font-medium' : 'text-c-text hover:bg-[#f2f2f0]'
                 }`}
               >
+                <input
+                  type="checkbox"
+                  className="sr-only"
+                  checked={marcado}
+                  onChange={() => toggleSetor(s.id)}
+                  tabIndex={open ? 0 : -1}
+                />
                 <span
                   className={`inline-block w-3.5 h-3.5 rounded-[4px] border ${
                     marcado ? 'bg-accent border-accent' : 'border-[rgba(20,21,26,.24)]'
-                  } flex items-center justify-center`}
+                  } flex items-center justify-center shrink-0`}
+                  aria-hidden="true"
                 >
                   {marcado && <Check size={10} color="#fff" />}
                 </span>
                 <span className="truncate">
                   Setor {s.id} — {s.nome}
                 </span>
-              </div>
+              </label>
             )
           })}
         </div>,
