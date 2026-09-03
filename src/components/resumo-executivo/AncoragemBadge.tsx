@@ -1,6 +1,6 @@
 import type { FatorAncoragem } from '@/lib/ancoragem'
 
-// Badge sutil que informa se a matriz e o MC estão ancorados na data-base do
+// Badge sutil que informa se a matriz e a Aro Simulação estão ancoradas na data-base do
 // projeto (fator > 1) ou não. Quando há anos faltantes em `parametros_anuais`,
 // mostra em amber com a lista de anos.
 export function AncoragemBadge({ ancoragem }: { ancoragem: FatorAncoragem }) {

@@ -1,7 +1,7 @@
 // Módulo Remediação — escopo alternativo do projeto (áreas contaminadas,
 // barragem de rejeitos, planta de tratamento). Modelado com quantidade × custo
 // unitário, diferente das categorias principais que usam min/max direto por
-// item. Não entra no cálculo do provisionamento principal (MC, Sensibilidade,
+// item. Não entra no cálculo do provisionamento principal (Aro Simulação, Sensibilidade,
 // Ancoragem, Curva de Desembolso) — vive em rota própria `/projetos/:id/remediacao`.
 
 export interface CategoriaRemediacao {

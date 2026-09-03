@@ -7,7 +7,7 @@ import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import type { Distribution } from '@/types/simulacao'
-import { clampIterations, maskIterations } from '@/lib/monteCarlo'
+import { clampIterations, maskIterations } from '@/lib/aroSimulacao'
 
 const DIST_OPTIONS: Distribution[] = ['Triangular', 'Normal', 'Uniforme']
 

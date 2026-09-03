@@ -86,7 +86,7 @@ export interface Category {
   camposOperacionaisTemplate?: CampoOperacionalTemplate[]
 
   // Moda "pela experiência" — F18 da planilha original (`_Dados_Formulas_Planilha.md`).
-  // Alimenta o parâmetro `mode` do MC Triangular. null = fallback (min+max)/2.
+  // Alimenta o parâmetro `mode` da Aro Simulação Triangular. null = fallback (min+max)/2.
   // Guardado como número puro (não string, diferente de min/max dos items)
   // porque é editado uma única vez com máscara BRL local, não em lista.
   custoProvavel: number | null

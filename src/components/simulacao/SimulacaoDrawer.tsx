@@ -9,7 +9,7 @@ import HistogramCard from './HistogramCard'
 import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import type { Distribution, SimResult, UncertaintyLevel } from '@/types/simulacao'
-import { clampIterations, maskIterations } from '@/lib/monteCarlo'
+import { clampIterations, maskIterations } from '@/lib/aroSimulacao'
 
 const uid = () => Math.random().toString(36).slice(2)
 

@@ -19,7 +19,7 @@ export const relatorioClienteT: Record<Lang, {
   // KPIs
   kpiAvgCost:        string
   simPendingSub:     string
-  kpiAvgCostSubMC:   (status: string) => string
+  kpiAvgCostSubSim:   (status: string) => string
   kpiMinMaxRange:    string
   kpiMinMaxSubIC:    (confLevel: number, ic95: string) => string
   kpiBaseProvision:  string
@@ -55,7 +55,7 @@ export const relatorioClienteT: Record<Lang, {
     reportNotFoundBody:  'O link usado não corresponde a nenhum projeto ativo. Verifique o link ou peça um novo à sua consultoria.',
     kpiAvgCost:        'Custo médio',
     simPendingSub:     'Sem simulação rodada ainda',
-    kpiAvgCostSubMC:   (status) => `Aro Simulação · ${status}`,
+    kpiAvgCostSubSim:   (status) => `Aro Simulação · ${status}`,
     kpiMinMaxRange:    'Faixa min–max',
     kpiMinMaxSubIC:    (conf, ic) => `IC ${conf}%: ${ic}`,
     kpiBaseProvision:  'Provisão base',
@@ -88,7 +88,7 @@ export const relatorioClienteT: Record<Lang, {
     reportNotFoundBody:  'This link does not match any active project. Check the link or ask your consultant for a new one.',
     kpiAvgCost:        'Average cost',
     simPendingSub:     'No simulation run yet',
-    kpiAvgCostSubMC:   (status) => `Aro Simulação · ${status}`,
+    kpiAvgCostSubSim:   (status) => `Aro Simulação · ${status}`,
     kpiMinMaxRange:    'Min–max range',
     kpiMinMaxSubIC:    (conf, ic) => `${conf}% CI: ${ic}`,
     kpiBaseProvision:  'Base provision',
@@ -121,7 +121,7 @@ export const relatorioClienteT: Record<Lang, {
     reportNotFoundBody:  'El enlace usado no corresponde a ningún proyecto activo. Verifique el enlace o pida uno nuevo a su consultoría.',
     kpiAvgCost:        'Costo promedio',
     simPendingSub:     'Sin simulación ejecutada aún',
-    kpiAvgCostSubMC:   (status) => `Aro Simulação · ${status}`,
+    kpiAvgCostSubSim:   (status) => `Aro Simulação · ${status}`,
     kpiMinMaxRange:    'Rango mín–máx',
     kpiMinMaxSubIC:    (conf, ic) => `IC ${conf}%: ${ic}`,
     kpiBaseProvision:  'Provisión base',

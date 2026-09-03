@@ -13,33 +13,33 @@ import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
 import SensibilidadeAno10Card from '@/components/simulacao/SensibilidadeAno10Card'
-import { runMonteCarlo, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/monteCarlo'
+import { runAroSimulacao, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/aroSimulacao'
 import { computeDesembolsoMatrix } from '@/lib/desembolsoAno'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import { sequenciaMidpoints } from '@/types/parametrosGlobais'
 import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 function computeResult(dist: Distribution, n: number, categoryParams: CategoryParam[], activeCategories: Set<string>, confidence: number): Omit<SimResult, 'status' | 'iterations' | 'distribution'> {
-  const mc  = runMonteCarlo(dist, n, categoryParams, activeCategories, confidence)
+  const sim  = runAroSimulacao(dist, n, categoryParams, activeCategories, confidence)
   const toM = (v: number) => v / 1_000_000
   const fmt = (v: number) => `R$ ${toM(v).toFixed(1).replace('.', ',')}M`
   const rng = (v: number) => toM(v).toFixed(1).replace('.', ',')
-  const rangeNum    = mc.cv * 100
+  const rangeNum    = sim.cv * 100
   const uncertainty: UncertaintyLevel = rangeNum < 3 ? 'baixo' : rangeNum < 5 ? 'moderado' : 'alto'
   return {
-    mean:           fmt(mc.mean),
-    stddev:         `R$ ${toM(mc.stddev).toFixed(1).replace('.', ',')}M`,
-    p10p90:         `${rng(mc.p10)}–${rng(mc.p90)}M`,
-    ic95:           `${rng(mc.icLo)}–${rng(mc.icHi)}M`,
-    min:            fmt(mc.minVal),
-    max:            fmt(mc.maxVal),
+    mean:           fmt(sim.mean),
+    stddev:         `R$ ${toM(sim.stddev).toFixed(1).replace('.', ',')}M`,
+    p10p90:         `${rng(sim.p10)}–${rng(sim.p90)}M`,
+    ic95:           `${rng(sim.icLo)}–${rng(sim.icHi)}M`,
+    min:            fmt(sim.minVal),
+    max:            fmt(sim.maxVal),
     uncertainty,
     range:           `±${rangeNum.toFixed(1)}%`,
-    bars:            mc.bars,
-    cv:              mc.cv,
+    bars:            sim.bars,
+    cv:              sim.cv,
     confidenceLevel: confidence,
-    p80:             fmt(mc.p80),
-    exceedProb:      `${(mc.exceedProb * 100).toFixed(2).replace('.', ',')}%`,
+    p80:             fmt(sim.p80),
+    exceedProb:      `${(sim.exceedProb * 100).toFixed(2).replace('.', ',')}%`,
   }
 }
 
@@ -50,7 +50,7 @@ export default function Simulacao() {
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const { getSimState, loadSimState, setSimulation, previewResult } = useSimulation()
   const { catalogo, parametrosAnuais } = useProjeto()
-  // Ancoragem base_template → data_base do projeto para o MC. Sem isso os
+  // Ancoragem base_template → data_base do projeto para a Aro Simulação. Sem isso os
   // resultados (média, P80, IC 95%) saem em base 2022, subestimando ~N anos
   // de IPCA. Ver src/lib/ancoragem.ts.
   const ancoragem = useMemo(() => {
@@ -61,7 +61,7 @@ export default function Simulacao() {
   const categoryParams = useMemo(() => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator), [projeto.categorias, catalogo, ancoragem.fator])
   const categoryNames  = useMemo(() => categoryParams.map(c => c.name), [categoryParams])
 
-  // Base do Ano 10 pra sensibilidade final MC (aba `Simulation` da planilha
+  // Base do Ano 10 pra sensibilidade final da Aro Simulação (aba `Simulation` da planilha
   // NX Gold — `_Dados_Formulas_Planilha.md` §Etapa 6). Usa modo `ipca` como
   // fidelidade à planilha; se IPCA anual não estiver configurado, cai pra
   // `provisao` como no `AnnualDisbursementCard`. Sensibilidade não faz
@@ -183,7 +183,7 @@ export default function Simulacao() {
           </div>
         </div>
 
-        {/* Sensibilidade sobre taxa — MC independente do principal. Fica em
+        {/* Sensibilidade sobre taxa — Aro Simulação independente da principal. Fica em
             seção própria (fora da coluna de "resultado da última rodada")
             porque roda direto do valor determinístico do Ano 10, sem
             depender do botão "Rodar simulação". */}

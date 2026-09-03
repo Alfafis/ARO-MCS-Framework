@@ -691,7 +691,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
 
   // -----------------------------------------------------------------
   // custo_provavel por categoria (moda "pela experiência") — RPC única.
-  // valor null = "voltar pro fallback (min+max)/2 no MC".
+  // valor null = "voltar pro fallback (min+max)/2 na Aro Simulação".
   // -----------------------------------------------------------------
 
   const updateCategoriaCustoProvavel = useCallback(async (projetoId: string, catId: string, valor: number | null) => {

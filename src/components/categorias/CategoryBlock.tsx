@@ -9,8 +9,8 @@ import { useProjeto } from '@/context/useProjeto'
 import { maskMoedaBR, parseMoedaBR, formatMoedaBR, maskNumeroBR } from '@/lib/financeiro'
 import type { Category, CategoryItem, CampoOperacional, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
 import type { Fase } from '@/types/setores'
-import type { CategoryParam } from '@/lib/monteCarlo'
-import CategoryMCStatsCard from '@/components/categorias/CategoryMCStatsCard'
+import type { CategoryParam } from '@/lib/aroSimulacao'
+import CategoryAroSimStatsCard from '@/components/categorias/CategoryAroSimStatsCard'
 
 // Enum canônico de unidades — valores retirados da planilha NX Gold
 // (aba 1..8 de categorias). Ordem por frequência de uso na planilha.
@@ -42,7 +42,7 @@ interface Props {
   onUpdateCampoOpProjeto?: (campoId: string, field: keyof CampoOperacional, value: string) => void
   onSaveCampoOpProjeto?:   (campoId: string, field: keyof CampoOperacional, value: string) => void
   // Moda "pela experiência" da categoria (F18 da planilha) — alimenta o
-  // parâmetro `mode` do MC Triangular. null = fallback (min+max)/2.
+  // parâmetro `mode` da Aro Simulação Triangular. null = fallback (min+max)/2.
   onSaveCustoProvavel?: (valor: number | null) => void
   // Detalhamento de desembolso por ano do item — array `[{ano, valor}]`.
   // Se ausente, o toggle "detalhar por ano" nem aparece na linha do item.
@@ -50,10 +50,10 @@ interface Props {
   // Horizonte do projeto — número de anos exibidos no detalhamento (1..N).
   // Default 10 quando não passado (compatibilidade com editor de template).
   horizonYears?:        number
-  // Parâmetros MC desta categoria (min/mode/max já escalados pela ancoragem)
-  // — quando presente, renderiza o card "Estatísticas MC" no fim do body.
+  // Parâmetros da Aro Simulação desta categoria (min/mode/max já escalados pela ancoragem)
+  // — quando presente, renderiza o card "Estatísticas Aro Simulação" no fim do body.
   // Ausente = card não aparece (usado só na tela de projeto, não no template).
-  mcParam?:             CategoryParam
+  simParam?:             CategoryParam
 }
 
 const PREENCHE_OPTIONS: Category['preenche'][] = ['Consultor', 'Cliente', 'Ambos']
@@ -63,7 +63,7 @@ const PREENCHE_BADGE_VARIANT: Record<Category['preenche'], 'default' | 'warning'
   Ambos:     'accent',
 }
 
-export default function CategoryBlock({ category, nome, index, onRemove, onChange, onRename, onCancelRename, onAddItem, onRemoveItem, onUpdateItem, onSaveItem, onAddCampoOp, onRemoveCampoOp, onUpdateCampoOp, onSaveCampoOp, onAddCampoOpProjeto, onRemoveCampoOpProjeto, onUpdateCampoOpProjeto, onSaveCampoOpProjeto, onSaveCustoProvavel, onSaveDesembolso, horizonYears, mcParam }: Props) {
+export default function CategoryBlock({ category, nome, index, onRemove, onChange, onRename, onCancelRename, onAddItem, onRemoveItem, onUpdateItem, onSaveItem, onAddCampoOp, onRemoveCampoOp, onUpdateCampoOp, onSaveCampoOp, onAddCampoOpProjeto, onRemoveCampoOpProjeto, onUpdateCampoOpProjeto, onSaveCampoOpProjeto, onSaveCustoProvavel, onSaveDesembolso, horizonYears, simParam }: Props) {
   const camposOpEnabled = !!(onAddCampoOp && onRemoveCampoOp && onUpdateCampoOp && onSaveCampoOp)
   const camposOpProjetoEnabled = !!(onAddCampoOpProjeto && onRemoveCampoOpProjeto && onUpdateCampoOpProjeto && onSaveCampoOpProjeto)
   const camposOp = category.camposOperacionaisTemplate ?? []
@@ -334,7 +334,7 @@ export default function CategoryBlock({ category, nome, index, onRemove, onChang
             </div>
           )}
 
-          {mcParam && <CategoryMCStatsCard param={mcParam} />}
+          {simParam && <CategoryAroSimStatsCard param={simParam} />}
           </div>
         </div>
       )}

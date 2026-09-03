@@ -18,7 +18,7 @@ import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
-import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
+import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
 import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
 import { useT } from '@/i18n/useLang'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
@@ -397,7 +397,7 @@ export default function PortalClienteRelatorio() {
                 icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
                 label: t.kpiAvgCost,
                 value: simResult?.mean ?? '—',
-                sub: simResult ? t.kpiAvgCostSubMC(simResult.status) : t.simPendingSub,
+                sub: simResult ? t.kpiAvgCostSubSim(simResult.status) : t.simPendingSub,
               },
               {
                 icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,

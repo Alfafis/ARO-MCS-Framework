@@ -6,7 +6,7 @@ import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import { useProjeto } from '@/context/useProjeto'
-import { categoryParamsFromCategorias } from '@/lib/monteCarlo'
+import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import type { Projeto } from '@/types/clientes'
 
@@ -21,8 +21,8 @@ export default function Categorias() {
     carregarTemplateExemplo, renomearCategoriaCatalogo,
   } = useProjeto()
 
-  // Params MC por categoria (min/mode/max escalados pela ancoragem base→data-base),
-  // usados pelo CategoryMCStatsCard renderizado no fim de cada CategoryBlock.
+  // Params da Aro Simulação por categoria (min/mode/max escalados pela ancoragem base→data-base),
+  // usados pelo CategoryAroSimStatsCard renderizado no fim de cada CategoryBlock.
   // Match por `name` porque `categoryParamsFromCategorias` filtra categorias
   // vazias e usa o nome do catálogo — mesma chave usada no dashboard.
   const ancoragem = useMemo(() => {
@@ -34,7 +34,7 @@ export default function Categorias() {
     () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
     [projeto.categorias, catalogo, ancoragem.fator],
   )
-  const mcParamPorNome = useMemo(() => {
+  const simParamPorNome = useMemo(() => {
     const map = new Map<string, typeof categoryParams[number]>()
     for (const p of categoryParams) map.set(p.name, p)
     return map
@@ -95,7 +95,7 @@ export default function Categorias() {
                 category={cat}
                 nome={nome}
                 index={idx}
-                mcParam={mcParamPorNome.get(nome)}
+                simParam={simParamPorNome.get(nome)}
                 onRemove={() => removeCategoria(projeto.id, cat.id).catch(() => showToast('Não foi possível remover a categoria.'))}
                 onChange={(field, value) => updateCategoria(projeto.id, cat.id, field, value).catch(() => showToast('Não foi possível salvar.'))}
                 onRename={novoNome => {

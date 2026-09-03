@@ -439,7 +439,7 @@
 .row-input:focus { box-shadow: 0 0 0 1.5px var(--accent); background: #fff; }
 .row-input.mono { font-family: ui-monospace, Menlo, monospace; }
 
-/* ── Simulação Monte Carlo ── */
+/* ── Aro Simulação ── */
 
 /* Segmented control */
 .seg {

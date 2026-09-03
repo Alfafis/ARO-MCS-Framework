@@ -1,4 +1,4 @@
-// Teste standalone de `mcSensibilidadeAno10` — rodar com:
+// Teste standalone de `aroSimSensibilidadeAno10` — rodar com:
 //   npx tsx --tsconfig tsconfig.app.json scripts/test_sensibilidade_ano10.mts
 // Valida a estatística contra o esperado analítico da distribuição uniforme
 // discreta usada na aba `Simulation` da planilha NX Gold
@@ -13,13 +13,13 @@
 //   CV         ≈ 0.028723 / 1.055 ≈ 0.02722 (2.72%)
 
 import assert from 'node:assert/strict'
-import { mcSensibilidadeAno10 } from '../src/lib/monteCarlo.ts'
+import { aroSimSensibilidadeAno10 } from '../src/lib/aroSimulacao.ts'
 
 const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do NX Gold
 
-// === TESTE 1 — Estatísticas MC 10k iterações com base padrão 1..10% ===
+// === TESTE 1 — Estatísticas da simulação, 10k iterações com base padrão 1..10% ===
 {
-  const r = mcSensibilidadeAno10(BASE, 10_000, 1, 10)
+  const r = aroSimSensibilidadeAno10(BASE, 10_000, 1, 10)
   const meanExpected = BASE * 1.055
   const stddevExpected = BASE * Math.sqrt(8.25) / 100
 
@@ -31,35 +31,35 @@ const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do NX Gold
   assert.ok(r.mean > 0)
   assert.ok(r.stddev > 0)
 
-  // Média MC dentro de ±0.5% do esperado analítico
+  // Média da simulação dentro de ±0.5% do esperado analítico
   const meanErr = Math.abs(r.mean - meanExpected) / meanExpected
-  assert.ok(meanErr < 0.005, `Média MC ${r.mean.toFixed(0)} fora de ±0.5% do esperado ${meanExpected.toFixed(0)} (erro ${(meanErr * 100).toFixed(3)}%)`)
+  assert.ok(meanErr < 0.005, `Média ${r.mean.toFixed(0)} fora de ±0.5% do esperado ${meanExpected.toFixed(0)} (erro ${(meanErr * 100).toFixed(3)}%)`)
 
-  // σ MC dentro de ±3% do esperado analítico (10k iterações + N=10 discreto tem alguma variância residual)
+  // σ da simulação dentro de ±3% do esperado analítico (10k iterações + N=10 discreto tem alguma variância residual)
   const stdErr = Math.abs(r.stddev - stddevExpected) / stddevExpected
-  assert.ok(stdErr < 0.03, `σ MC ${r.stddev.toFixed(0)} fora de ±3% do esperado ${stddevExpected.toFixed(0)} (erro ${(stdErr * 100).toFixed(3)}%)`)
+  assert.ok(stdErr < 0.03, `σ ${r.stddev.toFixed(0)} fora de ±3% do esperado ${stddevExpected.toFixed(0)} (erro ${(stdErr * 100).toFixed(3)}%)`)
 
   // CV ≈ 2.72% ± 0.1pp
   const cvPct = r.cv * 100
   assert.ok(cvPct > 2.6 && cvPct < 2.85, `CV ${cvPct.toFixed(3)}% fora de [2.6%, 2.85%]`)
 
-  console.log(`✔ MC 10k iter, base ${BASE.toLocaleString('pt-BR')}: mean=${r.mean.toFixed(0)}, σ=${r.stddev.toFixed(0)}, CV=${cvPct.toFixed(2)}%`)
+  console.log(`✔ Simulação 10k iter, base ${BASE.toLocaleString('pt-BR')}: mean=${r.mean.toFixed(0)}, σ=${r.stddev.toFixed(0)}, CV=${cvPct.toFixed(2)}%`)
 }
 
-// === TESTE 2 — Range mínimo/máximo do MC bate com {1%, 10%} ===
+// === TESTE 2 — Range mínimo/máximo da simulação bate com {1%, 10%} ===
 {
-  const r = mcSensibilidadeAno10(BASE, 5_000, 1, 10)
+  const r = aroSimSensibilidadeAno10(BASE, 5_000, 1, 10)
   const minExpected = BASE * 1.01
   const maxExpected = BASE * 1.10
 
-  assert.equal(r.minVal, minExpected, `Min MC ${r.minVal} não é base × 1.01 = ${minExpected}`)
-  assert.equal(r.maxVal, maxExpected, `Max MC ${r.maxVal} não é base × 1.10 = ${maxExpected}`)
+  assert.equal(r.minVal, minExpected, `Min ${r.minVal} não é base × 1.01 = ${minExpected}`)
+  assert.equal(r.maxVal, maxExpected, `Max ${r.maxVal} não é base × 1.10 = ${maxExpected}`)
   console.log(`✔ Min ${r.minVal / 1e6}M = base × 1.01, Max ${r.maxVal / 1e6}M = base × 1.10`)
 }
 
 // === TESTE 3 — Percentis são monotônicos ===
 {
-  const r = mcSensibilidadeAno10(BASE, 10_000, 1, 10)
+  const r = aroSimSensibilidadeAno10(BASE, 10_000, 1, 10)
   assert.ok(r.p10 <= r.p50, `P10 ${r.p10} > P50 ${r.p50}`)
   assert.ok(r.p50 <= r.p80, `P50 ${r.p50} > P80 ${r.p80}`)
   assert.ok(r.p80 <= r.p90, `P80 ${r.p80} > P90 ${r.p90}`)
@@ -69,7 +69,7 @@ const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do NX Gold
 
 // === TESTE 4 — Base zero devolve zeros ===
 {
-  const r = mcSensibilidadeAno10(0, 100, 1, 10)
+  const r = aroSimSensibilidadeAno10(0, 100, 1, 10)
   assert.equal(r.mean, 0)
   assert.equal(r.stddev, 0)
   assert.equal(r.cv, 0)
@@ -78,7 +78,7 @@ const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do NX Gold
 
 // === TESTE 5 — Faixa customizada (3..7%) ===
 {
-  const r = mcSensibilidadeAno10(BASE, 10_000, 3, 7)
+  const r = aroSimSensibilidadeAno10(BASE, 10_000, 3, 7)
   // Uniforme discreta 3..7: E[T]=5, Var(T)=2 (n=5, (n²-1)/12 = 24/12 = 2)
   const meanExpected = BASE * 1.05
   const stddevExpected = BASE * Math.sqrt(2) / 100

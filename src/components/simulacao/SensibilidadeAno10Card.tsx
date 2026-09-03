@@ -3,7 +3,7 @@ import { TrendingUp } from 'lucide-react'
 import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
 import { formatMoedaCompact } from '@/lib/financeiro'
-import { mcSensibilidadeAno10 } from '@/lib/monteCarlo'
+import { aroSimSensibilidadeAno10 } from '@/lib/aroSimulacao'
 
 // Card de sensibilidade final do Ano 10 — replica a aba `Simulation` da
 // planilha NX Gold (`_Dados_Formulas_Planilha.md` §Etapa 6). O consumidor
@@ -22,11 +22,11 @@ const ITER_DEFAULT = 10_000
 export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, iterations = ITER_DEFAULT }: Props) {
   const t = useT(simulacaoT)
 
-  // Roda MC apenas quando o base muda — 10k iterações são baratas (<20ms)
+  // Roda a Aro Simulação apenas quando o base muda — 10k iterações são baratas (<20ms)
   // mas revalidar sem necessidade tira reprodutibilidade visual entre re-renders.
   const result = useMemo(() => {
     if (!baseAno10 || baseAno10 <= 0) return null
-    return mcSensibilidadeAno10(baseAno10, iterations, 1, 10)
+    return aroSimSensibilidadeAno10(baseAno10, iterations, 1, 10)
   }, [baseAno10, iterations])
 
   return (

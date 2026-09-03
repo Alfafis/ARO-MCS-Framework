@@ -112,20 +112,20 @@ export interface MCResult {
   bars:        number[]
 }
 
-// Thin wrapper para rodar MC de UMA categoria só — usado pelo card de
-// estatísticas MC no CategoryBlock. Semanticamente equivalente a
-// runMonteCarlo com activeCategories = {param.name}, mas com nome
+// Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
+// estatísticas Aro Simulação no CategoryBlock. Semanticamente equivalente a
+// runAroSimulacao com activeCategories = {param.name}, mas com nome
 // explícito pra o call-site ficar legível.
-export function mcForOneCategory(
+export function aroSimForOneCategory(
   dist:       Distribution,
   iterations: number,
   param:      CategoryParam,
   confidence = 95,
 ): MCResult {
-  return runMonteCarlo(dist, iterations, [param], new Set([param.name]), confidence)
+  return runAroSimulacao(dist, iterations, [param], new Set([param.name]), confidence)
 }
 
-export function runMonteCarlo(
+export function runAroSimulacao(
   dist:             Distribution,
   iterations:       number,
   categoryParams:   CategoryParam[],
@@ -203,7 +203,7 @@ export function runMonteCarlo(
 //   M4 = baseAno10 * (1 + P2)
 //
 // Retorna média, σ, percentis P10/P50/P80/P90/P95, CV, min/max e histograma
-// de 12 bins (mesmo shape do `runMonteCarlo` pra reusar o HistogramCard).
+// de 12 bins (mesmo shape do `runAroSimulacao` pra reusar o HistogramCard).
 export interface MCSensibilidadeAno10Result {
   base:   number
   mean:   number
@@ -222,7 +222,7 @@ export interface MCSensibilidadeAno10Result {
   iterations: number
 }
 
-export function mcSensibilidadeAno10(
+export function aroSimSensibilidadeAno10(
   baseAno10:  number,
   iterations = 10_000,
   taxaMinPct = 1,

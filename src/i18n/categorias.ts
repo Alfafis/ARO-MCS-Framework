@@ -48,12 +48,12 @@ export const categoriasT: Record<Lang, {
   desembolsoTargetOk: string
   desembolsoMismatch: (diff: string) => string
   desembolsoClearAll: string
-  mcStatsTitle:  string
-  mcStatsMean:   string
-  mcStatsStddev: string
-  mcStatsP80:    string
-  mcStatsIC:     (conf: number) => string
-  mcStatsCV:     string
+  simStatsTitle:  string
+  simStatsMean:   string
+  simStatsStddev: string
+  simStatsP80:    string
+  simStatsIC:     (conf: number) => string
+  simStatsCV:     string
 }> = {
   'pt-BR': {
     headerTitle:      'Categorias',
@@ -102,12 +102,12 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'confere com Custo Max',
     desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
     desembolsoClearAll: 'Limpar todos',
-    mcStatsTitle:  'Estatísticas Aro Simulação (Triangular, 1.000 iter.)',
-    mcStatsMean:   'Média',
-    mcStatsStddev: 'Desvio padrão',
-    mcStatsP80:    'P80',
-    mcStatsIC:     (conf) => `IC ${conf}%`,
-    mcStatsCV:     'CV',
+    simStatsTitle:  'Estatísticas Aro Simulação (Triangular, 1.000 iter.)',
+    simStatsMean:   'Média',
+    simStatsStddev: 'Desvio padrão',
+    simStatsP80:    'P80',
+    simStatsIC:     (conf) => `IC ${conf}%`,
+    simStatsCV:     'CV',
   },
   'en': {
     headerTitle:      'Categories',
@@ -156,12 +156,12 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'matches Max Cost',
     desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
     desembolsoClearAll: 'Clear all',
-    mcStatsTitle:  'Aro Simulação statistics (Triangular, 1,000 iter.)',
-    mcStatsMean:   'Mean',
-    mcStatsStddev: 'Stddev',
-    mcStatsP80:    'P80',
-    mcStatsIC:     (conf) => `${conf}% CI`,
-    mcStatsCV:     'CV',
+    simStatsTitle:  'Aro Simulação statistics (Triangular, 1,000 iter.)',
+    simStatsMean:   'Mean',
+    simStatsStddev: 'Stddev',
+    simStatsP80:    'P80',
+    simStatsIC:     (conf) => `${conf}% CI`,
+    simStatsCV:     'CV',
   },
   'es': {
     headerTitle:      'Categorías',
@@ -210,11 +210,11 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'coincide con Costo Máx',
     desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
     desembolsoClearAll: 'Limpiar todos',
-    mcStatsTitle:  'Estadísticas Aro Simulação (Triangular, 1.000 iter.)',
-    mcStatsMean:   'Media',
-    mcStatsStddev: 'Desviación estándar',
-    mcStatsP80:    'P80',
-    mcStatsIC:     (conf) => `IC ${conf}%`,
-    mcStatsCV:     'CV',
+    simStatsTitle:  'Estadísticas Aro Simulação (Triangular, 1.000 iter.)',
+    simStatsMean:   'Media',
+    simStatsStddev: 'Desviación estándar',
+    simStatsP80:    'P80',
+    simStatsIC:     (conf) => `IC ${conf}%`,
+    simStatsCV:     'CV',
   },
 }
