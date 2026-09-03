@@ -11,6 +11,9 @@ import ParamsCard from '@/components/simulacao/ParamsCard'
 import ResultCard from '@/components/simulacao/ResultCard'
 import HistogramCard from '@/components/simulacao/HistogramCard'
 import UncertaintyCard from '@/components/simulacao/UncertaintyCard'
+import CalibrationCard from '@/components/simulacao/CalibrationCard'
+import ScenariosCard from '@/components/simulacao/ScenariosCard'
+import RiskDriversCard from '@/components/simulacao/RiskDriversCard'
 import HistoryModal from '@/components/simulacao/HistoryModal'
 import SensibilidadeAno10Card from '@/components/simulacao/SensibilidadeAno10Card'
 import { runAroSimulacao, categoryParamsFromCategorias, parseIterationsNumber, type CategoryParam } from '@/lib/aroSimulacao'
@@ -44,6 +47,12 @@ function computeResult(dist: Distribution, n: number, categoryParams: CategoryPa
     cvar95:          fmt(sim.cvar95),
     seed:            sim.seed,
     converged:       sim.converged,
+    p50Raw:          sim.p50,
+    p90Raw:          sim.p90,
+    p95Raw:          sim.p95,
+    cvar95Raw:       sim.cvar95,
+    scenarios:       sim.scenarios,
+    riskDrivers:     sim.riskDrivers,
   }
 }
 
@@ -168,6 +177,9 @@ export default function Simulacao() {
             <ResultCard result={result} />
             <HistogramCard result={result} iterations={iterations} />
             <UncertaintyCard result={result} dist={dist} activeCategories={activeCategories} categoryParams={categoryParams} />
+            <CalibrationCard result={result} />
+            <ScenariosCard result={result} />
+            <RiskDriversCard result={result} />
             {hasRun && (
               <div className="card flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3">

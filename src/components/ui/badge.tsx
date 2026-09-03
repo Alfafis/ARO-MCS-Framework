@@ -10,6 +10,7 @@ const badgeVariants = cva(
         accent:   'bg-accent-100 text-accent-700',
         success:  'bg-success-bg text-success',
         warning:  'bg-yellow-50 text-yellow-700',
+        danger:   'bg-red-50 text-red-700',
         validado: 'bg-success-bg text-success',
         revisao:  'bg-[#f0eeec] text-c-text-2',
         pendente: 'bg-[#fff3e0] text-[#b45309] whitespace-normal text-center leading-snug',

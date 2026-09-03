@@ -50,6 +50,23 @@ export const simulacaoT: Record<Lang, {
   sensAno10Empty:      string
   sensAno10FooterNote: string
   seedFooter:          (seed: number, converged: boolean) => string
+  // Engine 5 — Calibração automática de provisão (metodologia §7)
+  calibrationTitle:    string
+  calibrationHint:     string
+  calibrationRisk:     Record<'Baixo' | 'Médio' | 'Alto', string>
+  calibrationBase:     string
+  calibrationMargin:   string
+  calibrationFinal:    string
+  // §9 — Sistema de Cenários determinísticos
+  scenariosTitle:      string
+  scenarioOtimista:    string
+  scenarioModerado:    string
+  scenarioPessimista:  string
+  scenarioEstresse:    string
+  // Engine 6 — Direcionadores de Risco (correlação de Pearson)
+  riskDriversTitle:    string
+  riskDriversHint:     string
+  riskDriversEmpty:    string
 }> = {
   'pt-BR': {
     headerTitle:        'Aro Simulação',
@@ -100,6 +117,20 @@ export const simulacaoT: Record<Lang, {
     sensAno10Empty:      'Cadastre categorias com desembolso ano-a-ano para habilitar a sensibilidade final.',
     sensAno10FooterNote: 'Cada iteração sorteia uma taxa aleatória inteira dentro da faixa configurada e aplica o multiplicador (1 + taxa) sobre o valor do Ano 10 já corrigido por IPCA acumulado (ou provisão, se IPCA incompleto). Mede a incerteza de taxa final acima da incerteza de escopo já capturada pela Aro Simulação principal.',
     seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · convergiu antes do teto de iterações' : ' · não convergiu — atingiu o teto de iterações'} — mesma seed reproduz este resultado.`,
+    calibrationTitle:    'Calibração automática de provisão',
+    calibrationHint:     'Recomendação do método a partir do Coeficiente de Variação (CV) — leitura adicional, não substitui os modos manuais acima.',
+    calibrationRisk:     { Baixo: 'Risco baixo', Médio: 'Risco médio', Alto: 'Risco alto' },
+    calibrationBase:     'Base',
+    calibrationMargin:   'Margem de segurança',
+    calibrationFinal:    'Provisão recomendada',
+    scenariosTitle:      'Cenários determinísticos',
+    scenarioOtimista:    'Otimista',
+    scenarioModerado:    'Moderado',
+    scenarioPessimista:  'Pessimista',
+    scenarioEstresse:    'Estresse',
+    riskDriversTitle:    'Direcionadores de risco',
+    riskDriversHint:     'Correlação de Pearson entre cada categoria e o custo total simulado — maior |r| = maior impacto na variância do resultado.',
+    riskDriversEmpty:    'Precisa de 2+ categorias ativas na simulação pra calcular correlação.',
   },
   'en': {
     headerTitle:        'Aro Simulação',
@@ -150,6 +181,20 @@ export const simulacaoT: Record<Lang, {
     sensAno10Empty:      'Register categories with year-by-year disbursement to enable the final sensitivity.',
     sensAno10FooterNote: 'Each iteration draws a random integer rate within the configured range and applies the multiplier (1 + rate) on top of the Year 10 value already adjusted by cumulative IPCA (or provision, if IPCA is incomplete). It measures the final rate uncertainty on top of the scope uncertainty already captured by the main Aro Simulação.',
     seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · converged before the iteration ceiling' : ' · did not converge — hit the iteration ceiling'} — the same seed reproduces this result.`,
+    calibrationTitle:    'Automatic provision calibration',
+    calibrationHint:     'Method recommendation from the Coefficient of Variation (CV) — an additional read, does not replace the manual modes above.',
+    calibrationRisk:     { Baixo: 'Low risk', Médio: 'Medium risk', Alto: 'High risk' },
+    calibrationBase:     'Base',
+    calibrationMargin:   'Safety margin',
+    calibrationFinal:    'Recommended provision',
+    scenariosTitle:      'Deterministic scenarios',
+    scenarioOtimista:    'Optimistic',
+    scenarioModerado:    'Moderate',
+    scenarioPessimista:  'Pessimistic',
+    scenarioEstresse:    'Stress',
+    riskDriversTitle:    'Risk drivers',
+    riskDriversHint:     'Pearson correlation between each category and the simulated total cost — higher |r| = higher impact on result variance.',
+    riskDriversEmpty:    'Needs 2+ active categories in the simulation to compute correlation.',
   },
   'es': {
     headerTitle:        'Aro Simulação',
@@ -200,5 +245,19 @@ export const simulacaoT: Record<Lang, {
     sensAno10Empty:      'Registre categorías con desembolso año a año para habilitar la sensibilidad final.',
     sensAno10FooterNote: 'Cada iteración sortea una tasa entera aleatoria dentro del rango configurado y aplica el multiplicador (1 + tasa) sobre el valor del Año 10 ya corregido por IPCA acumulado (o provisión, si IPCA está incompleto). Mide la incertidumbre de tasa final por encima de la incertidumbre de alcance ya capturada por la Aro Simulação principal.',
     seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · convergió antes del tope de iteraciones' : ' · no convergió — alcanzó el tope de iteraciones'} — la misma seed reproduce este resultado.`,
+    calibrationTitle:    'Calibración automática de provisión',
+    calibrationHint:     'Recomendación del método a partir del Coeficiente de Variación (CV) — lectura adicional, no reemplaza los modos manuales de arriba.',
+    calibrationRisk:     { Baixo: 'Riesgo bajo', Médio: 'Riesgo medio', Alto: 'Riesgo alto' },
+    calibrationBase:     'Base',
+    calibrationMargin:   'Margen de seguridad',
+    calibrationFinal:    'Provisión recomendada',
+    scenariosTitle:      'Escenarios determinísticos',
+    scenarioOtimista:    'Optimista',
+    scenarioModerado:    'Moderado',
+    scenarioPessimista:  'Pesimista',
+    scenarioEstresse:    'Estrés',
+    riskDriversTitle:    'Direccionadores de riesgo',
+    riskDriversHint:     'Correlación de Pearson entre cada categoría y el costo total simulado — mayor |r| = mayor impacto en la varianza del resultado.',
+    riskDriversEmpty:    'Necesita 2+ categorías activas en la simulación para calcular correlación.',
   },
 }

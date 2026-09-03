@@ -4,7 +4,7 @@
 //   npx tsx --tsconfig tsconfig.app.json scripts/test_aroSimulacao_core.mts
 
 import assert from 'node:assert/strict'
-import { runAroSimulacao, MIN_ITERATIONS, type CategoryParam } from '../src/lib/aroSimulacao.ts'
+import { runAroSimulacao, calibrarProvisao, MIN_ITERATIONS, type CategoryParam } from '../src/lib/aroSimulacao.ts'
 
 const CATS: CategoryParam[] = [
   { name: 'A', min: 1_000_000, mode: 1_200_000, max: 1_500_000 },
@@ -56,4 +56,50 @@ const ACTIVE = new Set(CATS.map(c => c.name))
   console.log(`✔ Distribuição estreita converge em ${r.iterationsRun} iterações`)
 }
 
-console.log('\n✅ Todos os 5 casos de teste verdes.')
+// === TESTE 6 — Engine 6: categoria de maior variância domina o ranking de Risk Drivers ===
+{
+  // B tem faixa MUITO mais larga que A → deve dominar a variância do total
+  // e sair em 1º no ranking por |correlação|.
+  const wideCats: CategoryParam[] = [
+    { name: 'A_estavel', min: 999_000,   mode: 1_000_000, max: 1_001_000  },
+    { name: 'B_volatil', min: 500_000,   mode: 1_000_000, max: 2_000_000  },
+  ]
+  const r = runAroSimulacao('Triangular', MIN_ITERATIONS, wideCats, new Set(['A_estavel', 'B_volatil']), 95, 11)
+  assert.equal(r.riskDrivers.length, 2)
+  assert.equal(r.riskDrivers[0].name, 'B_volatil', 'categoria mais volátil deve liderar o ranking de Risk Drivers')
+  assert.ok(Math.abs(r.riskDrivers[0].correlation) > Math.abs(r.riskDrivers[1].correlation))
+  console.log(`✔ Risk Drivers: ${r.riskDrivers[0].name} (r=${r.riskDrivers[0].correlation.toFixed(3)}) > ${r.riskDrivers[1].name} (r=${r.riskDrivers[1].correlation.toFixed(3)})`)
+}
+
+// === TESTE 7 — §9: cenários são monotônicos (Otimista ≤ Moderado ≤ Pessimista ≤ Estresse) ===
+{
+  const r = runAroSimulacao('Triangular', 20_000, CATS, ACTIVE, 95, 21)
+  const { otimista, moderado, pessimista, estresse } = r.scenarios
+  assert.ok(otimista <= moderado && moderado <= pessimista && pessimista <= estresse,
+    `cenários devem ser monotônicos: ${otimista} <= ${moderado} <= ${pessimista} <= ${estresse}`)
+  console.log(`✔ Cenários monotônicos: Otimista=${otimista.toFixed(0)} Moderado=${moderado.toFixed(0)} Pessimista=${pessimista.toFixed(0)} Estresse=${estresse.toFixed(0)}`)
+}
+
+// === TESTE 8 — Engine 5: calibração escolhe o nível de risco certo pelo CV ===
+{
+  // Faixa estreita → CV baixo → "Baixo", margem 10%, base=P50
+  const tightCats: CategoryParam[] = [{ name: 'X', min: 990_000, mode: 1_000_000, max: 1_010_000 }]
+  const rLow = runAroSimulacao('Triangular', MIN_ITERATIONS, tightCats, new Set(['X']), 95, 5)
+  const calLow = calibrarProvisao(rLow)
+  assert.equal(calLow.nivelRisco, 'Baixo')
+  assert.equal(calLow.margemSeguranca, 0.10)
+  assert.equal(calLow.provisaoBase, rLow.p50)
+  assert.ok(Math.abs(calLow.provisaoFinal - calLow.provisaoBase * 1.10) < 1e-6)
+
+  // Faixa larga → CV alto → "Alto", margem 20%, base=MAX(P95,CVaR_95)
+  const wideCats2: CategoryParam[] = [{ name: 'Y', min: 100_000, mode: 1_000_000, max: 5_000_000 }]
+  const rHigh = runAroSimulacao('Triangular', MIN_ITERATIONS, wideCats2, new Set(['Y']), 95, 6)
+  const calHigh = calibrarProvisao(rHigh)
+  assert.equal(calHigh.nivelRisco, 'Alto')
+  assert.equal(calHigh.margemSeguranca, 0.20)
+  assert.equal(calHigh.provisaoBase, Math.max(rHigh.p95, rHigh.cvar95))
+
+  console.log(`✔ Calibração: faixa estreita→${calLow.nivelRisco} (${(calLow.margemSeguranca*100).toFixed(0)}%), faixa larga→${calHigh.nivelRisco} (${(calHigh.margemSeguranca*100).toFixed(0)}%)`)
+}
+
+console.log('\n✅ Todos os 8 casos de teste verdes.')

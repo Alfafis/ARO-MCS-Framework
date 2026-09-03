@@ -140,12 +140,53 @@ function sampleUniform(min: number, max: number, rng: Rng): number {
   return min + rng() * (max - min)
 }
 
+// Engine 6 (metodologia §8) — Direcionador de Risco: correlação de Pearson
+// entre o custo simulado de UMA categoria e o custo total simulado, pareado
+// por iteração (X[i] e Y[i] precisam vir da MESMA rodada — por isso é
+// calculado ANTES de `results`/`sorted` serem ordenados em `runAroSimulacao`,
+// senão o pareamento por índice se perde).
+export interface RiskDriver {
+  name:        string
+  correlation: number
+}
+
+function pearsonCorrelation(x: Float64Array, y: Float64Array, n: number): number {
+  let sumX = 0, sumY = 0
+  for (let i = 0; i < n; i++) { sumX += x[i]; sumY += y[i] }
+  const meanX = sumX / n, meanY = sumY / n
+
+  let num = 0, denomX = 0, denomY = 0
+  for (let i = 0; i < n; i++) {
+    const dx = x[i] - meanX, dy = y[i] - meanY
+    num += dx * dy
+    denomX += dx * dx
+    denomY += dy * dy
+  }
+  const denom = Math.sqrt(denomX * denomY)
+  return denom > 0 ? num / denom : 0
+}
+
+// Sistema de Cenários determinísticos (metodologia §9) — cada cenário soma o
+// percentil correspondente de CADA categoria independentemente (não é o
+// percentil do total agregado). É a convenção do documento — mais simples e
+// mais conservadora que compor a distribuição conjunta, prática comum em
+// estimativa de custo de engenharia (cada item no seu pior/melhor caso ao
+// mesmo tempo). Não "corrigido" pra rigor probabilístico porque é a
+// definição explícita do §9, não um bug.
+export interface ScenarioSet {
+  otimista:   number // Soma dos P5 de todas as categorias
+  moderado:   number // Soma dos P50 — orçamento base de referência
+  pessimista: number // Soma dos P95 — limite superior de provisão
+  estresse:   number // Soma dos P99 — cenário de estresse regulatório
+}
+
 export interface MCResult {
   mean:        number
   stddev:      number
   p5:          number
   p10:         number
   p25:         number
+  p50:         number
   p75:         number
   p80:         number
   p90:         number
@@ -175,6 +216,12 @@ export interface MCResult {
   // pro critério de tolerância, não um bug.
   converged:   boolean
   iterationsRun: number
+  // Engine 6 — categorias ordenadas por |correlação| desc (maior impacto na
+  // variância total primeiro). Vazio quando só 1 categoria está ativa
+  // (correlação contra si mesma é sempre 1,0, sem informação nova).
+  riskDrivers: RiskDriver[]
+  // §9 — cenários determinísticos, ver ScenarioSet.
+  scenarios:   ScenarioSet
 }
 
 // Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
@@ -212,6 +259,10 @@ export function runAroSimulacao(
   // está preenchido de fato.
   const minIterations = Math.max(MIN_ITERATIONS, Math.min(MAX_ITERATIONS, iterations))
   const results = new Float64Array(MAX_ITERATIONS)
+  // Valor de CADA categoria por iteração, pareado por índice com `results`
+  // — necessário pra Pearson (Engine 6) e pros percentis por categoria
+  // (§9, cenários). Só existe enquanto `results` ainda não foi ordenado.
+  const perCat = cats.map(() => new Float64Array(MAX_ITERATIONS))
   let filled = 0
   let runningSum = 0
   let mediaBlocoAnterior: number | null = null
@@ -221,10 +272,14 @@ export function runAroSimulacao(
     const blockEnd = Math.min(filled + BLOCO_SIZE, MAX_ITERATIONS)
     for (; filled < blockEnd; filled++) {
       let total = 0
-      for (const cat of cats) {
-        if (dist === 'Triangular')   total += sampleTriangular(cat.min, cat.mode, cat.max, rng)
-        else if (dist === 'Normal')  total += sampleNormal(cat, rng)
-        else                         total += sampleUniform(cat.min, cat.max, rng)
+      for (let ci = 0; ci < cats.length; ci++) {
+        const cat = cats[ci]
+        let val: number
+        if (dist === 'Triangular')   val = sampleTriangular(cat.min, cat.mode, cat.max, rng)
+        else if (dist === 'Normal')  val = sampleNormal(cat, rng)
+        else                         val = sampleUniform(cat.min, cat.max, rng)
+        perCat[ci][filled] = val
+        total += val
       }
       results[filled] = total
       runningSum += total
@@ -243,6 +298,25 @@ export function runAroSimulacao(
   }
 
   const n = filled
+
+  // Engine 6 + §9 precisam do pareamento por-iteração de `results` — calcular
+  // ANTES de ordenar (sort abaixo é in-place e destrói a ordem original).
+  const riskDrivers: RiskDriver[] = cats.map((cat, ci) => ({
+    name:        cat.name,
+    correlation: cats.length > 1 ? pearsonCorrelation(perCat[ci], results, n) : 0,
+  })).sort((a, b) => Math.abs(b.correlation) - Math.abs(a.correlation))
+
+  const pctOf = (arr: Float64Array, p: number) => arr[Math.min(n - 1, Math.floor(n * p))]
+  const scenarios: ScenarioSet = { otimista: 0, moderado: 0, pessimista: 0, estresse: 0 }
+  for (let ci = 0; ci < cats.length; ci++) {
+    const catSorted = perCat[ci].subarray(0, n)
+    catSorted.sort()
+    scenarios.otimista   += pctOf(catSorted, 0.05)
+    scenarios.moderado   += pctOf(catSorted, 0.50)
+    scenarios.pessimista += pctOf(catSorted, 0.95)
+    scenarios.estresse   += pctOf(catSorted, 0.99)
+  }
+
   const sorted = results.subarray(0, n)
   sorted.sort()
 
@@ -258,6 +332,7 @@ export function runAroSimulacao(
   const p5  = pct(0.05)
   const p10 = pct(0.10)
   const p25 = pct(0.25)
+  const p50 = pct(0.50)
   const p75 = pct(0.75)
   const p80 = pct(0.80)
   const p90 = pct(0.90)
@@ -300,9 +375,68 @@ export function runAroSimulacao(
   const bars   = bins.map(b => Math.max(2, Math.round((b / maxBin) * 100)))
 
   return {
-    mean, stddev, p5, p10, p25, p75, p80, p90, p95, p99, icLo, icHi,
+    mean, stddev, p5, p10, p25, p50, p75, p80, p90, p95, p99, icLo, icHi,
     minVal, maxVal, cv, exceedProb, bars, var95, cvar95,
     seed: seedUsed, converged, iterationsRun: n,
+    riskDrivers, scenarios,
+  }
+}
+
+// Engine 5 (metodologia §7) — Calibração automática da provisão. Classifica
+// o nível de risco pelo Coeficiente de Variação (CV=σ/μ) e recomenda base +
+// margem de segurança. Função pura sobre um `MCResult` já calculado — não
+// roda simulação nova, só interpreta o resultado (P90/P95/CVaR_95 já saem
+// de `runAroSimulacao` desde a Fase 1). Aditivo: não substitui os 3 modos
+// manuais existentes no dashboard (Sem provisão / Com provisão 20% / Com
+// IPCA acumulado) — é uma 4ª leitura, a recomendação automática do método.
+export type NivelRisco = 'Baixo' | 'Médio' | 'Alto'
+
+export interface CalibrationResult {
+  nivelRisco:      NivelRisco
+  provisaoBase:    number
+  margemSeguranca: number // fração, ex.: 0.10 = 10%
+  provisaoFinal:   number
+}
+
+// Aceita um subconjunto do MCResult (não o objeto inteiro) — SimResult
+// (a versão persistida/formatada em Simulacao.tsx) só guarda os campos
+// numéricos crus que os cards de calibração/cenário/risk-drivers precisam,
+// não o MCResult completo (que tem `bars`, arrays grandes etc., sem sentido
+// serializar de novo pro jsonb da revisão).
+export interface CalibrationInput {
+  cv:     number
+  p50:    number
+  p90:    number
+  p95:    number
+  cvar95: number
+}
+
+export function calibrarProvisao(result: CalibrationInput): CalibrationResult {
+  const { cv, p50, p90, p95, cvar95 } = result
+
+  let nivelRisco: NivelRisco
+  let provisaoBase: number
+  let margemSeguranca: number
+
+  if (cv < 0.10) {
+    nivelRisco = 'Baixo'
+    provisaoBase = p50
+    margemSeguranca = 0.10
+  } else if (cv <= 0.20) {
+    nivelRisco = 'Médio'
+    provisaoBase = p90
+    margemSeguranca = 0.15
+  } else {
+    nivelRisco = 'Alto'
+    provisaoBase = Math.max(p95, cvar95)
+    margemSeguranca = 0.20
+  }
+
+  return {
+    nivelRisco,
+    provisaoBase,
+    margemSeguranca,
+    provisaoFinal: provisaoBase * (1 + margemSeguranca),
   }
 }
 

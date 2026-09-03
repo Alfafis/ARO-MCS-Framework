@@ -1,3 +1,5 @@
+import type { RiskDriver, ScenarioSet } from '@/lib/aroSimulacao'
+
 export type Distribution = 'Triangular' | 'Normal' | 'Uniforme'
 export type UncertaintyLevel = 'baixo' | 'moderado' | 'alto'
 
@@ -22,6 +24,15 @@ export interface SimResult {
   cvar95:           string
   seed:             number
   converged:        boolean
+  // Campos crus (não formatados) pra Engine 5 (calibrarProvisao), Engine 6
+  // (Direcionadores de Risco) e §9 (Cenários determinísticos) — ver
+  // CalibrationInput em lib/aroSimulacao.ts.
+  p50Raw:           number
+  p90Raw:           number
+  p95Raw:           number
+  cvar95Raw:        number
+  scenarios:        ScenarioSet
+  riskDrivers:      RiskDriver[]
 }
 
 export interface HistoryRun {
