@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { supabase } from './integrations/supabase/client'
@@ -7,28 +7,30 @@ import { ProjetoProvider } from './context/ProjetoContext'
 import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
 import DocumentTitle from './components/layout/DocumentTitle'
-import Login from './pages/Login'
-import ResumoExecutivo from './pages/ResumoExecutivo'
-import Categorias from './pages/Categorias'
-import Simulacao from './pages/Simulacao'
-import ProjetoWorkspace from './pages/ProjetoWorkspace'
-import ProjetoNovo from './pages/ProjetoNovo'
-import ProjetoConfigInicial from './pages/ProjetoConfigInicial'
-import ProjetoConfiguracoes from './pages/ProjetoConfiguracoes'
-import Projetos from './pages/Projetos'
-import VisaoGeral from './pages/VisaoGeral'
-import Lancamentos from './pages/Lancamentos'
-import Revisoes from './pages/Revisoes'
-import Perfil from './pages/Perfil'
-import TiposProjeto from './pages/TiposProjeto'
-import CategoriasCusto from './pages/CategoriasCusto'
-import ParametrosGlobais from './pages/ParametrosGlobais'
-import Setores from './pages/Setores'
-import Remediacao from './pages/Remediacao'
-import Clientes from './pages/Clientes'
-import ClienteProjetos from './pages/ClienteProjetos'
-import PortalClienteRelatorio from './pages/PortalClienteRelatorio'
+import { PageLoader, SplashScreen } from './components/layout/PageLoader'
 import './index.css'
+
+const Login = lazy(() => import('./pages/Login'))
+const ResumoExecutivo = lazy(() => import('./pages/ResumoExecutivo'))
+const Categorias = lazy(() => import('./pages/Categorias'))
+const Simulacao = lazy(() => import('./pages/Simulacao'))
+const ProjetoWorkspace = lazy(() => import('./pages/ProjetoWorkspace'))
+const ProjetoNovo = lazy(() => import('./pages/ProjetoNovo'))
+const ProjetoConfigInicial = lazy(() => import('./pages/ProjetoConfigInicial'))
+const ProjetoConfiguracoes = lazy(() => import('./pages/ProjetoConfiguracoes'))
+const Projetos = lazy(() => import('./pages/Projetos'))
+const VisaoGeral = lazy(() => import('./pages/VisaoGeral'))
+const Lancamentos = lazy(() => import('./pages/Lancamentos'))
+const Revisoes = lazy(() => import('./pages/Revisoes'))
+const Perfil = lazy(() => import('./pages/Perfil'))
+const TiposProjeto = lazy(() => import('./pages/TiposProjeto'))
+const CategoriasCusto = lazy(() => import('./pages/CategoriasCusto'))
+const ParametrosGlobais = lazy(() => import('./pages/ParametrosGlobais'))
+const Setores = lazy(() => import('./pages/Setores'))
+const Remediacao = lazy(() => import('./pages/Remediacao'))
+const Clientes = lazy(() => import('./pages/Clientes'))
+const ClienteProjetos = lazy(() => import('./pages/ClienteProjetos'))
+const PortalClienteRelatorio = lazy(() => import('./pages/PortalClienteRelatorio'))
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
@@ -99,7 +101,9 @@ function ProtectedLayout({
             />
             <div className="w-9" />
           </div>
-          <main className="flex-1 overflow-auto">{children}</main>
+          <main className="flex-1 overflow-auto">
+            <Suspense fallback={<PageLoader />}>{children}</Suspense>
+          </main>
         </div>
       </>
     )
@@ -115,7 +119,9 @@ function ProtectedLayout({
         onToggle={() => setCollapsed(v => !v)}
         onLogout={onLogout}
       />
-      <main className="overflow-auto">{children}</main>
+      <main className="overflow-auto">
+        <Suspense fallback={<PageLoader />}>{children}</Suspense>
+      </main>
     </div>
   )
 }
@@ -139,7 +145,7 @@ export default function App() {
     supabase.auth.signOut()
   }
 
-  if (authStatus === 'loading') return null
+  if (authStatus === 'loading') return <SplashScreen />
 
   const isLoggedIn = authStatus === 'authenticated'
 
@@ -153,7 +159,15 @@ export default function App() {
         {/* Rota pública */}
         <Route
           path="/login"
-          element={isLoggedIn ? <Navigate to="/visao-geral" replace /> : <Login />}
+          element={
+            isLoggedIn ? (
+              <Navigate to="/visao-geral" replace />
+            ) : (
+              <Suspense fallback={<SplashScreen />}>
+                <Login />
+              </Suspense>
+            )
+          }
         />
 
         {/* Rotas protegidas */}
@@ -264,7 +278,14 @@ export default function App() {
         />
 
         {/* Portal standalone — sem sidebar */}
-        <Route path="/relatorio/:id" element={<PortalClienteRelatorio />} />
+        <Route
+          path="/relatorio/:id"
+          element={
+            <Suspense fallback={<SplashScreen />}>
+              <PortalClienteRelatorio />
+            </Suspense>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/login'} replace />} />

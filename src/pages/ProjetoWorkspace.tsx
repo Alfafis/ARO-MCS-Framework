@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { NavLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom'
 import { LayoutDashboard, Tag, Activity, History, FileText, Settings2, Sprout } from 'lucide-react'
 import ClientSelector from '@/components/layout/ClientSelector'
 import { Skeleton } from '@/components/ui/skeleton'
+import { PageLoader } from '@/components/layout/PageLoader'
 import { useProjeto } from '@/context/useProjeto'
 import { useT } from '@/i18n/useLang'
 import { sidebarT } from '@/i18n/sidebar'
@@ -115,7 +117,9 @@ export default function ProjetoWorkspace() {
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        <Outlet context={{ projeto, cliente }} />
+        <Suspense fallback={<PageLoader />}>
+          <Outlet context={{ projeto, cliente }} />
+        </Suspense>
       </div>
     </div>
   )
