@@ -48,7 +48,7 @@ export const categoriasT: Record<Lang, {
   desembolsoTargetOk: string
   desembolsoMismatch: (diff: string) => string
   desembolsoClearAll: string
-  simStatsTitle:  string
+  simStatsTitle:  (n: string) => string
   simStatsMean:   string
   simStatsStddev: string
   simStatsP80:    string
@@ -102,7 +102,7 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'confere com Custo Max',
     desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
     desembolsoClearAll: 'Limpar todos',
-    simStatsTitle:  'Estatísticas Aro Simulação (Triangular, 1.000 iter.)',
+    simStatsTitle:  (n) => `Estatísticas Aro Simulação (Triangular, ${n} iter.)`,
     simStatsMean:   'Média',
     simStatsStddev: 'Desvio padrão',
     simStatsP80:    'P80',
@@ -156,7 +156,7 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'matches Max Cost',
     desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
     desembolsoClearAll: 'Clear all',
-    simStatsTitle:  'Aro Simulação statistics (Triangular, 1,000 iter.)',
+    simStatsTitle:  (n) => `Aro Simulação statistics (Triangular, ${n} iter.)`,
     simStatsMean:   'Mean',
     simStatsStddev: 'Stddev',
     simStatsP80:    'P80',
@@ -210,7 +210,7 @@ export const categoriasT: Record<Lang, {
     desembolsoTargetOk: 'coincide con Costo Máx',
     desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
     desembolsoClearAll: 'Limpiar todos',
-    simStatsTitle:  'Estadísticas Aro Simulação (Triangular, 1.000 iter.)',
+    simStatsTitle:  (n) => `Estadísticas Aro Simulação (Triangular, ${n} iter.)`,
     simStatsMean:   'Media',
     simStatsStddev: 'Desviación estándar',
     simStatsP80:    'P80',

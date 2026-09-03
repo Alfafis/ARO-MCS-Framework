@@ -17,6 +17,8 @@ export const simulacaoT: Record<Lang, {
   lastResult:         string
   statMean:           string
   statStddev:         string
+  statVar95:          string
+  statCvar95:         string
   uncertainty_low:    string
   uncertainty_mod:    string
   uncertainty_high:   string
@@ -47,6 +49,7 @@ export const simulacaoT: Record<Lang, {
   sensAno10ModeProv:   string
   sensAno10Empty:      string
   sensAno10FooterNote: string
+  seedFooter:          (seed: number, converged: boolean) => string
 }> = {
   'pt-BR': {
     headerTitle:        'Aro Simulação',
@@ -65,6 +68,8 @@ export const simulacaoT: Record<Lang, {
     lastResult:         'Resultado da última rodada',
     statMean:           'Média',
     statStddev:         'Desvio-padrão',
+    statVar95:          'VaR 95%',
+    statCvar95:         'CVaR 95%',
     uncertainty_low:    'Incerteza baixa',
     uncertainty_mod:    'Incerteza moderada',
     uncertainty_high:   'Incerteza alta',
@@ -94,6 +99,7 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeProv:   'Com provisão (IPCA indisponível)',
     sensAno10Empty:      'Cadastre categorias com desembolso ano-a-ano para habilitar a sensibilidade final.',
     sensAno10FooterNote: 'Cada iteração sorteia uma taxa aleatória inteira dentro da faixa configurada e aplica o multiplicador (1 + taxa) sobre o valor do Ano 10 já corrigido por IPCA acumulado (ou provisão, se IPCA incompleto). Mede a incerteza de taxa final acima da incerteza de escopo já capturada pela Aro Simulação principal.',
+    seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · convergiu antes do teto de iterações' : ' · não convergiu — atingiu o teto de iterações'} — mesma seed reproduz este resultado.`,
   },
   'en': {
     headerTitle:        'Aro Simulação',
@@ -112,6 +118,8 @@ export const simulacaoT: Record<Lang, {
     lastResult:         'Last run result',
     statMean:           'Mean',
     statStddev:         'Std. deviation',
+    statVar95:          'VaR 95%',
+    statCvar95:         'CVaR 95%',
     uncertainty_low:    'Low uncertainty',
     uncertainty_mod:    'Moderate uncertainty',
     uncertainty_high:   'High uncertainty',
@@ -141,6 +149,7 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeProv:   'With provision (IPCA unavailable)',
     sensAno10Empty:      'Register categories with year-by-year disbursement to enable the final sensitivity.',
     sensAno10FooterNote: 'Each iteration draws a random integer rate within the configured range and applies the multiplier (1 + rate) on top of the Year 10 value already adjusted by cumulative IPCA (or provision, if IPCA is incomplete). It measures the final rate uncertainty on top of the scope uncertainty already captured by the main Aro Simulação.',
+    seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · converged before the iteration ceiling' : ' · did not converge — hit the iteration ceiling'} — the same seed reproduces this result.`,
   },
   'es': {
     headerTitle:        'Aro Simulação',
@@ -159,6 +168,8 @@ export const simulacaoT: Record<Lang, {
     lastResult:         'Resultado de la última ejecución',
     statMean:           'Media',
     statStddev:         'Desviación estándar',
+    statVar95:          'VaR 95%',
+    statCvar95:         'CVaR 95%',
     uncertainty_low:    'Incertidumbre baja',
     uncertainty_mod:    'Incertidumbre moderada',
     uncertainty_high:   'Incertidumbre alta',
@@ -188,5 +199,6 @@ export const simulacaoT: Record<Lang, {
     sensAno10ModeProv:   'Con provisión (IPCA no disponible)',
     sensAno10Empty:      'Registre categorías con desembolso año a año para habilitar la sensibilidad final.',
     sensAno10FooterNote: 'Cada iteración sortea una tasa entera aleatoria dentro del rango configurado y aplica el multiplicador (1 + tasa) sobre el valor del Año 10 ya corregido por IPCA acumulado (o provisión, si IPCA está incompleto). Mide la incertidumbre de tasa final por encima de la incertidumbre de alcance ya capturada por la Aro Simulação principal.',
+    seedFooter:          (seed, converged) => `Seed ${seed}${converged ? ' · convergió antes del tope de iteraciones' : ' · no convergió — alcanzó el tope de iteraciones'} — la misma seed reproduce este resultado.`,
   },
 }

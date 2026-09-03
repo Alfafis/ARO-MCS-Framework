@@ -18,6 +18,8 @@ export default function ResultCard({ result }: Props) {
     { key: 'stddev', label: t.statStddev },
     { key: 'p10p90', label: 'P10–P90'   },
     { key: 'ic95',   label: icLabel      },
+    { key: 'var95',  label: t.statVar95  },
+    { key: 'cvar95', label: t.statCvar95 },
   ] as const
 
   return (
@@ -31,14 +33,17 @@ export default function ResultCard({ result }: Props) {
       </div>
 
       {result ? (
-        <div className="grid grid-cols-2 gap-2.5">
-          {STATS.map(({ key, label }) => (
-            <div key={key} className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
-              <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{label}</div>
-              <div className="font-mono text-base font-bold text-c-text tracking-tight">{result[key]}</div>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-2 gap-2.5">
+            {STATS.map(({ key, label }) => (
+              <div key={key} className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
+                <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{label}</div>
+                <div className="font-mono text-base font-bold text-c-text tracking-tight">{result[key]}</div>
+              </div>
+            ))}
+          </div>
+          <p className="text-[11.5px] text-c-text-2 mt-3 font-mono">{t.seedFooter(result.seed, result.converged)}</p>
+        </>
       ) : (
         <p className="text-[0.8125rem] text-c-text-2 leading-relaxed">{t.noResultYet}</p>
       )}

@@ -41,7 +41,13 @@ export function categoryParamsFromCategorias(categorias: Category[], catalogo: C
     .filter(c => c.min > 0 || c.max > 0)
 }
 
-export const MIN_ITERATIONS = 100
+// RB-03 (metodologia ARO-MCS Framework): mínimo de 10.000 iterações por
+// execução. Piso de UI e piso de engine são o mesmo valor de propósito — não
+// dá pra confiar só na máscara do campo, porque nem todo call site passa
+// pelo input do usuário (ex.: CategoryAroSimStatsCard chama a engine direto
+// com N fixo). O piso real fica em `runAroSimulacao`, este aqui é o piso do
+// campo de texto.
+export const MIN_ITERATIONS = 10_000
 export const MAX_ITERATIONS = 100_000
 
 export function parseIterationsNumber(input: string): number {
@@ -61,11 +67,13 @@ export function maskIterations(input: string): string {
   return n.toLocaleString('pt-BR')
 }
 
-// Analytical stddev per category based on distribution type
+// Analytical stddev per category based on distribution type — precisa bater
+// com o que `sampleNormal`/`sampleTriangular`/`sampleUniform` de fato
+// simulam, senão `UncertaintyCard` mostra incerteza analítica divergente do
+// resultado da simulação.
 export function categoryStddev(cat: CategoryParam, dist: Distribution): number {
-  if (dist === 'Normal' || dist === 'Uniforme') {
-    return (cat.max - cat.min) / Math.sqrt(12)
-  }
+  if (dist === 'Uniforme') return (cat.max - cat.min) / Math.sqrt(12)
+  if (dist === 'Normal')   return (cat.max - cat.min) / 6 // PERT 3-sigma, ver sampleNormal
   // Triangular: σ = sqrt((a²+b²+c²-ab-ac-bc)/18)
   const { min: a, mode: b, max: c } = cat
   return Math.sqrt((a*a + b*b + c*c - a*b - a*c - b*c) / 18)
@@ -74,35 +82,75 @@ export function categoryStddev(cat: CategoryParam, dist: Distribution): number {
 // Analytical mean per category based on distribution type
 export function categoryMean(cat: CategoryParam, dist: Distribution): number {
   if (dist === 'Triangular') return (cat.min + cat.mode + cat.max) / 3
+  if (dist === 'Normal')     return (cat.min + 4 * cat.mode + cat.max) / 6 // PERT, ver sampleNormal
   return (cat.min + cat.max) / 2
 }
 
-function sampleTriangular(min: number, mode: number, max: number): number {
-  const u  = Math.random()
+// PRNG determinístico (mulberry32) — substitui Math.random() pra permitir
+// reprodutibilidade via seed (RB-04: "cada execução deve ser associada a
+// uma Semente do PRNG, garantindo que os mesmos inputs reproduzam os mesmos
+// outputs"). Sem seed, Math.random() nunca reproduz a mesma simulação duas
+// vezes — impossível de auditar ou testar (T-01/T-06 da metodologia).
+type Rng = () => number
+
+function mulberry32(seed: number): Rng {
+  let a = seed >>> 0
+  return function rng() {
+    a |= 0
+    a = (a + 0x6d2b79f5) | 0
+    let t = Math.imul(a ^ (a >>> 15), 1 | a)
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+  }
+}
+
+// Seed de 32 bits derivada de Math.random() só pra quando o chamador não
+// passa uma seed explícita — mantém comportamento "aleatório de verdade"
+// por padrão, mas ainda registrável/reproduzível a partir daqui em diante.
+function randomSeed(): number {
+  return Math.floor(Math.random() * 0xffffffff)
+}
+
+function sampleTriangular(min: number, mode: number, max: number, rng: Rng): number {
+  const u  = rng()
   const fc = (mode - min) / (max - min)
   if (u < fc) return min + Math.sqrt(u * (max - min) * (mode - min))
   return max - Math.sqrt((1 - u) * (max - min) * (max - mode))
 }
 
-function sampleNormal(min: number, max: number): number {
-  const mean = (min + max) / 2
-  const sd   = (max - min) / Math.sqrt(12)
-  const u1   = Math.random() || 1e-10
-  const u2   = Math.random()
+// Método dos momentos a partir dos 3 pontos (Cmin, Cprov, Cmax), convenção
+// PERT/Beta (AACE/PMI para three-point estimating): μ pondera o valor mais
+// provável 4x mais que os extremos (em vez de ignorá-lo, como a aproximação
+// anterior fazia — `(min+max)/2` não usava `mode` nenhum), σ usa a regra dos
+// 3-sigma (faixa [min,max] cobre ~99,7% da massa). O documento de
+// metodologia cita "método dos momentos" sem publicar a fórmula exata;
+// PERT é a convenção padrão da indústria pra derivar Normal de 3 pontos e é
+// a mais defensável na ausência da fórmula original.
+function sampleNormal(cat: CategoryParam, rng: Rng): number {
+  const { min, mode, max } = cat
+  const mean = (min + 4 * mode + max) / 6
+  const sd   = (max - min) / 6
+  const u1   = rng() || 1e-10
+  const u2   = rng()
   const z    = Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2)
   return Math.max(min, Math.min(max, mean + z * sd))
 }
 
-function sampleUniform(min: number, max: number): number {
-  return min + Math.random() * (max - min)
+function sampleUniform(min: number, max: number, rng: Rng): number {
+  return min + rng() * (max - min)
 }
 
 export interface MCResult {
   mean:        number
   stddev:      number
+  p5:          number
   p10:         number
-  p90:         number
+  p25:         number
+  p75:         number
   p80:         number
+  p90:         number
+  p95:         number
+  p99:         number
   icLo:        number
   icHi:        number
   minVal:      number
@@ -110,6 +158,23 @@ export interface MCResult {
   cv:          number
   exceedProb:  number
   bars:        number[]
+  // Value at Risk / Conditional Value at Risk a 95% — RB da metodologia
+  // ARO-MCS Framework §6.3. VaR_95 = P95 (perda máxima esperada a 95% de
+  // confiança); CVaR_95 = média da cauda que excede o VaR (Expected
+  // Shortfall, captura risco de cauda além do percentil sozinho).
+  var95:       number
+  cvar95:      number
+  // Seed do PRNG usada nesta execução — sempre presente, gerada
+  // internamente quando o chamador não passa uma (RB-04: reprodutibilidade
+  // exige registrar a semente, não só o resultado).
+  seed:        number
+  // RB-03: convergência dinâmica em blocos de 1.000 iterações,
+  // Δμ < 0,001% entre blocos consecutivos, mínimo MIN_ITERATIONS.
+  // `converged=false` quando o teto MAX_ITERATIONS foi atingido antes de
+  // convergir — sinal de que a distribuição de entrada é muito dispersa
+  // pro critério de tolerância, não um bug.
+  converged:   boolean
+  iterationsRun: number
 }
 
 // Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
@@ -125,53 +190,101 @@ export function aroSimForOneCategory(
   return runAroSimulacao(dist, iterations, [param], new Set([param.name]), confidence)
 }
 
+const BLOCO_SIZE     = 1_000
+const CONVERGENCE_EPSILON = 0.00001 // 0,001% (RB-03)
+
 export function runAroSimulacao(
   dist:             Distribution,
   iterations:       number,
   categoryParams:   CategoryParam[],
   activeCategories: Set<string>,
   confidence = 95,
+  seed?:            number,
 ): MCResult {
   const cats = categoryParams.filter(c => activeCategories.has(c.name))
-  const n    = Math.max(100, Math.min(100_000, iterations))
-  const results = new Float64Array(n)
+  const seedUsed = seed ?? randomSeed()
+  const rng = mulberry32(seedUsed)
 
-  for (let i = 0; i < n; i++) {
-    let total = 0
-    for (const cat of cats) {
-      if (dist === 'Triangular')   total += sampleTriangular(cat.min, cat.mode, cat.max)
-      else if (dist === 'Normal')  total += sampleNormal(cat.min, cat.max)
-      else                         total += sampleUniform(cat.min, cat.max)
+  // RB-03: mínimo MIN_ITERATIONS (10.000), teto MAX_ITERATIONS (100.000).
+  // Roda em blocos de 1.000, checando convergência da média móvel a cada
+  // bloco completo — só pode parar antes do teto depois de bater o mínimo
+  // E convergir. Buffer pré-alocado no teto máximo; `filled` marca até onde
+  // está preenchido de fato.
+  const minIterations = Math.max(MIN_ITERATIONS, Math.min(MAX_ITERATIONS, iterations))
+  const results = new Float64Array(MAX_ITERATIONS)
+  let filled = 0
+  let runningSum = 0
+  let mediaBlocoAnterior: number | null = null
+  let converged = false
+
+  while (filled < MAX_ITERATIONS) {
+    const blockEnd = Math.min(filled + BLOCO_SIZE, MAX_ITERATIONS)
+    for (; filled < blockEnd; filled++) {
+      let total = 0
+      for (const cat of cats) {
+        if (dist === 'Triangular')   total += sampleTriangular(cat.min, cat.mode, cat.max, rng)
+        else if (dist === 'Normal')  total += sampleNormal(cat, rng)
+        else                         total += sampleUniform(cat.min, cat.max, rng)
+      }
+      results[filled] = total
+      runningSum += total
     }
-    results[i] = total
+
+    const mediaAtual = runningSum / filled
+    if (mediaBlocoAnterior !== null) {
+      const deltaMu = Math.abs((mediaAtual - mediaBlocoAnterior) / mediaBlocoAnterior)
+      if (filled >= minIterations && deltaMu < CONVERGENCE_EPSILON) {
+        converged = true
+        mediaBlocoAnterior = mediaAtual
+        break
+      }
+    }
+    mediaBlocoAnterior = mediaAtual
   }
 
-  results.sort()
+  const n = filled
+  const sorted = results.subarray(0, n)
+  sorted.sort()
 
   let sum = 0
-  for (let i = 0; i < n; i++) sum += results[i]
+  for (let i = 0; i < n; i++) sum += sorted[i]
   const mean = sum / n
 
   let sumSq = 0
-  for (let i = 0; i < n; i++) sumSq += (results[i] - mean) ** 2
+  for (let i = 0; i < n; i++) sumSq += (sorted[i] - mean) ** 2
   const stddev = Math.sqrt(sumSq / n)
 
-  const p10  = results[Math.floor(n * 0.10)]
-  const p90  = results[Math.floor(n * 0.90)]
-  const p80  = results[Math.floor(n * 0.80)]
+  const pct = (p: number) => sorted[Math.min(n - 1, Math.floor(n * p))]
+  const p5  = pct(0.05)
+  const p10 = pct(0.10)
+  const p25 = pct(0.25)
+  const p75 = pct(0.75)
+  const p80 = pct(0.80)
+  const p90 = pct(0.90)
+  const p95 = pct(0.95)
+  const p99 = pct(0.99)
   const half = (1 - confidence / 100) / 2
-  const icLo = results[Math.floor(n * half)]
-  const icHi = results[Math.floor(n * (1 - half))]
-  const minVal = results[0]
-  const maxVal = results[n - 1]
+  const icLo = pct(half)
+  const icHi = pct(1 - half)
+  const minVal = sorted[0]
+  const maxVal = sorted[n - 1]
   const cv     = stddev / mean
+
+  // VaR_95 = P95 (perda máxima esperada a 95% de confiança). CVaR_95 =
+  // média dos cenários que excedem o VaR (Expected Shortfall / tail risk).
+  const var95 = p95
+  let tailSum = 0, tailCount = 0
+  for (let i = 0; i < n; i++) {
+    if (sorted[i] > var95) { tailSum += sorted[i]; tailCount++ }
+  }
+  const cvar95 = tailCount > 0 ? tailSum / tailCount : var95
 
   // P(X > soma das modas) — probabilidade de ultrapassar o custo-base mais provável
   const modeSum = cats.reduce((s, c) => s + c.mode, 0)
   let lo = 0, hi = n
   while (lo < hi) {
     const mid = (lo + hi) >>> 1
-    if (results[mid] <= modeSum) lo = mid + 1
+    if (sorted[mid] <= modeSum) lo = mid + 1
     else hi = mid
   }
   const exceedProb = (n - lo) / n
@@ -180,13 +293,17 @@ export function runAroSimulacao(
   const binSize = range / 12
   const bins    = new Array<number>(12).fill(0)
   for (let i = 0; i < n; i++) {
-    const idx = Math.min(11, Math.floor((results[i] - minVal) / binSize))
+    const idx = Math.min(11, Math.floor((sorted[i] - minVal) / binSize))
     bins[idx]++
   }
   const maxBin = Math.max(...bins)
   const bars   = bins.map(b => Math.max(2, Math.round((b / maxBin) * 100)))
 
-  return { mean, stddev, p10, p90, p80, icLo, icHi, minVal, maxVal, cv, exceedProb, bars }
+  return {
+    mean, stddev, p5, p10, p25, p75, p80, p90, p95, p99, icLo, icHi,
+    minVal, maxVal, cv, exceedProb, bars, var95, cvar95,
+    seed: seedUsed, converged, iterationsRun: n,
+  }
 }
 
 // Sensibilidade final do Ano 10 — replica a aba `Simulation` da planilha NX

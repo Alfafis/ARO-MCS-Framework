@@ -18,6 +18,10 @@ export interface SimResult {
   exceedProb:       string
   iterations:       string
   distribution:     Distribution
+  var95:            string
+  cvar95:           string
+  seed:             number
+  converged:        boolean
 }
 
 export interface HistoryRun {

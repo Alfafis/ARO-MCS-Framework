@@ -40,6 +40,10 @@ function computeResult(dist: Distribution, n: number, categoryParams: CategoryPa
     confidenceLevel: confidence,
     p80:             fmt(sim.p80),
     exceedProb:      `${(sim.exceedProb * 100).toFixed(2).replace('.', ',')}%`,
+    var95:           fmt(sim.var95),
+    cvar95:          fmt(sim.cvar95),
+    seed:            sim.seed,
+    converged:       sim.converged,
   }
 }
 
