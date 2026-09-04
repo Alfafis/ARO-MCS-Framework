@@ -45,7 +45,7 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
               {t.sensAno10Base}:
             </span>
             <span className="font-mono text-[15px] font-bold text-c-text">{formatMoedaCompact(result.base)}</span>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-c-surface-2 text-c-text-2 font-medium">
               {modoIpcaDisponivel ? t.sensAno10ModeIpca : t.sensAno10ModeProv}
             </span>
           </div>
@@ -58,7 +58,7 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
               <div
                 key={i}
                 className={`flex-1 rounded-t-[4px] transition-[height] duration-500 ease-out ${
-                  h / Math.max(...result.bars) >= 0.45 ? 'bg-[color:var(--accent)]' : 'bg-[#e0ddd9]'
+                  h / Math.max(...result.bars) >= 0.45 ? 'bg-[color:var(--accent)]' : 'bg-c-track'
                 }`}
                 style={{ height: `${h}%` }}
               />
@@ -90,7 +90,7 @@ export default function SensibilidadeAno10Card({ baseAno10, modoIpcaDisponivel, 
 
 function StatCell({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-[#f6f5f3] rounded-[8px] p-2 flex flex-col items-start">
+    <div className="bg-c-surface-2 rounded-[8px] p-2 flex flex-col items-start">
       <span className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-0.5">{label}</span>
       <span className="font-mono text-[13px] font-bold text-c-text">{value}</span>
     </div>

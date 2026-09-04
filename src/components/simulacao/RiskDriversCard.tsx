@@ -32,7 +32,7 @@ export default function RiskDriversCard({ result }: Props) {
           {drivers.map(({ name, correlation }) => (
             <div key={name} className="flex items-center gap-3">
               <span className="text-[0.8125rem] text-c-text w-[38%] shrink-0 truncate">{name}</span>
-              <div className="flex-1 h-2 rounded-full bg-[#f0eeec] overflow-hidden">
+              <div className="flex-1 h-2 rounded-full bg-c-surface-2-hover overflow-hidden">
                 <div
                   className="h-full rounded-full bg-accent"
                   style={{ width: `${Math.max(2, (Math.abs(correlation) / maxAbs) * 100)}%` }}

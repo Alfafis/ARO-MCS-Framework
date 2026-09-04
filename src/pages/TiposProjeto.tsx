@@ -110,7 +110,7 @@ export default function TiposProjeto() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4 max-w-[560px]">
+        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4 max-w-[560px]">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <Tag size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.headerTitle}</span>
@@ -151,7 +151,7 @@ export default function TiposProjeto() {
               ))}
           </div>
 
-          <div className="flex items-center gap-2 pt-2 border-t border-[rgba(20,21,26,.06)]">
+          <div className="flex items-center gap-2 pt-2 border-t border-c-line">
             <Input
               variant="filled"
               placeholder={t.placeholderNovoTipo}

@@ -36,7 +36,7 @@ export default function ResultCard({ result }: Props) {
         <>
           <div className="grid grid-cols-2 gap-2.5">
             {STATS.map(({ key, label }) => (
-              <div key={key} className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
+              <div key={key} className="bg-c-surface-2 rounded-[14px] px-4 py-3.5">
                 <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{label}</div>
                 <div className="font-mono text-base font-bold text-c-text tracking-tight">{result[key]}</div>
               </div>

@@ -817,6 +817,7 @@ export type Database = {
           papel: string
           profissao: string | null
           telefone: string | null
+          tema: string
         }
         Insert: {
           criado_em?: string
@@ -826,6 +827,7 @@ export type Database = {
           papel?: string
           profissao?: string | null
           telefone?: string | null
+          tema?: string
         }
         Update: {
           criado_em?: string
@@ -835,6 +837,7 @@ export type Database = {
           papel?: string
           profissao?: string | null
           telefone?: string | null
+          tema?: string
         }
         Relationships: []
       }

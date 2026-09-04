@@ -336,11 +336,11 @@ function ParametroAnualTable({
           </Button>
         </div>
       </div>
-      <div className="max-h-64 overflow-y-auto rounded-[11px] border border-[rgba(20,21,26,.06)]">
+      <div className="max-h-64 overflow-y-auto rounded-[11px] border border-c-line">
         <button
           type="button"
           onClick={() => setMostrarAnteriores((v) => !v)}
-          className="flex items-center justify-center gap-1 w-full py-1.5 text-[11px] font-medium text-c-text-2 hover:text-c-text hover:bg-[rgba(20,21,26,.03)] transition-colors border-b border-[rgba(20,21,26,.06)]"
+          className="flex items-center justify-center gap-1 w-full py-1.5 text-[11px] font-medium text-c-text-2 hover:text-c-text hover:bg-c-surface-2-hover transition-colors border-b border-c-line"
         >
           {mostrarAnteriores ? (
             <ChevronUp size={12} aria-hidden="true" />
@@ -409,7 +409,7 @@ export default function ParametrosGlobais() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4 max-w-[560px]">
+        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4 max-w-[560px]">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <SlidersHorizontal size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.headerTitle}</span>

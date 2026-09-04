@@ -54,7 +54,7 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
           {groups.flatMap((group, gi) => [
             <div
               key={`gh${gi}`}
-              className="py-[6px] pr-3 flex items-center border-t border-[rgba(20,21,26,.06)]"
+              className="py-[6px] pr-3 flex items-center border-t border-c-line"
               style={{ gridColumn: `1 / -1` }}
             >
               <span className="text-[11px] font-semibold uppercase tracking-widest text-c-text">
@@ -78,11 +78,11 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
                 </div>
               )),
             ]),
-            <div key={`sn${gi}`} className={`${CELL_LABEL} border-t border-[rgba(20,21,26,.12)]`}>
+            <div key={`sn${gi}`} className={`${CELL_LABEL} border-t border-c-line`}>
               <span className="font-semibold text-c-text">{t.detailedSubtotalLabel(group.categoriaNome)}</span>
             </div>,
             ...group.subtotaisPorAno.map((val, yi) => (
-              <div key={`sv${gi}-${yi}`} className={`${CELL_NUM} border-t border-[rgba(20,21,26,.12)]`}>
+              <div key={`sv${gi}-${yi}`} className={`${CELL_NUM} border-t border-c-line`}>
                 {val > 0 ? (
                   <span className="font-bold text-c-text">{formatMoedaCompact(val, false)}</span>
                 ) : (
@@ -93,7 +93,7 @@ export default function AnnualDisbursementDetailedCard({ years, groups, totaisPo
           ])}
 
           {/* Divider */}
-          <div style={{ gridColumn: '1 / -1' }} className="h-px bg-[rgba(20,21,26,.16)] my-1" />
+          <div style={{ gridColumn: '1 / -1' }} className="h-px bg-c-line my-1" />
 
           {/* Total por ano — soma direta das células (já com modo aplicado) */}
           <div className={`${CELL_LABEL} border-t-2 border-[rgba(20,21,26,.22)] pt-2`}>

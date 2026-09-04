@@ -239,7 +239,7 @@ export default function Simulacao() {
             porque roda direto do valor determinístico do Ano 10, sem
             depender do botão "Rodar simulação". */}
         {sensBase && sensBase.baseAno10 > 0 && (
-          <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-[rgba(20,21,26,.08)]">
+          <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-c-line">
             <div className="flex flex-col gap-1">
               <h2 className="text-[15px] font-bold text-c-text tracking-tight leading-tight">
                 Sensibilidade sobre a taxa de escalação

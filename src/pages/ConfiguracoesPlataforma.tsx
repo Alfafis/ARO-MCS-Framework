@@ -84,7 +84,7 @@ export default function ConfiguracoesPlataforma() {
       <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,560px)_320px] gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1 items-start">
         {!loading && (
           <div className="flex flex-col gap-6">
-            <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-5">
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-5">
               <p className="text-[13px] font-medium text-c-text">{t.sectionLogos}</p>
               <ImagemUploadRow
                 label={t.labelLogoIcone}
@@ -118,7 +118,7 @@ export default function ConfiguracoesPlataforma() {
               />
             </div>
 
-            <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-3">
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-3">
               <p className="text-[13px] font-medium text-c-text">{t.sectionCor}</p>
               <div className="flex items-center gap-3">
                 <input
@@ -127,7 +127,7 @@ export default function ConfiguracoesPlataforma() {
                   name="corPrimaria"
                   value={corPrimaria}
                   onChange={(e) => setCorPrimaria(e.target.value)}
-                  className="w-11 h-11 rounded-[10px] border border-[rgba(20,21,26,.08)] cursor-pointer bg-transparent p-0"
+                  className="w-11 h-11 rounded-[10px] border border-c-line cursor-pointer bg-transparent p-0"
                   aria-label={t.labelCor}
                 />
                 <input
@@ -139,14 +139,14 @@ export default function ConfiguracoesPlataforma() {
                     const v = e.target.value
                     if (/^#[0-9a-fA-F]{0,6}$/.test(v)) setCorPrimaria(v)
                   }}
-                  className="rounded-[11px] border-none bg-[#f6f5f3] px-[13px] py-[9px] text-[0.875rem] font-mono text-c-text outline-none focus:shadow-[0_0_0_1.5px_var(--accent)] w-[110px]"
+                  className="rounded-[11px] border-none bg-c-surface-2 px-[13px] py-[9px] text-[0.875rem] font-mono text-c-text outline-none focus:shadow-[0_0_0_1.5px_var(--accent)] w-[110px]"
                   aria-label={`${t.labelCor} (hex)`}
                 />
               </div>
               <p className="text-[12px] text-c-text-2">{t.hintCor}</p>
             </div>
 
-            <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-5">
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-5">
               <p className="text-[13px] font-medium text-c-text">{t.sectionFundo}</p>
               <label className="flex items-center gap-2.5 cursor-pointer w-fit">
                 <input
@@ -179,7 +179,7 @@ export default function ConfiguracoesPlataforma() {
                             className="flex flex-col gap-1.5 cursor-pointer border-none bg-transparent p-0"
                           >
                             <span
-                              className="block w-24 h-16 rounded-[10px] overflow-hidden border-2 bg-[#f4f3f1] bg-cover bg-center transition-colors"
+                              className="block w-24 h-16 rounded-[10px] overflow-hidden border-2 bg-c-bg bg-cover bg-center transition-colors"
                               style={{
                                 backgroundImage: `url('${preset.thumb}')`,
                                 borderColor: selected ? 'var(--accent)' : 'rgba(20,21,26,.1)',
@@ -220,12 +220,12 @@ export default function ConfiguracoesPlataforma() {
         )}
 
         {!loading && (
-          <div className="xl:sticky xl:top-4 rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] overflow-hidden">
+          <div className="xl:sticky xl:top-4 rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line overflow-hidden">
             <p className="text-[13px] font-medium text-c-text px-5 pt-5">{t.sectionPreview}</p>
 
             {/* Sidebar em miniatura */}
-            <div className="mt-4 mx-5 rounded-[14px] border border-[rgba(20,21,26,.06)] overflow-hidden">
-              <div className="bg-[#f9f8f6] p-3 flex flex-col gap-2.5">
+            <div className="mt-4 mx-5 rounded-[14px] border border-c-line overflow-hidden">
+              <div className="bg-c-surface-2 p-3 flex flex-col gap-2.5">
                 <div className="flex items-center gap-2 px-1 pb-2">
                   <img src={logoIconeUrl ?? DEFAULT_LOGO_ICONE} alt="" className="h-5 w-5 object-contain" />
                   <span className="text-[12px] font-bold text-c-text">{t.previewBrandLabel}</span>
@@ -238,14 +238,14 @@ export default function ConfiguracoesPlataforma() {
                   {t.previewNavLabel}
                 </div>
                 <div className="flex items-center gap-2 px-2.5 py-2 rounded-[8px] text-[11px] text-c-text-2">
-                  <div className="w-[13px] h-[13px] rounded-[3px] bg-[rgba(20,21,26,.1)]" />
-                  <div className="h-[7px] w-16 rounded-full bg-[rgba(20,21,26,.1)]" />
+                  <div className="w-[13px] h-[13px] rounded-[3px] bg-c-line" />
+                  <div className="h-[7px] w-16 rounded-full bg-c-line" />
                 </div>
               </div>
             </div>
 
             {/* Marca completa + botão */}
-            <div className="mt-4 mx-5 p-4 rounded-[14px] border border-[rgba(20,21,26,.06)] flex flex-col items-center gap-3">
+            <div className="mt-4 mx-5 p-4 rounded-[14px] border border-c-line flex flex-col items-center gap-3">
               <img src={logoCompletoUrl ?? DEFAULT_LOGO_COMPLETO} alt="" className="h-14 object-contain" />
               <button
                 type="button"
@@ -259,7 +259,7 @@ export default function ConfiguracoesPlataforma() {
             {/* Tons derivados */}
             <div className="mt-4 mx-5 flex gap-2">
               {[tons.claro, tons.base, tons.escuro].map((cor) => (
-                <div key={cor} className="flex-1 h-8 rounded-[8px] border border-[rgba(20,21,26,.06)]" style={{ backgroundColor: cor }} />
+                <div key={cor} className="flex-1 h-8 rounded-[8px] border border-c-line" style={{ backgroundColor: cor }} />
               ))}
             </div>
 
@@ -267,7 +267,7 @@ export default function ConfiguracoesPlataforma() {
                 aqui, pra diferença entre presets/imagem custom ficar visível
                 no preview; no app real o wash continua 92% (sutil de propósito). */}
             <div
-              className="mt-4 mx-5 mb-5 h-20 rounded-[14px] border border-[rgba(20,21,26,.06)] bg-[#f4f3f1]"
+              className="mt-4 mx-5 mb-5 h-20 rounded-[14px] border border-c-line bg-c-bg"
               style={{
                 backgroundImage: fundoAtivo
                   ? `linear-gradient(rgba(244, 243, 241, 0.55), rgba(244, 243, 241, 0.55)), url('${fundoUrl ?? DEFAULT_FUNDO}')`

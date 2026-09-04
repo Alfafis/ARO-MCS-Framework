@@ -9,8 +9,8 @@
 // 2026-09-03/04) — substituir assim que o usuário confirmar.
 export default function PoliticaPrivacidade() {
   return (
-    <div className="min-h-screen bg-[#f4f3f1] px-4 py-10 sm:py-16">
-      <div className="max-w-[720px] mx-auto bg-white rounded-[20px] shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 sm:p-10 flex flex-col gap-6 text-[14px] leading-relaxed text-c-text">
+    <div className="min-h-screen bg-c-bg px-4 py-10 sm:py-16">
+      <div className="max-w-[720px] mx-auto bg-c-card rounded-[20px] shadow-[var(--shadow-1)] border border-c-line p-6 sm:p-10 flex flex-col gap-6 text-[14px] leading-relaxed text-c-text">
         <div>
           <h1 className="text-[22px] font-bold tracking-tight mb-1">Política de Privacidade</h1>
           <p className="text-[12px] text-c-text-2">Última atualização: 04 de setembro de 2026</p>
@@ -45,7 +45,7 @@ export default function PoliticaPrivacidade() {
               </tr>
             </thead>
             <tbody className="align-top">
-              <tr className="border-b border-[rgba(20,21,26,.06)]">
+              <tr className="border-b border-c-line">
                 <td className="py-1.5 pr-2">Nome, e-mail, telefone, profissão, foto</td>
                 <td className="py-1.5 pr-2">Consultor (usuário da plataforma)</td>
                 <td className="py-1.5 pr-2">Autenticação e identificação no uso da plataforma</td>
@@ -119,7 +119,7 @@ export default function PoliticaPrivacidade() {
           </p>
         </section>
 
-        <p className="text-[12px] text-c-text-2 pt-2 border-t border-[rgba(20,21,26,.08)]">
+        <p className="text-[12px] text-c-text-2 pt-2 border-t border-c-line">
           Esta política é regida pela Lei nº 13.709/2018 (LGPD).
         </p>
       </div>

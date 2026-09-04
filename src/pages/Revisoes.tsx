@@ -34,9 +34,9 @@ export default function Revisoes() {
   const tRem = useT(remediacaoT)
 
   const STATUS_META: Record<RevisaoRow['status'], { label: string; cls: string }> = {
-    rascunho: { label: t.statusDraft, cls: 'bg-[#f0eeec] text-c-text-2' },
+    rascunho: { label: t.statusDraft, cls: 'bg-c-surface-2-hover text-c-text-2' },
     vigente: { label: t.statusCurrent, cls: 'bg-success-bg text-success' },
-    substituida: { label: t.statusReplaced, cls: 'bg-[#f0eeec] text-c-text-2' },
+    substituida: { label: t.statusReplaced, cls: 'bg-c-surface-2-hover text-c-text-2' },
   }
 
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
@@ -144,13 +144,13 @@ export default function Revisoes() {
                 ? 'border-accent'
                 : rev.status === 'vigente'
                   ? 'border-[rgba(236,48,19,.25)]'
-                  : 'border-[rgba(20,21,26,.08)]'
+                  : 'border-c-line'
 
-              const badgeCls = published ? 'bg-accent text-white' : 'bg-[#f0eeec] text-c-text-2'
+              const badgeCls = published ? 'bg-accent text-white' : 'bg-c-surface-2-hover text-c-text-2'
 
               return (
                 <Fragment key={rev.id}>
-                  {i > 0 && <div className="ml-[37px] w-px h-5 bg-[rgba(20,21,26,.08)]" />}
+                  {i > 0 && <div className="ml-[37px] w-px h-5 bg-c-line" />}
 
                   <div
                     className={[
@@ -197,7 +197,7 @@ export default function Revisoes() {
 
                     {rev.hash && (
                       <div className="mt-3">
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#f6f5f3] rounded-[8px] font-mono text-[11.5px] text-c-text-2">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-c-surface-2 rounded-[8px] font-mono text-[11.5px] text-c-text-2">
                           <Lock size={11} aria-hidden="true" />
                           {rev.hash.slice(0, 8)}...{rev.hash.slice(-6)} · {t.hashLabel}
                         </span>
@@ -216,7 +216,7 @@ export default function Revisoes() {
                         {isEditing && (
                           <div className="mt-3 flex flex-col gap-2">
                             <textarea
-                              className="w-full bg-[#f6f5f3] border-0 outline-none rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text leading-relaxed resize-y font-sans"
+                              className="w-full bg-c-surface-2 border-0 outline-none rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text leading-relaxed resize-y font-sans"
                               placeholder={t.editorPlaceholder}
                               value={editText}
                               rows={3}

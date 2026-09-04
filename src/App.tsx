@@ -69,7 +69,7 @@ function ProtectedLayout({
     return (
       <>
         {mobileOpen && (
-          <div className="fixed inset-0 z-40 bg-[rgba(20,21,26,.4)]" onClick={() => setMobileOpen(false)} />
+          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setMobileOpen(false)} />
         )}
 
         <div
@@ -89,10 +89,10 @@ function ProtectedLayout({
         </div>
 
         <div className="flex flex-col h-screen">
-          <div className="flex items-center justify-between h-14 px-4 bg-white border-b border-[rgba(20,21,26,.08)] shrink-0 z-30">
+          <div className="flex items-center justify-between h-14 px-4 bg-c-card border-b border-c-line shrink-0 z-30">
             <button
               onClick={() => setMobileOpen(true)}
-              className="w-9 h-9 flex items-center justify-center rounded-[10px] text-c-text-2 hover:bg-[#f0eeec] transition-colors border-none bg-transparent cursor-pointer"
+              className="w-9 h-9 flex items-center justify-center rounded-[10px] text-c-text-2 hover:bg-c-surface-2-hover transition-colors border-none bg-transparent cursor-pointer"
               aria-label="Abrir menu"
             >
               <Menu size={18} strokeWidth={2} />

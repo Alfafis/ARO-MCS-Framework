@@ -59,8 +59,11 @@ function aplicarNoDocumento(config: PlataformaConfig) {
   // elemento estático pensado pra ser configurado assim.
   const bgEl = document.querySelector<HTMLElement>('.bg-fixed')
   if (bgEl) {
+    // Overlay via var(--bg-fixed-overlay) — trocada pelo tema escuro
+    // (bege 92% no light, quase preto 92% no dark). Manter background como
+    // string literal aqui aceita CSS vars naturalmente.
     bgEl.style.backgroundImage = config.fundoAtivo
-      ? `linear-gradient(rgba(244, 243, 241, 0.92), rgba(244, 243, 241, 0.92)), url('${config.fundoUrl}')`
+      ? `linear-gradient(var(--bg-fixed-overlay), var(--bg-fixed-overlay)), url('${config.fundoUrl}')`
       : 'none'
   }
 }

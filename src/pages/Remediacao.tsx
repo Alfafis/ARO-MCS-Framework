@@ -44,7 +44,7 @@ export default function Remediacao() {
       <div className="flex flex-col h-full">
         <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
         <div className="px-4 sm:px-8 pb-8">
-          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-8 flex flex-col items-start gap-4 max-w-[640px]">
+          <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-8 flex flex-col items-start gap-4 max-w-[640px]">
             <div className="flex items-center gap-2 text-[13px] font-semibold text-c-text-2 uppercase tracking-widest">
               <Sprout size={14} color="var(--accent)" aria-hidden="true" />
               {t.moduleTag}
@@ -90,7 +90,7 @@ export default function Remediacao() {
         )}
 
         {carregado && categorias.length === 0 && (
-          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-8 flex flex-col items-start gap-4 max-w-[640px]">
+          <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-8 flex flex-col items-start gap-4 max-w-[640px]">
             <Sparkles size={16} color="var(--accent)" aria-hidden="true" />
             <h2 className="text-[16px] font-bold text-c-text">{t.emptyStateTitle}</h2>
             <p className="text-[13px] text-c-text-2 leading-relaxed">{t.emptyStateBody}</p>

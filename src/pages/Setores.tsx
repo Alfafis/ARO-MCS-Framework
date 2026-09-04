@@ -175,7 +175,7 @@ export default function Setores() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4 max-w-[840px]">
+        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4 max-w-[840px]">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
               <MapPin size={14} color="var(--accent)" aria-hidden="true" />
@@ -197,7 +197,7 @@ export default function Setores() {
                     {t.newSetorIdLabel}
                   </span>
                   <span
-                    className="inline-flex items-center justify-center min-w-[56px] h-[38px] px-3 rounded-[11px] bg-[#f6f5f3] font-mono text-[15px] font-bold text-c-text"
+                    className="inline-flex items-center justify-center min-w-[56px] h-[38px] px-3 rounded-[11px] bg-c-surface-2 font-mono text-[15px] font-bold text-c-text"
                     title={t.newSetorIdHint}
                   >
                     {String(proxId).padStart(2, '0')}
@@ -240,7 +240,7 @@ export default function Setores() {
             </div>
           )}
 
-          <div className="grid grid-cols-[56px_1fr_180px_auto] gap-3 pb-2 border-b border-[rgba(20,21,26,.08)]">
+          <div className="grid grid-cols-[56px_1fr_180px_auto] gap-3 pb-2 border-b border-c-line">
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colId}</span>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colNome}</span>
             <span className="text-[10px] font-semibold uppercase tracking-widest text-c-text-2">{t.colUsage}</span>

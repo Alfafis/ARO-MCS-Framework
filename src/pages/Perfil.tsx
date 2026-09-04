@@ -112,7 +112,7 @@ export default function Perfil() {
         p_telefone: telefone,
       })
       if (error || !data) throw error ?? new Error('Falha ao salvar perfil')
-      setPerfil(data)
+      setPerfil((p) => (p ? { ...data, tema: p.tema } : { ...data, tema: 'light' }))
       window.dispatchEvent(new CustomEvent('perfil-atualizado'))
       showToast(t.savedToast)
     } catch {
@@ -197,7 +197,7 @@ export default function Perfil() {
 
       <div className="flex flex-col gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1 max-w-[560px]">
         {!loading && (
-          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-6">
+          <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-6">
             {/* Foto */}
             <div className="flex items-center gap-4">
               <div
@@ -246,7 +246,7 @@ export default function Perfil() {
               </div>
             </div>
 
-            <div className="h-px bg-[rgba(20,21,26,.06)]" />
+            <div className="h-px bg-c-line" />
 
             {/* Campos */}
             <div className="flex flex-col gap-4">
@@ -291,7 +291,7 @@ export default function Perfil() {
         )}
 
         {!loading && (
-          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+          <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4">
             <p className="text-[13px] font-medium text-c-text">{t.lgpdSectionTitle}</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="ghost" disabled={exporting} onClick={handleExportar}>

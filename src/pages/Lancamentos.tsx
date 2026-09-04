@@ -178,7 +178,7 @@ export default function Lancamentos() {
         </div>
 
         {/* Lista */}
-        <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
+        <div className="overflow-x-auto rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line">
           <div className="min-w-[540px]">
             <div className="plist-head">
               {[t.colCategory, t.colPeriod, t.colValue, t.colStatus, ''].map((col, i) => (

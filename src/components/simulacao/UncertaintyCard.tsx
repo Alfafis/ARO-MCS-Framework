@@ -40,7 +40,7 @@ export default function UncertaintyCard({ result, dist, activeCategories, catego
         rows.map(({ name, pct }) => (
           <div
             key={name}
-            className="flex items-center justify-between py-2.5 border-b border-[rgba(20,21,26,.08)] last:border-b-0"
+            className="flex items-center justify-between py-2.5 border-b border-c-line last:border-b-0"
           >
             <span className="text-[0.875rem] text-c-text">{name}</span>
             <span className="font-mono font-bold text-sm text-c-text">{fmt(pct)}</span>

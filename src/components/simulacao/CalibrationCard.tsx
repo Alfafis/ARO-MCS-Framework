@@ -42,7 +42,7 @@ export default function CalibrationCard({ result }: Props) {
       </div>
       <p className="text-[12px] text-c-text-2 leading-snug mb-4">{t.calibrationHint}</p>
       <div className="grid grid-cols-3 gap-2.5">
-        <div className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
+        <div className="bg-c-surface-2 rounded-[14px] px-4 py-3.5">
           <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
             {t.calibrationBase}
           </div>
@@ -50,7 +50,7 @@ export default function CalibrationCard({ result }: Props) {
             {formatMoedaCompact(cal.provisaoBase)}
           </div>
         </div>
-        <div className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
+        <div className="bg-c-surface-2 rounded-[14px] px-4 py-3.5">
           <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">
             {t.calibrationMargin}
           </div>

@@ -59,7 +59,7 @@ export default function ProjetoWorkspace() {
   const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
     andamento: { label: tCli.statusActive, cls: 'bg-success-bg text-success' },
     aguardando: { label: tCli.statusWaiting, cls: 'bg-accent-100 text-accent-700' },
-    concluido: { label: tCli.statusDone, cls: 'bg-[#f0eeec] text-c-text-2' },
+    concluido: { label: tCli.statusDone, cls: 'bg-c-surface-2-hover text-c-text-2' },
   }
   const status = STATUS_META[projeto.status]
 
@@ -88,7 +88,7 @@ export default function ProjetoWorkspace() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <h1 className="text-[22px] font-bold text-c-text tracking-tight leading-none">{projeto.projeto}</h1>
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-xs font-semibold font-mono">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-c-surface-2-hover text-c-text-2 text-xs font-semibold font-mono">
               {projeto.rev}
             </span>
             <span
@@ -101,7 +101,7 @@ export default function ProjetoWorkspace() {
         </div>
 
         <nav
-          className="flex items-center gap-1 border-b border-[rgba(20,21,26,.08)] -mb-px"
+          className="flex items-center gap-1 border-b border-c-line -mb-px"
           aria-label="Navegação do projeto"
         >
           {TABS.map(({ to, label, Icon }) => (

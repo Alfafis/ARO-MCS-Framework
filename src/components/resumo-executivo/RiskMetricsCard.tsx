@@ -48,7 +48,7 @@ export default function RiskMetricsCard({
       </div>
 
       <div className="mb-1.5">
-        <div className="relative h-1.5 rounded bg-[#ece9e6] mb-1.5">
+        <div className="relative h-1.5 rounded bg-c-track mb-1.5">
           <div className="absolute h-full rounded bg-accent" style={{ left: '20%', right: '20%' }} />
         </div>
         <div className="flex justify-between">

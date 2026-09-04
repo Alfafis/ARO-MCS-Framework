@@ -133,11 +133,11 @@ export default function ClienteProjetos() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
+        <div className="overflow-x-auto rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line">
           <div className="min-w-[660px]">
             {/* Header */}
             <div
-              className="grid items-center gap-4 px-6 pt-[14px] pb-3 border-b border-[rgba(20,21,26,.08)]"
+              className="grid items-center gap-4 px-6 pt-[14px] pb-3 border-b border-c-line"
               style={{ gridTemplateColumns: ROW_COLS }}
             >
               {[t.colProject, t.colStatus, t.colRev, t.colExpected, t.colUpdated, ''].map((col, i) => (

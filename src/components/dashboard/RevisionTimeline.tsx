@@ -45,7 +45,7 @@ export default function RevisionTimeline({ revisions, emptyLabel, className = ''
                     <span className="font-mono text-[10px] font-bold text-white">{idx + 1}</span>
                   )}
                 </div>
-                {idx < revisions.length - 1 && <div className="w-px flex-1 min-h-4 bg-[rgba(20,21,26,.08)] my-1" />}
+                {idx < revisions.length - 1 && <div className="w-px flex-1 min-h-4 bg-c-line my-1" />}
               </div>
 
               <div className={`flex-1 min-w-0${idx < revisions.length - 1 ? ' pb-5' : ''}`}>

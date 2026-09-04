@@ -79,7 +79,7 @@ export default function ImagemUploadRow({
 
   return (
     <div className="flex items-center gap-4">
-      <div className="w-16 h-16 rounded-[12px] bg-[#f6f5f3] flex items-center justify-center overflow-hidden shrink-0 border border-[rgba(20,21,26,.06)]">
+      <div className="w-16 h-16 rounded-[12px] bg-c-surface-2 flex items-center justify-center overflow-hidden shrink-0 border border-c-line">
         <img src={currentUrl} alt="" className="max-w-full max-h-full object-contain" />
       </div>
       <div className="flex flex-col gap-1.5">

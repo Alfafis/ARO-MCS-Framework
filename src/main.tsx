@@ -6,15 +6,18 @@ import App from './App.tsx'
 import { initSentry } from './lib/sentry'
 import ErrorFallback from './components/layout/ErrorFallback.tsx'
 import { PlataformaConfigProvider } from './context/PlataformaConfigContext'
+import { TemaProvider } from './context/TemaContext'
 
 initSentry()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-      <PlataformaConfigProvider>
-        <App />
-      </PlataformaConfigProvider>
+      <TemaProvider>
+        <PlataformaConfigProvider>
+          <App />
+        </PlataformaConfigProvider>
+      </TemaProvider>
     </Sentry.ErrorBoundary>
   </StrictMode>
 )

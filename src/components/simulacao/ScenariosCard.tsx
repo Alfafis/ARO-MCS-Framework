@@ -31,7 +31,7 @@ export default function ScenariosCard({ result }: Props) {
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         {ROWS.map(({ label, value }) => (
-          <div key={label} className="bg-[#f6f5f3] rounded-[14px] px-4 py-3.5">
+          <div key={label} className="bg-c-surface-2 rounded-[14px] px-4 py-3.5">
             <div className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2 mb-1.5">{label}</div>
             <div className="font-mono text-base font-bold text-c-text tracking-tight">{formatMoedaCompact(value)}</div>
           </div>

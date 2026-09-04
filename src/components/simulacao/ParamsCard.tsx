@@ -136,10 +136,10 @@ export default function ParamsCard({
                   key={cat}
                   type="button"
                   onClick={() => toggleCat(cat)}
-                  className="flex items-center gap-2.5 py-[5px] text-left bg-transparent border-0 cursor-pointer rounded-[6px] hover:bg-[#f6f5f3] px-1.5 transition-colors duration-150"
+                  className="flex items-center gap-2.5 py-[5px] text-left bg-transparent border-0 cursor-pointer rounded-[6px] hover:bg-c-surface-2 px-1.5 transition-colors duration-150"
                 >
                   <div
-                    className={`w-[15px] h-[15px] rounded-[4px] flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? 'bg-accent' : 'bg-[#e4e1de]'}`}
+                    className={`w-[15px] h-[15px] rounded-[4px] flex items-center justify-center shrink-0 transition-colors duration-150 ${checked ? 'bg-accent' : 'bg-c-track'}`}
                   >
                     {checked && <Check size={9} strokeWidth={3} color="white" aria-hidden="true" />}
                   </div>

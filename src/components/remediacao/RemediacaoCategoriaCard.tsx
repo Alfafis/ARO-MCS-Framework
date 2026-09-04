@@ -148,7 +148,7 @@ export function CategoriaCard({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-[rgba(20,21,26,.08)]">
+      <div className="flex items-center justify-between gap-3 mt-4 pt-3 border-t border-c-line">
         <Button variant="ghost" onClick={onAddItem}>
           <Plus size={13} aria-hidden="true" />
           {t.addItem}

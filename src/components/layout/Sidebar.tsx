@@ -18,12 +18,15 @@ import {
   Sprout,
   History,
   Palette,
+  Sun,
+  Moon,
 } from 'lucide-react'
 import { useLang, useT } from '@/i18n/useLang'
 import type { Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
 import { supabase } from '@/integrations/supabase/client'
 import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
+import { useTema } from '@/context/TemaContext'
 
 const LANGUAGES: { code: Lang; label: string }[] = [
   { code: 'pt-BR', label: 'Português (Brasil)' },
@@ -56,6 +59,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
   const { lang, setLang } = useLang()
   const t = useT(sidebarT)
   const { config } = usePlataformaConfig()
+  const { tema, toggleTema } = useTema()
 
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -200,12 +204,35 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
         })}
       </nav>
 
+      {/* ── Toggle de tema ── */}
+      <div className="flex-none mb-2">
+        <button
+          type="button"
+          onClick={() => void toggleTema()}
+          aria-label={tema === 'dark' ? t.themeSwitchToLight : t.themeSwitchToDark}
+          title={tema === 'dark' ? t.themeSwitchToLight : t.themeSwitchToDark}
+          className="flex items-center gap-2 w-full p-2 rounded-[14px] bg-c-surface-2 hover:bg-c-surface-2-hover transition-colors duration-[220ms] border-0 cursor-pointer whitespace-nowrap overflow-hidden"
+          style={{ justifyContent: collapsed ? 'center' : 'flex-start' }}
+        >
+          {tema === 'dark' ? (
+            <Sun size={16} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
+          ) : (
+            <Moon size={16} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
+          )}
+          {!collapsed && (
+            <span className="flex-1 text-sm text-c-text text-left overflow-hidden text-ellipsis">
+              {tema === 'dark' ? t.themeLight : t.themeDark}
+            </span>
+          )}
+        </button>
+      </div>
+
       {/* ── Seletor de idioma ── */}
       <div ref={langRef} className="relative flex-none">
         {/* Botão de idioma */}
         <button
           ref={langBtnRef}
-          className="flex items-center gap-2 w-full p-2 rounded-[14px] bg-[#f6f5f3] hover:bg-[#efece9] transition-colors duration-[220ms] border-0 cursor-pointer whitespace-nowrap overflow-hidden"
+          className="flex items-center gap-2 w-full p-2 rounded-[14px] bg-c-surface-2 hover:bg-c-surface-2-hover transition-colors duration-[220ms] border-0 cursor-pointer whitespace-nowrap overflow-hidden"
           onClick={() => {
             setLangOpen((v) => !v)
             setProfileOpen(false)
@@ -218,7 +245,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
           <Globe size={16} strokeWidth={2} color="var(--c-text-2)" aria-hidden="true" style={{ flex: 'none' }} />
           {!collapsed && (
             <>
-              <span className="flex-1 text-sm text-[#14151a] text-left overflow-hidden text-ellipsis">
+              <span className="flex-1 text-sm text-c-text text-left overflow-hidden text-ellipsis">
                 {LANGUAGES.find((l) => l.code === lang)?.label}
               </span>
               <ChevronDown

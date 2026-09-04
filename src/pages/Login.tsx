@@ -38,7 +38,7 @@ export default function Login() {
     >
       {/* Card principal */}
       <div
-        className="w-full max-w-[400px] bg-white rounded-[20px] px-8 py-9"
+        className="w-full max-w-[400px] bg-c-card rounded-[20px] px-8 py-9"
         style={{ boxShadow: '0 16px 40px -12px rgba(20,21,26,.18)' }}
       >
         {/* Marca */}

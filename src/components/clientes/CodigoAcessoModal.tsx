@@ -70,12 +70,12 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
             <div className="flex flex-col gap-1.5">
               <span className="text-[11px] font-semibold tracking-widest uppercase text-c-text-2">Código ativo</span>
               <div className="flex items-center gap-2">
-                <span className="flex-1 bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono font-bold tracking-wider text-c-text">
+                <span className="flex-1 bg-c-surface-2 rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono font-bold tracking-wider text-c-text">
                   {code}
                 </span>
                 <button
                   onClick={handleCopy}
-                  className="flex items-center gap-1.5 px-3 py-[10px] rounded-[11px] border border-[rgba(20,21,26,.12)] bg-white text-[12px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer whitespace-nowrap"
+                  className="flex items-center gap-1.5 px-3 py-[10px] rounded-[11px] border border-c-line bg-c-card text-[12px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer whitespace-nowrap"
                 >
                   {copied ? (
                     <>
@@ -93,7 +93,7 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
             <p className="text-[13px] text-c-text-2">Nenhum código gerado ainda para este relatório.</p>
           )}
 
-          <div className="h-px bg-[rgba(20,21,26,.08)]" />
+          <div className="h-px bg-c-line" />
 
           {/* Opção 1 — gerar aleatório */}
           <div className="flex flex-col gap-2">
@@ -105,7 +105,7 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
             {code && <p className="text-[11.5px] text-c-text-2">Gerar um novo código invalida o anterior.</p>}
           </div>
 
-          <div className="h-px bg-[rgba(20,21,26,.08)]" />
+          <div className="h-px bg-c-line" />
 
           {/* Opção 2 — manual */}
           <div className="flex flex-col gap-2">
@@ -123,7 +123,7 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
                   autoComplete="off"
                   autoCapitalize="characters"
                   className={[
-                    'w-full bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono tracking-wider text-c-text outline-none border transition-colors duration-150',
+                    'w-full bg-c-surface-2 rounded-[11px] px-[13px] py-[10px] text-[0.875rem] font-mono tracking-wider text-c-text outline-none border transition-colors duration-150',
                     manualError ? 'border-[#f44] focus:border-[#f44]' : 'border-transparent focus:border-accent',
                   ].join(' ')}
                 />

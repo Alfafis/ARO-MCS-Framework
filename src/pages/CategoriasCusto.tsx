@@ -67,7 +67,7 @@ function TemplateEditor({ tipos, t, onToast }: TemplateEditorProps) {
             className={`px-3 py-1.5 rounded-full text-[12.5px] font-medium transition-colors cursor-pointer border ${
               tipoSelecionadoId === tipo.id
                 ? 'bg-accent-100 text-accent-700 border-accent-100'
-                : 'bg-white text-c-text-2 border-[rgba(20,21,26,.08)] hover:text-c-text'
+                : 'bg-c-card text-c-text-2 border-c-line hover:text-c-text'
             }`}
           >
             {tipo.nome}
@@ -176,7 +176,7 @@ export default function CategoriasCusto() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
-        <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <FolderTree size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.headerTitle}</span>

@@ -391,7 +391,7 @@ export default function ResumoExecutivo() {
             <div className="flex flex-col gap-0.5 flex-1 min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[13.5px] font-semibold text-c-text">{tRem.headerTitle}</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-c-surface-2 text-c-text-2 font-medium">
                   {tRem.moduleTag}
                 </span>
               </div>

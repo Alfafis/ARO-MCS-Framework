@@ -33,13 +33,13 @@ export default function AnnualDisbursementCard({ years, categories }: Props) {
 
             {/* Category rows */}
             {categories.flatMap((cat, ci) => [
-              <div key={`n${ci}`} className="py-[5px] pr-3 flex items-center border-t border-[rgba(20,21,26,.06)]">
+              <div key={`n${ci}`} className="py-[5px] pr-3 flex items-center border-t border-c-line">
                 <span className="text-[12px] text-c-text-2 leading-tight">{cat.name}</span>
               </div>,
               ...cat.values.map((val, yi) => (
                 <div
                   key={`v${ci}-${yi}`}
-                  className="py-[5px] flex items-center justify-center border-t border-[rgba(20,21,26,.06)]"
+                  className="py-[5px] flex items-center justify-center border-t border-c-line"
                 >
                   {val != null ? (
                     <span className="font-mono text-[0.72rem] font-bold text-c-text">{val}</span>
@@ -51,7 +51,7 @@ export default function AnnualDisbursementCard({ years, categories }: Props) {
             ])}
 
             {/* Divider */}
-            <div style={{ gridColumn: '1 / -1' }} className="h-px bg-[rgba(20,21,26,.12)] my-1" />
+            <div style={{ gridColumn: '1 / -1' }} className="h-px bg-c-line my-1" />
 
             {/* Total row */}
             <div className="py-[5px] pr-3 flex items-center">
@@ -68,16 +68,16 @@ export default function AnnualDisbursementCard({ years, categories }: Props) {
         <>
           <div className="grid grid-cols-5 gap-2">
             {years.slice(0, 5).map((year) => (
-              <div key={year.label} className="bg-[#f6f5f3] rounded-[8px] p-2 text-center">
+              <div key={year.label} className="bg-c-surface-2 rounded-[8px] p-2 text-center">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-1">{year.label}</p>
                 <p className="font-mono text-[0.75rem] font-bold text-c-text">{year.value}</p>
               </div>
             ))}
           </div>
-          <div className="h-px bg-[rgba(20,21,26,.08)] my-2" />
+          <div className="h-px bg-c-line my-2" />
           <div className="grid grid-cols-5 gap-2">
             {years.slice(5).map((year) => (
-              <div key={year.label} className="bg-[#f6f5f3] rounded-[8px] p-2 text-center">
+              <div key={year.label} className="bg-c-surface-2 rounded-[8px] p-2 text-center">
                 <p className="text-[10px] font-semibold tracking-widest uppercase text-c-text-2 mb-1">{year.label}</p>
                 <p className="font-mono text-[0.75rem] font-bold text-c-text">{year.value}</p>
               </div>

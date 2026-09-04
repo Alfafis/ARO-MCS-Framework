@@ -7,8 +7,8 @@ const inputVariants = cva(
     variants: {
       variant: {
         default:
-          'rounded-full border border-[rgba(20,21,26,.08)] bg-white px-3 py-2 focus:border-accent focus:ring-2 focus:ring-accent/20',
-        filled: 'rounded-[11px] border-none bg-[#f6f5f3] px-[13px] py-[9px] focus:shadow-[0_0_0_1.5px_var(--accent)]',
+          'rounded-full border border-c-line bg-c-card px-3 py-2 focus:border-accent focus:ring-2 focus:ring-accent/20',
+        filled: 'rounded-[11px] border-none bg-c-surface-2 px-[13px] py-[9px] focus:shadow-[0_0_0_1.5px_var(--accent)]',
       },
     },
     defaultVariants: { variant: 'default' },

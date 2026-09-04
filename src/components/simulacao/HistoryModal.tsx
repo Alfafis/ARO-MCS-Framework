@@ -32,7 +32,7 @@ export default function HistoryModal({ history, onSelect, onClose }: Props) {
           {history.map((run) => (
             <div
               key={run.id}
-              className="flex items-center justify-between px-2.5 py-3 rounded-[10px] cursor-pointer hover:bg-[#f6f5f3] border-b border-[rgba(20,21,26,.08)] last:border-b-0 transition-colors"
+              className="flex items-center justify-between px-2.5 py-3 rounded-[10px] cursor-pointer hover:bg-c-surface-2 border-b border-c-line last:border-b-0 transition-colors"
               role="button"
               tabIndex={0}
               onClick={() => close(() => onSelect(run))}

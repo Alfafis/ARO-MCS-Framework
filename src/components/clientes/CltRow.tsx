@@ -36,7 +36,7 @@ export default function CltRow({
   const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
     andamento: { label: t.statusActive, cls: 'bg-success-bg text-success' },
     aguardando: { label: t.statusWaiting, cls: 'bg-accent-100 text-accent-700' },
-    concluido: { label: t.statusDone, cls: 'bg-[#f0eeec] text-c-text-2' },
+    concluido: { label: t.statusDone, cls: 'bg-c-surface-2-hover text-c-text-2' },
   }
 
   const status = STATUS_META[row.status]
@@ -52,7 +52,7 @@ export default function CltRow({
 
   return (
     <div
-      className={`grid items-center gap-4 px-6 py-4 border-b border-[rgba(20,21,26,.08)] last:border-b-0 transition-[background] duration-[900ms] cursor-pointer hover:bg-[#faf9f8] ${row.highlight ? 'bg-accent-100' : ''}`}
+      className={`grid items-center gap-4 px-6 py-4 border-b border-c-line last:border-b-0 transition-[background] duration-[900ms] cursor-pointer hover:bg-c-surface-2 ${row.highlight ? 'bg-accent-100' : ''}`}
       style={{ gridTemplateColumns: COL }}
       onClick={onOpen}
     >
@@ -60,7 +60,7 @@ export default function CltRow({
 
       {/* Cliente / Projeto */}
       <div className="flex items-center gap-3 min-w-0">
-        <span className="inline-flex items-center justify-center w-9 h-9 rounded-[10px] bg-[#f0eeec] font-mono font-bold text-[13px] text-c-text flex-none">
+        <span className="inline-flex items-center justify-center w-9 h-9 rounded-[10px] bg-c-surface-2-hover font-mono font-bold text-[13px] text-c-text flex-none">
           {badgeLabel}
         </span>
         <div className="min-w-0">

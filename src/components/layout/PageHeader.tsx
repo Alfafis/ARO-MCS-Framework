@@ -15,7 +15,7 @@ export default function PageHeader({ title, badge, subtitle, clientSelector, act
         <div className="flex items-center gap-2.5 mb-1">
           <h1 className="text-[26px] font-bold text-c-text tracking-tight leading-none">{title}</h1>
           {badge && (
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold font-mono">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-c-surface-2-hover text-c-text-2 text-[11px] font-semibold font-mono">
               {badge}
             </span>
           )}

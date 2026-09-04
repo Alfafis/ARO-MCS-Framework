@@ -182,7 +182,7 @@ export default function CategoryBlock({
       ref={blockRef}
       className={`cat-block${category.justAdded ? ' cat-entering' : ''}${highlighted ? ' cat-highlight' : ''}`}
     >
-      <div className="bg-[#faf9f8] px-4 py-3 flex items-center gap-2.5">
+      <div className="bg-c-surface-2 px-4 py-3 flex items-center gap-2.5">
         <div className="flex items-center gap-2.5 flex-1 min-w-0" ref={nomeEditRef}>
           <input
             className="cat-name-input"
@@ -254,7 +254,7 @@ export default function CategoryBlock({
                 className={`px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap ${
                   opt === category.preenche
                     ? 'bg-accent-100 text-accent-700 font-bold'
-                    : 'text-c-text font-medium hover:bg-[#f2f2f0]'
+                    : 'text-c-text font-medium hover:bg-c-surface-2-hover'
                 }`}
               >
                 {opt}
@@ -282,7 +282,7 @@ export default function CategoryBlock({
       </div>
 
       {category.expanded && (
-        <div className="overflow-x-auto bg-white">
+        <div className="overflow-x-auto bg-c-card">
           <div className="px-4 pb-3 min-w-[1054px]">
             {onSaveCustoProvavel && (
               <CustoProvavelRow
@@ -334,7 +334,7 @@ export default function CategoryBlock({
             </button>
 
             {camposOpEnabled && (
-              <div className="mt-4 pt-3 border-t border-[rgba(20,21,26,.08)] flex flex-col gap-1.5">
+              <div className="mt-4 pt-3 border-t border-c-line flex flex-col gap-1.5">
                 <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2 mb-1">
                   {t.camposOpTitle}
                 </div>
@@ -368,7 +368,7 @@ export default function CategoryBlock({
             )}
 
             {camposOpProjetoEnabled && (
-              <div className="mt-4 pt-3 border-t border-[rgba(20,21,26,.08)] flex flex-col gap-1.5">
+              <div className="mt-4 pt-3 border-t border-c-line flex flex-col gap-1.5">
                 <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2 mb-1">
                   {t.camposOpTitle}
                 </div>
@@ -453,7 +453,7 @@ function CampoOpRow({ campo, onUpdate, onSave, onRemove, removeLabel, avaliado }
         </select>
         {derivado ? (
           <input
-            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            className="row-input mono bg-c-surface-2 cursor-not-allowed"
             value={
               avaliado?.valor != null
                 ? avaliado.valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
@@ -563,7 +563,7 @@ function CampoOpProjetoRow({
         </select>
         {derivado ? (
           <input
-            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            className="row-input mono bg-c-surface-2 cursor-not-allowed"
             value={
               avaliado?.valor != null
                 ? avaliado.valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
@@ -709,7 +709,7 @@ function ItemRow({
           leitura, nunca editável direto — não persiste, evita cache obsoleto. */}
         {formulaAtiva ? (
           <input
-            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            className="row-input mono bg-c-surface-2 cursor-not-allowed"
             value={custoCalculado ? formatMoedaBR(custoCalculado.min) : quantidade?.erro ? '⚠ ' + quantidade.erro : '—'}
             readOnly
             title={quantidade?.erro ?? 'Calculado: quantidade × custo unitário mínimo'}
@@ -731,7 +731,7 @@ function ItemRow({
         )}
         {formulaAtiva ? (
           <input
-            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            className="row-input mono bg-c-surface-2 cursor-not-allowed"
             value={custoCalculado ? formatMoedaBR(custoCalculado.max) : quantidade?.erro ? '⚠ ' + quantidade.erro : '—'}
             readOnly
             title={quantidade?.erro ?? 'Calculado: quantidade × custo unitário máximo'}
@@ -834,7 +834,7 @@ function ItemRow({
           </button>
 
           {formulaAberta && (
-            <div className="mt-2 p-3 rounded-[8px] bg-[#faf9f8] border border-[rgba(20,21,26,.06)] flex flex-col gap-2">
+            <div className="mt-2 p-3 rounded-[8px] bg-c-surface-2 border border-c-line flex flex-col gap-2">
               <div className="grid grid-cols-2 gap-2">
                 <div className="flex flex-col gap-1">
                   <label className="text-[0.7rem] font-semibold uppercase tracking-wide text-c-text-2">
@@ -940,7 +940,7 @@ function CustoProvavelRow({ value, onSave, label, placeholder, hint }: CustoProv
   }
 
   return (
-    <div className="flex items-center gap-2 py-2 mb-2 border-b border-[rgba(20,21,26,.06)]">
+    <div className="flex items-center gap-2 py-2 mb-2 border-b border-c-line">
       <label htmlFor={inputId} className="text-[0.75rem] font-semibold uppercase tracking-wide text-c-text-2">
         {label}
       </label>
@@ -1049,7 +1049,7 @@ function DesembolsoToggleAndPanel({ item, t, horizon, aberto, onToggleAberto, on
       </button>
 
       {aberto && (
-        <div className="mt-2 p-3 rounded-[8px] bg-[#faf9f8] border border-[rgba(20,21,26,.06)]">
+        <div className="mt-2 p-3 rounded-[8px] bg-c-surface-2 border border-c-line">
           <div
             className="grid gap-2"
             style={{ gridTemplateColumns: `repeat(${Math.min(horizon, 5)}, minmax(0, 1fr))` }}
@@ -1071,7 +1071,7 @@ function DesembolsoToggleAndPanel({ item, t, horizon, aberto, onToggleAberto, on
             ))}
           </div>
 
-          <div className="mt-2 pt-2 border-t border-[rgba(20,21,26,.06)] flex items-center gap-3 flex-wrap">
+          <div className="mt-2 pt-2 border-t border-c-line flex items-center gap-3 flex-wrap">
             <span className="text-[0.72rem] text-c-text-2">
               <strong className="text-c-text font-semibold">{t.desembolsoSum}:</strong>{' '}
               <span className="font-mono">{somaEmDinheiro}</span>
@@ -1220,7 +1220,7 @@ function SetoresPicker({ selected, onChange, t }: SetoresPickerProps) {
             className={`flex items-center px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-1 ${
               selected === null
                 ? 'bg-accent-100 text-accent-700 font-bold'
-                : 'text-c-text font-medium hover:bg-[#f2f2f0]'
+                : 'text-c-text font-medium hover:bg-c-surface-2-hover'
             }`}
           >
             <input
@@ -1232,14 +1232,14 @@ function SetoresPicker({ selected, onChange, t }: SetoresPickerProps) {
             />
             {t.setoresTodos}
           </label>
-          <div className="h-px bg-[rgba(20,21,26,.08)] my-1" />
+          <div className="h-px bg-c-line my-1" />
           {setores.map((s) => {
             const marcado = selected?.includes(s.id) ?? false
             return (
               <label
                 key={s.id}
                 className={`px-3 py-1.5 rounded-[9px] text-[13px] leading-none cursor-pointer transition-colors duration-100 whitespace-nowrap flex items-center gap-2 focus-within:ring-2 focus-within:ring-accent focus-within:ring-offset-1 ${
-                  marcado ? 'bg-accent-100 text-accent-700 font-medium' : 'text-c-text hover:bg-[#f2f2f0]'
+                  marcado ? 'bg-accent-100 text-accent-700 font-medium' : 'text-c-text hover:bg-c-surface-2-hover'
                 }`}
               >
                 <input

@@ -52,7 +52,7 @@ export default function LangSelector({ ariaLabel = 'Language' }: Props) {
         aria-expanded={open}
         aria-haspopup="listbox"
         aria-label={ariaLabel}
-        className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+        className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
       >
         <Globe size={13} strokeWidth={2} />
         {current?.short}
@@ -101,7 +101,7 @@ export default function LangSelector({ ariaLabel = 'Language' }: Props) {
                 'w-full text-left px-3 py-2 rounded-[8px] text-[13px] cursor-pointer border-0 transition-colors duration-150',
                 lang === code
                   ? 'bg-accent-100 text-accent-700 font-semibold'
-                  : 'bg-transparent text-c-text hover:bg-[#f4f3f1]',
+                  : 'bg-transparent text-c-text hover:bg-c-surface-2-hover',
               ].join(' ')}
             >
               {label}

@@ -116,6 +116,18 @@ export default function PortalClienteRelatorio() {
     [projetoId]
   )
 
+  // Portal do Cliente ignora preferência de tema — cliente anon não tem perfil,
+  // e o localStorage pode ter a preferência do consultor que logou no mesmo
+  // browser. Força light durante toda a vida do componente e restaura ao
+  // desmontar (evita "vazar" light quando o consultor volta pro admin).
+  useEffect(() => {
+    const eraDark = document.documentElement.classList.contains('dark')
+    document.documentElement.classList.remove('dark')
+    return () => {
+      if (eraDark) document.documentElement.classList.add('dark')
+    }
+  }, [])
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session))
     const stored = sessionStorage.getItem(sessionKey(projetoId))
@@ -382,7 +394,7 @@ export default function PortalClienteRelatorio() {
   if (status === 'need-code') {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-[400px] bg-white rounded-[20px] shadow-[0_24px_64px_-12px_rgba(20,21,26,.28)] p-7">
+        <div className="w-full max-w-[400px] bg-c-card rounded-[20px] shadow-[0_24px_64px_-12px_rgba(20,21,26,.28)] p-7">
           <div className="flex items-center mb-5">
             <img src={config.logoCompletoUrl} alt="Be Planned" className="h-9 w-auto object-contain" />
           </div>
@@ -404,7 +416,7 @@ export default function PortalClienteRelatorio() {
                 autoComplete="off"
                 autoCapitalize="characters"
                 className={[
-                  'w-full bg-[#f6f5f3] rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text font-mono tracking-wider outline-none border transition-colors duration-150',
+                  'w-full bg-c-surface-2 rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text font-mono tracking-wider outline-none border transition-colors duration-150',
                   codeError ? 'border-[#f44] focus:border-[#f44]' : 'border-transparent focus:border-accent',
                 ].join(' ')}
               />
@@ -429,16 +441,16 @@ export default function PortalClienteRelatorio() {
   return (
     <div className="min-h-screen print:bg-white">
       {/* ── Header fixo ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[rgba(20,21,26,.08)] flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-c-card border-b border-c-line flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
         <img src={config.logoCompletoUrl} alt="Be Planned" className="h-10 w-auto object-contain" />
         <div className="flex items-center gap-3 print:hidden">
-          <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-[#f0eeec] text-c-text-2 text-[12px] font-medium">
+          <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-c-surface-2-hover text-c-text-2 text-[12px] font-medium">
             {cliente.nome} — {t.portalPill}
           </span>
           {isAdmin && (
             <button
               onClick={() => setCodeModalOpen(true)}
-              className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
             >
               <KeyRound size={13} strokeWidth={2} />
               {t.accessCodeBtn}
@@ -446,7 +458,7 @@ export default function PortalClienteRelatorio() {
           )}
           <button
             onClick={handleGerarLink}
-            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
           >
             {linkCopied ? (
               <>
@@ -460,7 +472,7 @@ export default function PortalClienteRelatorio() {
           </button>
           <button
             onClick={handleDownload}
-            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-white border border-[rgba(20,21,26,.12)] shadow-[0_1px_2px_rgba(20,21,26,.06)] text-[13px] font-semibold text-c-text hover:bg-[#f4f3f1] transition-colors duration-150 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
           >
             <Download size={13} strokeWidth={2} />
             {t.downloadPdfBtn}
@@ -478,7 +490,7 @@ export default function PortalClienteRelatorio() {
               <h1 className="text-[22px] font-bold text-c-text">
                 {t.reportTitle} — {projeto.nome}
               </h1>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-[#f0eeec] text-c-text-2 text-[11px] font-semibold">
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-c-surface-2-hover text-c-text-2 text-[11px] font-semibold">
                 {projeto.rev} · {t.reportRevisionCurrent}
               </span>
             </div>
@@ -510,7 +522,7 @@ export default function PortalClienteRelatorio() {
                 sub: t.kpiBaseSub(contingenciaPct),
               },
             ].map((kpi) => (
-              <div key={kpi.label} className="bg-white rounded-[20px] p-6 flex flex-col gap-3">
+              <div key={kpi.label} className="bg-c-card rounded-[20px] p-6 flex flex-col gap-3">
                 <div className="w-[26px] h-[26px] rounded-[9px] bg-accent-100 flex items-center justify-center shrink-0">
                   {kpi.icon}
                 </div>
@@ -651,11 +663,11 @@ function RemediacaoSection({ categorias }: RemediacaoSectionProps) {
   const totalGeral = categorias.reduce((acc, c) => acc + totalCategoria(c), 0)
 
   return (
-    <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-[rgba(20,21,26,.08)]">
+    <section className="flex flex-col gap-3 pt-2 mt-2 border-t border-c-line">
       <div className="flex items-center gap-2">
         <Sprout size={14} color="var(--accent)" aria-hidden="true" />
         <h2 className="text-[15px] font-bold text-c-text tracking-tight leading-tight">{t.headerTitle}</h2>
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-[#f6f5f3] text-c-text-2 font-medium">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-c-surface-2 text-c-text-2 font-medium">
           {t.moduleTag}
         </span>
       </div>

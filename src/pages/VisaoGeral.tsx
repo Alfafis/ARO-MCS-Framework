@@ -127,7 +127,7 @@ export default function VisaoGeral() {
   const STATUS_META: Record<ProjStatus, { label: string; cls: string }> = {
     andamento: { label: tc.statusActive, cls: 'bg-success-bg text-success' },
     aguardando: { label: tc.statusWaiting, cls: 'bg-accent-100 text-accent-700' },
-    concluido: { label: tc.statusDone, cls: 'bg-[#f0eeec] text-c-text-2' },
+    concluido: { label: tc.statusDone, cls: 'bg-c-surface-2-hover text-c-text-2' },
   }
 
   return (
@@ -234,7 +234,7 @@ export default function VisaoGeral() {
                         {formatMoedaCompact(c.valor)}
                       </span>
                     </div>
-                    <div className="h-1.5 rounded bg-[#ece9e6] overflow-hidden">
+                    <div className="h-1.5 rounded bg-c-track overflow-hidden">
                       <div
                         className="h-full rounded bg-accent"
                         style={{ width: maxRanking > 0 ? `${(c.valor / maxRanking) * 100}%` : '0%' }}

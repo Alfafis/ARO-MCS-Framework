@@ -34,7 +34,7 @@ export function ModoToggle({
   }
   opts.push({ key: 'ipca', label: labels.ipca })
   return (
-    <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
+    <div className="inline-flex rounded-full bg-c-surface-2 p-1 gap-1">
       {opts.map((opt) => {
         const disabled = opt.key === 'ipca' && disableIpca
         const active = current === opt.key
@@ -46,7 +46,7 @@ export function ModoToggle({
             onClick={() => onChange(opt.key)}
             className={`px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors cursor-pointer border-0 ${
               active
-                ? 'bg-white text-c-text shadow-sm'
+                ? 'bg-c-surface-2-active text-c-text shadow-sm'
                 : disabled
                   ? 'text-c-text-2/40 cursor-not-allowed'
                   : 'text-c-text-2 hover:text-c-text'
@@ -77,7 +77,7 @@ export function ViewToggle({ current, onChange, labels }: ViewToggleProps) {
     { key: 'detalhado', label: labels.detalhado },
   ]
   return (
-    <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
+    <div className="inline-flex rounded-full bg-c-surface-2 p-1 gap-1">
       {opts.map((opt) => {
         const active = current === opt.key
         return (
@@ -86,7 +86,7 @@ export function ViewToggle({ current, onChange, labels }: ViewToggleProps) {
             type="button"
             onClick={() => onChange(opt.key)}
             className={`px-3 py-1 rounded-full text-[11.5px] font-medium transition-colors cursor-pointer border-0 ${
-              active ? 'bg-white text-c-text shadow-sm' : 'text-c-text-2 hover:text-c-text'
+              active ? 'bg-c-surface-2-active text-c-text shadow-sm' : 'text-c-text-2 hover:text-c-text'
             }`}
           >
             {opt.label}

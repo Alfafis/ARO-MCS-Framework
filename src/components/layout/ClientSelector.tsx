@@ -64,7 +64,7 @@ export default function ClientSelector({ options, value, onChange }: Props) {
       <button
         ref={btnRef}
         onClick={toggle}
-        className="inline-flex items-center gap-1.5 rounded-full bg-[#ebebea] hover:bg-[#ddddd9] transition-colors duration-150 px-[10px] py-[5px] cursor-pointer"
+        className="inline-flex items-center gap-1.5 rounded-full bg-c-surface-2 hover:bg-c-surface-2-hover transition-colors duration-150 px-[10px] py-[5px] cursor-pointer"
       >
         <span className="text-[13px] font-semibold text-c-text leading-none">{selected?.name}</span>
         <ChevronDown
@@ -90,7 +90,7 @@ export default function ClientSelector({ options, value, onChange }: Props) {
               opacity: open ? 1 : 0,
               transform: open ? 'scale(1)' : 'scale(0.95)',
             }}
-            className="bg-white rounded-[14px] p-1.5 shadow-[0_16px_40px_-12px_rgba(20,21,26,0.18)]"
+            className="bg-c-card rounded-[14px] p-1.5 shadow-[0_16px_40px_-12px_rgba(20,21,26,0.18)]"
           >
             {options.map((opt) => {
               const isSelected = opt.id === value
@@ -104,7 +104,7 @@ export default function ClientSelector({ options, value, onChange }: Props) {
                   ${
                     isSelected
                       ? 'bg-accent-100 text-accent-700 font-bold'
-                      : 'text-c-text font-medium hover:bg-[#f2f2f0]'
+                      : 'text-c-text font-medium hover:bg-c-surface-2-hover'
                   }
                 `}
                 >

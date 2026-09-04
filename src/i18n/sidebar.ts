@@ -26,6 +26,10 @@ export const sidebarT: Record<
     logout: string
     openProfile: string
     consultant: string
+    themeLight: string
+    themeDark: string
+    themeSwitchToLight: string
+    themeSwitchToDark: string
   }
 > = {
   'pt-BR': {
@@ -52,6 +56,10 @@ export const sidebarT: Record<
     logout: 'Sair',
     openProfile: 'Abrir menu do perfil',
     consultant: 'Consultor',
+    themeLight: 'Tema claro',
+    themeDark: 'Tema escuro',
+    themeSwitchToLight: 'Mudar para tema claro',
+    themeSwitchToDark: 'Mudar para tema escuro',
   },
   en: {
     overview: 'Overview',
@@ -77,6 +85,10 @@ export const sidebarT: Record<
     logout: 'Sign out',
     openProfile: 'Open profile menu',
     consultant: 'Consultant',
+    themeLight: 'Light theme',
+    themeDark: 'Dark theme',
+    themeSwitchToLight: 'Switch to light theme',
+    themeSwitchToDark: 'Switch to dark theme',
   },
   es: {
     overview: 'Vista general',
@@ -102,5 +114,9 @@ export const sidebarT: Record<
     logout: 'Cerrar sesión',
     openProfile: 'Abrir menú de perfil',
     consultant: 'Consultor',
+    themeLight: 'Tema claro',
+    themeDark: 'Tema oscuro',
+    themeSwitchToLight: 'Cambiar a tema claro',
+    themeSwitchToDark: 'Cambiar a tema oscuro',
   },
 }

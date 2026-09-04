@@ -8,7 +8,11 @@
   --color-c-text-2: #6c7280;
   --color-c-bg: #f4f3f1;
   --color-c-card: #ffffff;
+  --color-c-surface-2: #f6f5f3;
+  --color-c-surface-2-hover: #efece9;
+  --color-c-surface-2-active: #ffffff;
   --color-c-line: rgba(20, 21, 26, 0.08);
+  --color-c-track: #ece9e6;
 
   --color-accent: #2e7d32;
   --color-accent-700: #1b5e20;
@@ -24,7 +28,11 @@
   --c-text-2: #6c7280;
   --c-bg: #f4f3f1;
   --c-card: #ffffff;
+  --c-surface-2: #f6f5f3;
+  --c-surface-2-hover: #efece9;
+  --c-surface-2-active: #ffffff;
   --c-line: rgba(20, 21, 26, 0.08);
+  --c-track: #ece9e6;
 
   --accent: #2e7d32;
   --accent-700: #1b5e20;
@@ -41,6 +49,42 @@
   --shadow-1: 0 1px 2px rgba(20, 21, 26, 0.06);
   --shadow-2: 0 16px 40px -12px rgba(20, 21, 26, 0.18);
   --dur: 220ms;
+
+  --bg-fixed-overlay: rgba(244, 243, 241, 0.92);
+}
+
+/* ── Tema escuro — cores extraídas visualmente do print de referência
+    (fim de dia 04-09). Accent verde permanece — aparece igual no print.
+    Portal do Cliente ignora e sempre usa light. Classe `.dark` no <html>
+    segue convenção shadcn/ui pra alinhamento com componentes shadcn. ── */
+html.dark {
+  --c-text: #e6e8ec;
+  --c-text-2: #9198a3;
+  --c-bg: #0d1013;
+  --c-card: #1a1c22;
+  --c-surface-2: #26282e;
+  --c-surface-2-hover: #30333a;
+  --c-surface-2-active: #40444c;
+  --c-line: rgba(255, 255, 255, 0.08);
+  --c-track: #2a2d33;
+
+  --accent-100: #143d17;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 16px 40px -12px rgba(0, 0, 0, 0.6);
+
+  --bg-fixed-overlay: rgba(13, 16, 19, 0.92);
+
+  --color-c-text: #e6e8ec;
+  --color-c-text-2: #9198a3;
+  --color-c-bg: #0d1013;
+  --color-c-card: #1a1c22;
+  --color-c-surface-2: #26282e;
+  --color-c-surface-2-hover: #30333a;
+  --color-c-surface-2-active: #40444c;
+  --color-c-line: rgba(255, 255, 255, 0.08);
+  --color-c-track: #2a2d33;
+  --color-accent-100: #143d17;
 }
 
 /* ── Base ── */
@@ -68,7 +112,7 @@
     z-index: 0;
     pointer-events: none;
     background:
-      linear-gradient(rgba(244, 243, 241, 0.92), rgba(244, 243, 241, 0.92)),
+      linear-gradient(var(--bg-fixed-overlay), var(--bg-fixed-overlay)),
       url('/PADRONAGEM%20-%20FUNDO%20com%20pontilhado.png') center / cover no-repeat;
   }
 
@@ -108,11 +152,11 @@
 
 /* ── Card ── */
 .card {
-  background: #fff;
+  background: var(--c-card);
   border-radius: 20px;
   padding: 24px;
   box-shadow: var(--shadow-1);
-  border: 1px solid rgba(20, 21, 26, 0.06);
+  border: 1px solid var(--c-line);
 }
 
 /* ── App grid ── */
@@ -217,14 +261,14 @@
 }
 .bsidebar-link:hover {
   color: var(--c-text);
-  background: #f6f5f3;
+  background: var(--c-surface-2);
 }
 .bsidebar-link:hover .ico {
-  background: #e7e4e1;
+  background: var(--c-surface-2-hover);
 }
 .bsidebar-link.active {
   color: var(--c-text);
-  background: #f6f5f3;
+  background: var(--c-surface-2);
 }
 .bsidebar-link.active .ico {
   background: var(--accent);
@@ -233,7 +277,7 @@
 }
 .bsidebar-link.active:hover {
   color: var(--c-text);
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .bsidebar-link.active:hover .ico {
   background: var(--accent);
@@ -245,7 +289,7 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,7 +307,7 @@
   gap: 8px;
   padding: 8px 10px;
   border-radius: 14px;
-  background: #f6f5f3;
+  background: var(--c-surface-2);
   border: none;
   cursor: pointer;
   transition: background var(--dur) ease;
@@ -274,7 +318,7 @@
 }
 
 .bsidebar-foot:hover {
-  background: #efece9;
+  background: var(--c-surface-2-hover);
 }
 .bsidebar-foot:focus-visible {
   outline: 2px solid var(--accent);
@@ -356,7 +400,7 @@
 }
 
 .profile-menu-item:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .profile-menu-item.danger {
   color: var(--accent-700);
@@ -389,7 +433,7 @@
 }
 
 .csel-btn:hover {
-  background: #f6f5f3;
+  background: var(--c-surface-2);
   box-shadow: var(--shadow-2);
 }
 .csel-btn:focus-visible {
@@ -420,7 +464,7 @@
 }
 
 .csel-opt:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .csel-opt.selected {
   background: var(--accent-100);
@@ -473,11 +517,11 @@
 }
 
 .cat-name-input:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .cat-name-input:focus {
   box-shadow: 0 0 0 1.5px var(--accent);
-  background: #fff;
+  background: var(--c-card);
 }
 
 /* Linhas de item — grid de colunas */
@@ -531,11 +575,11 @@
 }
 
 .row-input:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .row-input:focus {
   box-shadow: 0 0 0 1.5px var(--accent);
-  background: #fff;
+  background: var(--c-card);
 }
 .row-input.mono {
   font-family: ui-monospace, Menlo, monospace;
@@ -546,7 +590,7 @@
 /* Segmented control */
 .seg {
   display: flex;
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
   border-radius: 10px;
   padding: 3px;
   gap: 2px;
@@ -604,7 +648,7 @@
 .hist-bar {
   flex: 1;
   border-radius: 4px 4px 0 0;
-  background: #e0ddd9;
+  background: var(--c-track);
   transition: height 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -670,7 +714,7 @@
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(20, 21, 26, 0.48);
+  background: rgba(0, 0, 0, 0.48);
   z-index: 200;
   display: flex;
   align-items: center;
@@ -746,7 +790,7 @@
 }
 
 .filter-chip:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
   color: var(--c-text);
 }
 
@@ -810,7 +854,7 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -853,7 +897,7 @@
   font-weight: 600;
 }
 .pill-revisao {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
   color: var(--c-text-2);
   justify-self: start;
   display: inline-flex;
@@ -895,7 +939,7 @@
 }
 
 .row-action-btn:hover {
-  background: #f0eeec;
+  background: var(--c-surface-2-hover);
 }
 .row-action-btn:focus-visible {
   outline: 2px solid var(--accent);

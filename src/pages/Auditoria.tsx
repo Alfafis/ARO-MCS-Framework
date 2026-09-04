@@ -36,7 +36,7 @@ interface LogRow {
 }
 
 const selectClass =
-  'rounded-[11px] border border-[rgba(20,21,26,.08)] bg-white px-[13px] py-[9px] text-[0.875rem] text-c-text outline-none cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20'
+  'rounded-[11px] border border-c-line bg-c-card px-[13px] py-[9px] text-[0.875rem] text-c-text outline-none cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20'
 
 export default function Auditoria() {
   const t = useT(auditoriaT)
@@ -170,9 +170,9 @@ export default function Auditoria() {
           />
         </div>
 
-        <div className="overflow-x-auto rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)]">
+        <div className="overflow-x-auto rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line">
           <div className="min-w-[720px]">
-            <div className="grid grid-cols-[1fr_100px_140px_160px_140px] gap-2 px-4 py-3 text-[12px] font-semibold text-c-text-2 border-b border-[rgba(20,21,26,.06)]">
+            <div className="grid grid-cols-[1fr_100px_140px_160px_140px] gap-2 px-4 py-3 text-[12px] font-semibold text-c-text-2 border-b border-c-line">
               <span>{t.colTabela}</span>
               <span>{t.colOperacao}</span>
               <span>{t.colRegistro}</span>
@@ -219,7 +219,7 @@ export default function Auditoria() {
                 type="button"
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-white rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
+                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-c-card rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
               >
                 <span className={page === 0 ? 'text-c-text-2' : 'text-c-text'}>{t.prev}</span>
               </button>
@@ -227,7 +227,7 @@ export default function Auditoria() {
                 type="button"
                 disabled={page + 1 >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-white rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
+                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-c-card rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
               >
                 <span className={page + 1 >= totalPages ? 'text-c-text-2' : 'text-c-text'}>{t.next}</span>
               </button>

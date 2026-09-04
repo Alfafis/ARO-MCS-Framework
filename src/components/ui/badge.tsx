@@ -6,17 +6,17 @@ const badgeVariants = cva(
   {
     variants: {
       variant: {
-        default: 'bg-[#f0eeec] text-c-text-2',
+        default: 'bg-c-surface-2-hover text-c-text-2',
         accent: 'bg-accent-100 text-accent-700',
         success: 'bg-success-bg text-success',
         warning: 'bg-yellow-50 text-yellow-700',
         danger: 'bg-red-50 text-red-700',
         validado: 'bg-success-bg text-success',
-        revisao: 'bg-[#f0eeec] text-c-text-2',
+        revisao: 'bg-c-surface-2-hover text-c-text-2',
         pendente: 'bg-[#fff3e0] text-[#b45309] whitespace-normal text-center leading-snug',
-        rev: 'bg-[#f0eeec] text-c-text-2 font-mono',
-        mono: 'bg-[#f0eeec] text-c-text font-mono',
-        line: 'bg-[#f0eeec] text-c-text-2',
+        rev: 'bg-c-surface-2-hover text-c-text-2 font-mono',
+        mono: 'bg-c-surface-2-hover text-c-text font-mono',
+        line: 'bg-c-surface-2-hover text-c-text-2',
         status: 'bg-success-bg text-success',
       },
     },
