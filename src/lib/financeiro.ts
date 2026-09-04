@@ -1,14 +1,5 @@
 import type { Category } from '@/types/categorias'
 
-// Tabela de escalonamento por ano da planilha de referência ORIGINAL — mantida
-// hardcoded de propósito como cenário de comparação fixo, distinto da tabela
-// ano-a-ano administrável em `parametros_anuais` (Subsistema A2). As duas têm
-// estrutura idêntica (sequência de taxa por ano, composta sequencialmente) mas
-// fontes diferentes: esta é a referência congelada da planilha original: nunca
-// muda; a de `selicPorAno`/`inflacaoPorAno` é editável pelo consultor e reflete
-// a expectativa atual. Ver specs/2026-08-23-parametros-anuais-design.md.
-const IPCA_RATES = [0.034, 0.003, 0.028, 0.031, 0.04, 0.042, 0.05, 0.03, 0.0211, 0.034]
-
 export interface ParametrosCalculo {
   selicPorAno: number[] | null // frações (0.14 = 14%), 1 por ano do horizonte — null = algum ano sem parâmetro, omite simples/compostos
   inflacaoPorAno: number[] | null // idem, omite inflação constante
@@ -26,10 +17,6 @@ function compostoSequencial(base: number, taxas: number[]): number {
   return fv
 }
 
-// Escalonamento (IPCA_RATES) nunca é omitido — não depende de parâmetro global,
-// por isso está sempre presente no retorno, mesmo se simples/compostos/inflação
-// sumirem por falta de configuração. Usa só os primeiros `horizonYears` anos da
-// tabela original (nunca mais que os 10 anos que ela tem).
 export function computeMonetaryValues(filteredBase: number, params: ParametrosCalculo): MetodoAtualizacao[] {
   const resultados: MetodoAtualizacao[] = []
 
@@ -40,11 +27,15 @@ export function computeMonetaryValues(filteredBase: number, params: ParametrosCa
   }
   if (params.inflacaoPorAno !== null) {
     resultados.push({ metodo: 'inflacao', valor: compostoSequencial(filteredBase, params.inflacaoPorAno) })
+    // Escalonamento usava uma tabela de IPCA congelada de 2022 (planilha de UM
+    // cliente, NX Gold), comparada lado a lado no relatório de TODO cliente —
+    // mesma classe do bug já corrigido em parametros_anuais (IPCA de um
+    // cliente virando default silencioso pra plataforma inteira). Como o
+    // rótulo já é "IPCA variável" (sem nunca ter dito "referência de 2022"),
+    // a fonte correta é a mesma série real de inflacaoPorAno — omite junto
+    // com "inflação" quando não configurada, em vez de inventar número.
+    resultados.push({ metodo: 'escalonamento', valor: compostoSequencial(filteredBase, params.inflacaoPorAno) })
   }
-  resultados.push({
-    metodo: 'escalonamento',
-    valor: compostoSequencial(filteredBase, IPCA_RATES.slice(0, params.horizonYears)),
-  })
 
   return resultados
 }

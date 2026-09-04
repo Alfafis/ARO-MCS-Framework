@@ -57,13 +57,6 @@ export const resumoT: Record<
     riskModerate: string
     riskHigh: string
     contingencyLabel: string
-    // RecentLaunches (componente ainda sem consumidor ligado — mantido pra não quebrar o arquivo)
-    recentLaunches: string
-    colPeriod: string
-    colValue: string
-    colStatus: string
-    statusValidated: string
-    statusReview: string
     // RevisionTimeline
     revTimeline: string
     revCurrent: string
@@ -121,12 +114,6 @@ export const resumoT: Record<
     riskModerate: 'Moderado',
     riskHigh: 'Alto',
     contingencyLabel: 'Contingência aplicada',
-    recentLaunches: 'Lançamentos recentes',
-    colPeriod: 'Período',
-    colValue: 'Valor real',
-    colStatus: 'Status',
-    statusValidated: 'Validado',
-    statusReview: 'Em revisão',
     revTimeline: 'Timeline de revisões',
     revCurrent: 'Vigente',
     revDraftDesc: 'Revisão em elaboração, ainda não publicada.',
@@ -181,12 +168,6 @@ export const resumoT: Record<
     riskModerate: 'Moderate',
     riskHigh: 'High',
     contingencyLabel: 'Applied contingency',
-    recentLaunches: 'Recent entries',
-    colPeriod: 'Period',
-    colValue: 'Actual value',
-    colStatus: 'Status',
-    statusValidated: 'Validated',
-    statusReview: 'In review',
     revTimeline: 'Revision timeline',
     revCurrent: 'Current',
     revDraftDesc: 'Revision in progress, not yet published.',
@@ -242,12 +223,6 @@ export const resumoT: Record<
     riskModerate: 'Moderado',
     riskHigh: 'Alto',
     contingencyLabel: 'Contingencia aplicada',
-    recentLaunches: 'Lanzamientos recientes',
-    colPeriod: 'Período',
-    colValue: 'Valor real',
-    colStatus: 'Estado',
-    statusValidated: 'Validado',
-    statusReview: 'En revisión',
     revTimeline: 'Línea de tiempo de revisiones',
     revCurrent: 'Vigente',
     revDraftDesc: 'Revisión en elaboración, aún no publicada.',

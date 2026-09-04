@@ -21,7 +21,7 @@ import { avaliarCamposOperacionais, avaliarQuantidadeItem, type CampoAvaliado } 
 
 // Enum canônico de unidades — valores retirados da planilha NX Gold
 // (aba 1..8 de categorias). Ordem por frequência de uso na planilha.
-const UNIDADES: string[] = ['vb', 'ha', 'm', 'm²', 'm³', 't', 'km']
+const UNIDADES: string[] = ['vb', 'verba', 'ha', 'm', 'm²', 'm³', 't', 't/m³', 'km']
 
 interface Props {
   category: Category
