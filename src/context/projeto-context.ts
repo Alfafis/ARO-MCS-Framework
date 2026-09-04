@@ -15,7 +15,12 @@ import type {
 } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
-import type { CategoriaRemediacao, ItemRemediacao } from '@/types/remediacao'
+import type {
+  CategoriaRemediacao,
+  ItemRemediacao,
+  CategoriaRemediacaoTemplate,
+  ItemRemediacaoTemplate,
+} from '@/types/remediacao'
 
 export interface NovoProjetoForm {
   clienteId: string
@@ -70,6 +75,29 @@ export interface ProjetoContextValue {
     >
   ) => Promise<void>
   removeRemediacaoItem: (categoriaId: string, id: string) => Promise<void>
+  // Template administrável de Remediação (rota `/remediacao-padrao`) —
+  // conjunto único global, sem key por projeto (diferente de
+  // `remediacaoByProjeto`). undefined = ainda não buscado.
+  remediacaoTemplate: CategoriaRemediacaoTemplate[] | undefined
+  remediacaoTemplateLoading: boolean
+  fetchRemediacaoTemplate: () => Promise<void>
+  addRemediacaoTemplateCategoria: (nome: string, areaHa: number | null) => Promise<void>
+  updateRemediacaoTemplateCategoria: (
+    id: string,
+    patch: Partial<Pick<CategoriaRemediacaoTemplate, 'nome' | 'areaHa' | 'ordem'>>
+  ) => Promise<void>
+  removeRemediacaoTemplateCategoria: (id: string) => Promise<void>
+  addRemediacaoTemplateItem: (categoriaId: string) => Promise<void>
+  updateRemediacaoTemplateItem: (
+    id: string,
+    patch: Partial<
+      Pick<
+        ItemRemediacaoTemplate,
+        'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte' | 'ordem'
+      >
+    >
+  ) => Promise<void>
+  removeRemediacaoTemplateItem: (categoriaId: string, id: string) => Promise<void>
   parametrosGlobais: ParametroGlobal[]
   atualizarParametroGlobal: (
     chave: ParametroGlobalChave,

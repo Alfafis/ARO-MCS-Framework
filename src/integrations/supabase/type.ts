@@ -197,6 +197,33 @@ export type Database = {
           },
         ]
       }
+      categorias_remediacao_template: {
+        Row: {
+          area_ha: number | null
+          atualizado_em: string
+          criado_em: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          area_ha?: number | null
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          area_ha?: number | null
+          atualizado_em?: string
+          criado_em?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       categorias_template: {
         Row: {
           catalogo_id: string
@@ -464,6 +491,56 @@ export type Database = {
             columns: ["categoria_id"]
             isOneToOne: false
             referencedRelation: "categorias_remediacao"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      itens_remediacao_template: {
+        Row: {
+          atualizado_em: string
+          categoria_template_id: string
+          criado_em: string
+          custo_unit_max: number
+          custo_unit_min: number
+          descricao: string
+          fonte: string | null
+          id: string
+          ordem: number
+          quantidade: number
+          unidade: string
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria_template_id: string
+          criado_em?: string
+          custo_unit_max?: number
+          custo_unit_min?: number
+          descricao: string
+          fonte?: string | null
+          id?: string
+          ordem?: number
+          quantidade?: number
+          unidade: string
+        }
+        Update: {
+          atualizado_em?: string
+          categoria_template_id?: string
+          criado_em?: string
+          custo_unit_max?: number
+          custo_unit_min?: number
+          descricao?: string
+          fonte?: string | null
+          id?: string
+          ordem?: number
+          quantidade?: number
+          unidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "itens_remediacao_template_categoria_template_id_fkey"
+            columns: ["categoria_template_id"]
+            isOneToOne: false
+            referencedRelation: "categorias_remediacao_template"
             referencedColumns: ["id"]
           },
         ]

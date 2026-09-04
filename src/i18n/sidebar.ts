@@ -15,6 +15,7 @@ export const sidebarT: Record<
     globalParams: string
     sectors: string
     remediation: string
+    remediationTemplate: string
     expand: string
     collapse: string
     selectLang: string
@@ -38,6 +39,7 @@ export const sidebarT: Record<
     globalParams: 'Parâmetros Globais',
     sectors: 'Setores',
     remediation: 'Remediação',
+    remediationTemplate: 'Remediação (Modelo)',
     expand: 'Expandir menu lateral',
     collapse: 'Recolher menu lateral',
     selectLang: 'Selecionar idioma',
@@ -60,6 +62,7 @@ export const sidebarT: Record<
     globalParams: 'Global Parameters',
     sectors: 'Sectors',
     remediation: 'Remediation',
+    remediationTemplate: 'Remediation (Template)',
     expand: 'Expand sidebar',
     collapse: 'Collapse sidebar',
     selectLang: 'Select language',
@@ -82,6 +85,7 @@ export const sidebarT: Record<
     globalParams: 'Parámetros Globales',
     sectors: 'Sectores',
     remediation: 'Remediación',
+    remediationTemplate: 'Remediación (Modelo)',
     expand: 'Expandir menú lateral',
     collapse: 'Contraer menú lateral',
     selectLang: 'Seleccionar idioma',

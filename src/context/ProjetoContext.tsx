@@ -16,8 +16,22 @@ import type {
 import { mapParametroGlobalRow, mapParametroAnualRow } from '@/types/parametrosGlobais'
 import type { TipoProjeto } from '@/types/tiposProjeto'
 import type { Setor } from '@/types/setores'
-import type { CategoriaRemediacao, ItemRemediacao, CategoriaRemediacaoRow, ItemRemediacaoRow } from '@/types/remediacao'
-import { mapCategoriaRemediacaoRow, mapItemRemediacaoRow } from '@/types/remediacao'
+import type {
+  CategoriaRemediacao,
+  ItemRemediacao,
+  CategoriaRemediacaoRow,
+  ItemRemediacaoRow,
+  CategoriaRemediacaoTemplate,
+  ItemRemediacaoTemplate,
+  CategoriaRemediacaoTemplateRow,
+  ItemRemediacaoTemplateRow,
+} from '@/types/remediacao'
+import {
+  mapCategoriaRemediacaoRow,
+  mapItemRemediacaoRow,
+  mapCategoriaRemediacaoTemplateRow,
+  mapItemRemediacaoTemplateRow,
+} from '@/types/remediacao'
 import { parseMoedaBR, formatMoedaCompact, valorEsperadoNumerico } from '@/lib/financeiro'
 import { formatRelativeTime } from '@/lib/utils'
 import { mapItemCustoRow, mapCampoOperacionalRow, mapCampoOperacionalTemplateRow } from '@/lib/categoriaMappers'
@@ -181,6 +195,12 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const [projetos, setProjetos] = useState<Projeto[]>([])
   const [remediacaoByProjeto, setRemediacaoByProjeto] = useState<Record<string, CategoriaRemediacao[]>>({})
   const [remediacaoLoading, setRemediacaoLoading] = useState(false)
+  // Template admin de Remediação (`/remediacao-padrao`) — conjunto ÚNICO
+  // global (sem key por tipo_projeto_id, diferente de `templates`), carregado
+  // lazy no mount da página, mesmo padrão de `fetchTemplateCategorias`.
+  // undefined = ainda não buscado; [] = buscado e vazio.
+  const [remediacaoTemplate, setRemediacaoTemplate] = useState<CategoriaRemediacaoTemplate[] | undefined>(undefined)
+  const [remediacaoTemplateLoading, setRemediacaoTemplateLoading] = useState(false)
 
   // 4 fetches disparados em paralelo (nenhum await sequencial) — Promise.allSettled só
   // marca o boot como concluído, não serializa as chamadas em si.
@@ -1147,6 +1167,132 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     if (error) throw error
   }, [])
 
+  // -- Remediação: template administrável (`/remediacao-padrao`) ----------
+  // Mesmo padrão CRUD acima, sem key por projeto — conjunto único global.
+  const fetchRemediacaoTemplate = useCallback(async () => {
+    setRemediacaoTemplateLoading(true)
+    const { data, error } = await supabase
+      .from('categorias_remediacao_template')
+      .select(
+        'id, nome, area_ha, ordem, itens_remediacao_template(id, categoria_template_id, descricao, unidade, quantidade, custo_unit_min, custo_unit_max, fonte, ordem)'
+      )
+      .order('ordem')
+    setRemediacaoTemplateLoading(false)
+    if (error || !data) return
+    type Row = CategoriaRemediacaoTemplateRow & { itens_remediacao_template?: ItemRemediacaoTemplateRow[] | null }
+    const categorias: CategoriaRemediacaoTemplate[] = (data as unknown as Row[]).map((row) => {
+      const items = (row.itens_remediacao_template ?? [])
+        .slice()
+        .sort((a, b) => a.ordem - b.ordem)
+        .map(mapItemRemediacaoTemplateRow)
+      return mapCategoriaRemediacaoTemplateRow(row, items)
+    })
+    setRemediacaoTemplate(categorias)
+  }, [])
+
+  const addRemediacaoTemplateCategoria = useCallback(
+    async (nome: string, areaHa: number | null) => {
+      const proximaOrdem = (remediacaoTemplate?.length ?? 0) + 1
+      const { data, error } = await supabase
+        .from('categorias_remediacao_template')
+        .insert({ nome, area_ha: areaHa, ordem: proximaOrdem })
+        .select('id, nome, area_ha, ordem')
+        .single()
+      if (error || !data) throw error ?? new Error('sem retorno')
+      const nova = mapCategoriaRemediacaoTemplateRow(data as CategoriaRemediacaoTemplateRow, [])
+      setRemediacaoTemplate((prev) => [...(prev ?? []), nova])
+    },
+    [remediacaoTemplate]
+  )
+
+  const updateRemediacaoTemplateCategoria = useCallback(
+    async (id: string, patch: Partial<Pick<CategoriaRemediacaoTemplate, 'nome' | 'areaHa' | 'ordem'>>) => {
+      const dbPatch: Record<string, unknown> = {}
+      if (patch.nome != null) dbPatch.nome = patch.nome
+      if ('areaHa' in patch) dbPatch.area_ha = patch.areaHa
+      if (patch.ordem != null) dbPatch.ordem = patch.ordem
+      setRemediacaoTemplate((prev) => prev?.map((c) => (c.id === id ? { ...c, ...patch } : c)))
+      const { error } = await supabase
+        .from('categorias_remediacao_template')
+        .update(dbPatch as never)
+        .eq('id', id)
+      if (error) throw error
+    },
+    []
+  )
+
+  const removeRemediacaoTemplateCategoria = useCallback(async (id: string) => {
+    setRemediacaoTemplate((prev) => prev?.filter((c) => c.id !== id))
+    const { error } = await supabase.from('categorias_remediacao_template').delete().eq('id', id)
+    if (error) throw error
+  }, [])
+
+  const addRemediacaoTemplateItem = useCallback(
+    async (categoriaId: string) => {
+      const cat = remediacaoTemplate?.find((c) => c.id === categoriaId)
+      const proximaOrdem = (cat?.items.length ?? 0) + 1
+      const { data, error } = await supabase
+        .from('itens_remediacao_template')
+        .insert({
+          categoria_template_id: categoriaId,
+          descricao: 'Novo item',
+          unidade: 'unid',
+          quantidade: 1,
+          custo_unit_min: 0,
+          custo_unit_max: 0,
+          ordem: proximaOrdem,
+        })
+        .select(
+          'id, categoria_template_id, descricao, unidade, quantidade, custo_unit_min, custo_unit_max, fonte, ordem'
+        )
+        .single()
+      if (error || !data) throw error ?? new Error('sem retorno')
+      const novo = mapItemRemediacaoTemplateRow(data as ItemRemediacaoTemplateRow)
+      setRemediacaoTemplate((prev) =>
+        prev?.map((c) => (c.id === categoriaId ? { ...c, items: [...c.items, novo] } : c))
+      )
+    },
+    [remediacaoTemplate]
+  )
+
+  const updateRemediacaoTemplateItem = useCallback(
+    async (
+      id: string,
+      patch: Partial<
+        Pick<
+          ItemRemediacaoTemplate,
+          'descricao' | 'unidade' | 'quantidade' | 'custoUnitMin' | 'custoUnitMax' | 'fonte' | 'ordem'
+        >
+      >
+    ) => {
+      const dbPatch: Record<string, unknown> = {}
+      if (patch.descricao != null) dbPatch.descricao = patch.descricao
+      if (patch.unidade != null) dbPatch.unidade = patch.unidade
+      if (patch.quantidade != null) dbPatch.quantidade = patch.quantidade
+      if (patch.custoUnitMin != null) dbPatch.custo_unit_min = patch.custoUnitMin
+      if (patch.custoUnitMax != null) dbPatch.custo_unit_max = patch.custoUnitMax
+      if ('fonte' in patch) dbPatch.fonte = patch.fonte
+      if (patch.ordem != null) dbPatch.ordem = patch.ordem
+      setRemediacaoTemplate((prev) =>
+        prev?.map((c) => ({ ...c, items: c.items.map((i) => (i.id === id ? { ...i, ...patch } : i)) }))
+      )
+      const { error } = await supabase
+        .from('itens_remediacao_template')
+        .update(dbPatch as never)
+        .eq('id', id)
+      if (error) throw error
+    },
+    []
+  )
+
+  const removeRemediacaoTemplateItem = useCallback(async (categoriaId: string, id: string) => {
+    setRemediacaoTemplate((prev) =>
+      prev?.map((c) => (c.id === categoriaId ? { ...c, items: c.items.filter((i) => i.id !== id) } : c))
+    )
+    const { error } = await supabase.from('itens_remediacao_template').delete().eq('id', id)
+    if (error) throw error
+  }, [])
+
   return (
     <ProjetoContext.Provider
       value={{
@@ -1174,6 +1320,15 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         addRemediacaoItem,
         updateRemediacaoItem,
         removeRemediacaoItem,
+        remediacaoTemplate,
+        remediacaoTemplateLoading,
+        fetchRemediacaoTemplate,
+        addRemediacaoTemplateCategoria,
+        updateRemediacaoTemplateCategoria,
+        removeRemediacaoTemplateCategoria,
+        addRemediacaoTemplateItem,
+        updateRemediacaoTemplateItem,
+        removeRemediacaoTemplateItem,
         parametrosGlobais,
         atualizarParametroGlobal,
         parametrosAnuais,
