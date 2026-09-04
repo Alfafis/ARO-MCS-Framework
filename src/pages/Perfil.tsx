@@ -20,6 +20,9 @@ export default function Perfil() {
   const [email, setEmail] = useState('')
   const [perfil, setPerfil] = useState<PerfilRow | null>(null)
   const [loading, setLoading] = useState(true)
+  const [exporting, setExporting] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [exclusaoPendenteEm, setExclusaoPendenteEm] = useState<string | null>(null)
 
   const [nome, setNome] = useState('')
   const [profissao, setProfissao] = useState('')
@@ -48,9 +51,57 @@ export default function Perfil() {
         setProfissao(data.profissao ?? '')
         setTelefone(data.telefone ?? '')
       }
+      const { data: solicitacao } = await supabase
+        .from('solicitacoes_exclusao')
+        .select('criado_em')
+        .eq('usuario_id', session.user.id)
+        .eq('status', 'pendente')
+        .order('criado_em', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (solicitacao) setExclusaoPendenteEm(solicitacao.criado_em)
       setLoading(false)
     })
   }, [])
+
+  async function handleExportar() {
+    setExporting(true)
+    try {
+      const { data, error } = await supabase.rpc('exportar_meus_dados')
+      if (error || !data) throw error ?? new Error('Falha ao exportar dados')
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `meus-dados-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch {
+      showToast(t.exportErrorToast)
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  async function handleSolicitarExclusao() {
+    if (!confirm(t.deleteConfirm)) return
+    setDeleting(true)
+    try {
+      const { data, error } = await supabase.rpc('solicitar_exclusao_conta')
+      if (error || !data) throw error ?? new Error('Falha ao solicitar exclusão')
+      const criadoEm = (data as { criado_em: string }).criado_em
+      setExclusaoPendenteEm(criadoEm)
+      setNome('')
+      setProfissao('')
+      setTelefone('')
+      setPerfil((p) => (p ? { ...p, nome: null, profissao: null, telefone: null, foto_url: null } : p))
+      showToast(t.deleteRequestedToast)
+    } catch {
+      showToast(t.deleteErrorToast)
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   async function handleSalvar() {
     setSaving(true)
@@ -236,6 +287,28 @@ export default function Perfil() {
                 {saving ? t.saving : t.save}
               </Button>
             </div>
+          </div>
+        )}
+
+        {!loading && (
+          <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
+            <p className="text-[13px] font-medium text-c-text-1">{t.lgpdSectionTitle}</p>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="ghost" disabled={exporting} onClick={handleExportar}>
+                {exporting ? <Loader2 size={14} className="animate-spin" /> : null}
+                {t.exportButton}
+              </Button>
+              {!exclusaoPendenteEm && (
+                <Button variant="link" disabled={deleting} onClick={handleSolicitarExclusao}>
+                  {t.deleteButton}
+                </Button>
+              )}
+            </div>
+            {exclusaoPendenteEm && (
+              <p className="text-[12px] text-c-text-2">
+                {t.deletePendingNotice(new Date(exclusaoPendenteEm).toLocaleDateString())}
+              </p>
+            )}
           </div>
         )}
       </div>

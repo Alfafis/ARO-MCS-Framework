@@ -26,6 +26,14 @@ export const perfilT: Record<
     photoSizeError: string
     roleConsultant: string
     roleClient: string
+    lgpdSectionTitle: string
+    exportButton: string
+    exportErrorToast: string
+    deleteButton: string
+    deleteConfirm: string
+    deleteRequestedToast: string
+    deleteErrorToast: string
+    deletePendingNotice: (date: string) => string
   }
 > = {
   'pt-BR': {
@@ -52,6 +60,15 @@ export const perfilT: Record<
     photoSizeError: 'A imagem deve ter até 2MB.',
     roleConsultant: 'Consultor',
     roleClient: 'Cliente',
+    lgpdSectionTitle: 'Privacidade e dados (LGPD)',
+    exportButton: 'Exportar meus dados',
+    exportErrorToast: 'Não foi possível exportar os dados.',
+    deleteButton: 'Solicitar exclusão da conta',
+    deleteConfirm:
+      'Isso apaga nome, profissão, telefone e foto do seu perfil e abre uma solicitação de exclusão de conta. Seu e-mail permanece até o encerramento ser processado. Confirmar?',
+    deleteRequestedToast: 'Solicitação enviada. Seus dados pessoais foram removidos do perfil.',
+    deleteErrorToast: 'Não foi possível enviar a solicitação.',
+    deletePendingNotice: (date) => `Solicitação de exclusão enviada em ${date}. Em processamento.`,
   },
   en: {
     headerTitle: 'My profile',
@@ -77,6 +94,15 @@ export const perfilT: Record<
     photoSizeError: 'The image must be up to 2MB.',
     roleConsultant: 'Consultant',
     roleClient: 'Client',
+    lgpdSectionTitle: 'Privacy and data (LGPD)',
+    exportButton: 'Export my data',
+    exportErrorToast: 'Could not export the data.',
+    deleteButton: 'Request account deletion',
+    deleteConfirm:
+      'This erases name, profession, phone and photo from your profile and opens an account deletion request. Your email stays until the closure is processed. Confirm?',
+    deleteRequestedToast: 'Request sent. Your personal data was removed from the profile.',
+    deleteErrorToast: 'Could not send the request.',
+    deletePendingNotice: (date) => `Deletion request sent on ${date}. Being processed.`,
   },
   es: {
     headerTitle: 'Mi perfil',
@@ -102,5 +128,14 @@ export const perfilT: Record<
     photoSizeError: 'La imagen debe tener hasta 2MB.',
     roleConsultant: 'Consultor',
     roleClient: 'Cliente',
+    lgpdSectionTitle: 'Privacidad y datos (LGPD)',
+    exportButton: 'Exportar mis datos',
+    exportErrorToast: 'No se pudieron exportar los datos.',
+    deleteButton: 'Solicitar eliminación de la cuenta',
+    deleteConfirm:
+      'Esto borra nombre, profesión, teléfono y foto de tu perfil y abre una solicitud de eliminación de cuenta. Tu correo permanece hasta que el cierre sea procesado. ¿Confirmar?',
+    deleteRequestedToast: 'Solicitud enviada. Tus datos personales fueron eliminados del perfil.',
+    deleteErrorToast: 'No se pudo enviar la solicitud.',
+    deletePendingNotice: (date) => `Solicitud de eliminación enviada el ${date}. En proceso.`,
   },
 }

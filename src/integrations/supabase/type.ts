@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      audit_log: {
+        Row: {
+          criado_em: string
+          dados_antigos: Json | null
+          dados_novos: Json | null
+          id: string
+          operacao: string
+          registro_id: string | null
+          tabela: string
+          usuario_id: string | null
+        }
+        Insert: {
+          criado_em?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          id?: string
+          operacao: string
+          registro_id?: string | null
+          tabela: string
+          usuario_id?: string | null
+        }
+        Update: {
+          criado_em?: string
+          dados_antigos?: Json | null
+          dados_novos?: Json | null
+          id?: string
+          operacao?: string
+          registro_id?: string | null
+          tabela?: string
+          usuario_id?: string | null
+        }
+        Relationships: []
+      }
       campos_operacionais: {
         Row: {
           atualizado_em: string
@@ -944,6 +977,30 @@ export type Database = {
           },
         ]
       }
+      solicitacoes_exclusao: {
+        Row: {
+          criado_em: string
+          email: string
+          id: string
+          status: string
+          usuario_id: string
+        }
+        Insert: {
+          criado_em?: string
+          email: string
+          id?: string
+          status?: string
+          usuario_id: string
+        }
+        Update: {
+          criado_em?: string
+          email?: string
+          id?: string
+          status?: string
+          usuario_id?: string
+        }
+        Relationships: []
+      }
       tipos_projeto: {
         Row: {
           id: string
@@ -1215,6 +1272,7 @@ export type Database = {
         Args: { p_codigo: string; p_projeto_id: string }
         Returns: string
       }
+      exportar_meus_dados: { Args: never; Returns: Json }
       find_or_create_categoria_catalogo: {
         Args: { p_nome: string }
         Returns: {
@@ -1337,6 +1395,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      solicitar_exclusao_conta: { Args: never; Returns: Json }
       template_add_categoria: {
         Args: { p_tipo_projeto_id: string }
         Returns: Json
