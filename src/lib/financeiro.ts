@@ -126,6 +126,18 @@ export function formatMoedaBR(n: number): string {
   return n.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 2 })
 }
 
+// Formatter pra PREÇO UNITÁRIO (custo_unitario_min/max, numeric(14,4)) — NUNCA
+// usar formatMoedaBR aqui. formatMoedaBR arredonda pra 2 casas (correto pra
+// total em R$), mas preço unitário multiplicado por quantidade grande (ex.:
+// 852.120 t) amplifica esse arredondamento em milhares de reais de erro —
+// achado ao vivo: 0,9139 exibido/reparseado como 0,91 gerou ~R$3.300 de
+// discrepância num item de Cavas. 4 casas decimais preserva a precisão real
+// da coluna.
+export function formatUnitarioBR(n: number): string {
+  if (n === 0) return ''
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+}
+
 // Ponto médio (min+max)/2 somado de todos os itens de todas as categorias —
 // única fonte de "valor esperado" do projeto, usada por ProjetoContext
 // (formatado), pela Visão Geral global (soma numérica cross-projeto) e pelo

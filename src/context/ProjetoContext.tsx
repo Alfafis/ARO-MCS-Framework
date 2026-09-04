@@ -77,6 +77,11 @@ const ITEM_FIELD_TO_PATCH_KEY: Record<keyof CategoryItem, string> = {
   // desembolsoPorAno tem RPC própria (update_item_desembolso) — não entra em
   // update_item_custo. Mantemos aqui só pra fechar o Record; nunca é enviado.
   desembolsoPorAno: 'desembolsoPorAno',
+  // Motor de fórmula (migration 20260903150000/151500) — mesmo padrão de
+  // save-on-blur dos outros campos, chave presente com null explícito zera.
+  custoUnitarioMin: 'custoUnitarioMin',
+  custoUnitarioMax: 'custoUnitarioMax',
+  formulaQuantidade: 'formulaQuantidade',
 }
 
 type ProjetoRowComCategorias = ProjetoDbRow & {
@@ -93,6 +98,7 @@ type CampoOperacionalTemplateRow = {
   unidade: string | null
   valor_referencia: string | null
   ordem: number
+  formula: string | null
 }
 
 type CategoriaTemplateRowComItens = CategoriaTemplateRow & {
@@ -482,11 +488,18 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   )
 
   const saveCampoOp = useCallback(async (campoId: string, field: keyof CampoOperacional, value: string) => {
-    let patch: { label?: string; unidade?: string | null; valor?: string | null; status?: 'pendente' | 'preenchido' }
+    let patch: {
+      label?: string
+      unidade?: string | null
+      valor?: string | null
+      status?: 'pendente' | 'preenchido'
+      formula?: string | null
+    }
     if (field === 'label') patch = { label: value }
     else if (field === 'unidade') patch = { unidade: value }
     else if (field === 'valor') patch = { valor: value }
     else if (field === 'status') patch = { status: value === 'preenchido' ? 'preenchido' : 'pendente' }
+    else if (field === 'formula') patch = { formula: value.trim() === '' ? null : value }
     else return
     const { error } = await supabase.from('campos_operacionais').update(patch).eq('id', campoId)
     if (error) throw error
@@ -583,10 +596,11 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   // editáveis pela UI. id/ordem são gerenciados pelo backend/insert.
   const templateSaveCampoOp = useCallback(
     async (campoId: string, field: keyof CampoOperacionalTemplate, value: string) => {
-      let patch: { label?: string; unidade?: string | null; valor_referencia?: string | null }
+      let patch: { label?: string; unidade?: string | null; valor_referencia?: string | null; formula?: string | null }
       if (field === 'label') patch = { label: value }
       else if (field === 'unidade') patch = { unidade: value }
       else if (field === 'valorReferencia') patch = { valor_referencia: value }
+      else if (field === 'formula') patch = { formula: value.trim() === '' ? null : value }
       else return
       const { error } = await supabase.from('campos_operacionais_template').update(patch).eq('id', campoId)
       if (error) throw error
@@ -690,7 +704,14 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const templateSaveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
     if (field === 'id' || field === 'desembolsoPorAno') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
-    const patchValue = field === 'min' || field === 'max' ? parseMoedaBR(String(value)) : value
+    const patchValue =
+      field === 'min' || field === 'max'
+        ? parseMoedaBR(String(value))
+        : field === 'custoUnitarioMin' || field === 'custoUnitarioMax'
+          ? value === '' || value == null
+            ? null
+            : parseMoedaBR(String(value))
+          : value
     // Cast para Json — patchValue é sempre um valor serializável (string,
     // number, null ou number[]) validado pelos callers.
     const patch = { [patchKey]: patchValue } as unknown as Record<string, string | number | null | number[]>
@@ -829,7 +850,14 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const saveItem = useCallback(async (itemId: string, field: keyof CategoryItem, value: unknown) => {
     if (field === 'id' || field === 'desembolsoPorAno') return
     const patchKey = ITEM_FIELD_TO_PATCH_KEY[field]
-    const patchValue = field === 'min' || field === 'max' ? parseMoedaBR(String(value)) : value
+    const patchValue =
+      field === 'min' || field === 'max'
+        ? parseMoedaBR(String(value))
+        : field === 'custoUnitarioMin' || field === 'custoUnitarioMax'
+          ? value === '' || value == null
+            ? null
+            : parseMoedaBR(String(value))
+          : value
     const patch = { [patchKey]: patchValue } as unknown as Record<string, string | number | null | number[]>
     const { error } = await supabase.rpc('update_item_custo', { p_id: itemId, p_patch: patch })
     if (error) throw error

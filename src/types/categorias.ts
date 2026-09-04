@@ -30,6 +30,19 @@ export interface CategoryItem {
   // `desembolso_item_template_ano`). null = usa fallback uniforme entre
   // anoInicio..anoFim. Array vazio nunca — sempre null nesse caso.
   desembolsoPorAno: DesembolsoAno[] | null
+
+  // Motor de fórmula (Subsistema 3, ver
+  // 2026-09-03-timing-formula-campos-operacionais-design.md). custoUnitario*
+  // são string formatada (mesma convenção de min/max — parse só na borda de
+  // leitura/RPC, nunca no estado). '' = não preenchido. formulaQuantidade
+  // null = item estático, min/max usados direto (comportamento de sempre).
+  // Os 3 preenchidos = min/max são CALCULADOS na leitura a partir de
+  // `custoUnitario* × avaliarQuantidadeItem(formulaQuantidade, campos)`,
+  // nunca persistidos de volta — evita cache obsoleto quando um campo
+  // operacional de origem muda.
+  custoUnitarioMin: string
+  custoUnitarioMax: string
+  formulaQuantidade: string | null
 }
 
 // Um par (ano relativo do horizonte, valor). Ordenado por ano na leitura,
@@ -54,6 +67,9 @@ export interface CampoOperacional {
   valor: string
   unidade: string
   status: 'pendente' | 'preenchido'
+  // null = folha (valor digitado). Preenchida = derivado, referencia outro
+  // `label` — ver src/lib/camposOperacionaisFormula.ts.
+  formula: string | null
 }
 
 // Shape do template (por categoria template, editável pelo admin em
@@ -68,6 +84,7 @@ export interface CampoOperacionalTemplate {
   unidade: string
   valorReferencia: string
   ordem: number
+  formula: string | null
 }
 
 // Instância por projeto — referencia o catálogo pelo nome, mas itens/valores são

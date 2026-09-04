@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { ChevronUp, ChevronDown, Trash2, Check, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import { useProjeto } from '@/context/useProjeto'
-import { maskMoedaBR, parseMoedaBR, formatMoedaBR, maskNumeroBR } from '@/lib/financeiro'
+import { maskMoedaBR, parseMoedaBR, formatMoedaBR, formatUnitarioBR, maskNumeroBR } from '@/lib/financeiro'
 import type {
   Category,
   CategoryItem,
@@ -17,6 +17,7 @@ import type {
 import type { Fase } from '@/types/setores'
 import type { CategoryParam } from '@/lib/aroSimulacao'
 import CategoryAroSimStatsCard from '@/components/categorias/CategoryAroSimStatsCard'
+import { avaliarCamposOperacionais, avaliarQuantidadeItem, type CampoAvaliado } from '@/lib/camposOperacionaisFormula'
 
 // Enum canônico de unidades — valores retirados da planilha NX Gold
 // (aba 1..8 de categorias). Ordem por frequência de uso na planilha.
@@ -104,6 +105,20 @@ export default function CategoryBlock({
   const camposOp = category.camposOperacionaisTemplate ?? []
   const camposOpProjeto = category.camposOperacionais ?? []
   const horizon = horizonYears ?? 10
+
+  // Grafo de fórmula (Subsistema 3) — avalia template e projeto em paralelo;
+  // cada modo só existe num contexto por vez (camposOpEnabled xor
+  // camposOpProjetoEnabled), mas computar os dois é barato (arrays vazios
+  // resolvem instantâneo) e evita condicional a mais aqui.
+  const camposAvaliadosTemplate = useMemo(
+    () => avaliarCamposOperacionais(camposOp.map((c) => ({ label: c.label, valor: c.valorReferencia, formula: c.formula }))),
+    [camposOp]
+  )
+  const camposAvaliadosProjeto = useMemo(
+    () => avaliarCamposOperacionais(camposOpProjeto.map((c) => ({ label: c.label, valor: c.valor, formula: c.formula }))),
+    [camposOpProjeto]
+  )
+  const camposAvaliadosAtivo = camposOpEnabled ? camposAvaliadosTemplate : camposAvaliadosProjeto
   const t = useT(categoriasT)
   const blockRef = useRef<HTMLDivElement>(null)
   const [highlighted, setHighlighted] = useState(category.justAdded)
@@ -307,6 +322,7 @@ export default function CategoryBlock({
                 onSaveItem={onSaveItem}
                 onRemoveItem={onRemoveItem}
                 onSaveDesembolso={onSaveDesembolso}
+                camposAvaliados={camposAvaliadosAtivo}
               />
             ))}
 
@@ -338,6 +354,7 @@ export default function CategoryBlock({
                     onSave={(field, value) => onSaveCampoOp!(campo.id, field, value)}
                     onRemove={() => onRemoveCampoOp!(campo.id)}
                     removeLabel={t.camposOpRemove}
+                    avaliado={camposAvaliadosTemplate.get(campo.label)}
                   />
                 ))}
 
@@ -374,6 +391,7 @@ export default function CategoryBlock({
                     removeLabel={t.camposOpRemove}
                     statusPendenteLabel={t.camposOpStatusPendente}
                     statusPreenchidoLabel={t.camposOpStatusPreenchido}
+                    avaliado={camposAvaliadosProjeto.get(campo.label)}
                   />
                 ))}
 
@@ -400,45 +418,90 @@ interface CampoOpRowProps {
   onSave: (field: keyof CampoOperacionalTemplate, value: string) => void
   onRemove: () => void
   removeLabel: string
+  avaliado?: CampoAvaliado
 }
 
-function CampoOpRow({ campo, onUpdate, onSave, onRemove, removeLabel }: CampoOpRowProps) {
+function CampoOpRow({ campo, onUpdate, onSave, onRemove, removeLabel, avaliado }: CampoOpRowProps) {
+  const [mostrarFormula, setMostrarFormula] = useState(campo.formula != null)
+  const derivado = campo.formula != null
+
   return (
-    <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.8fr)_minmax(0,1fr)_28px] gap-2 items-center">
-      <input
-        className="row-input"
-        value={campo.label}
-        onChange={(e) => onUpdate('label', e.target.value)}
-        onBlur={(e) => onSave('label', e.target.value)}
-        aria-label="Nome do campo operacional"
-      />
-      <select
-        className="row-input cursor-pointer bg-transparent"
-        value={UNIDADES.includes(campo.unidade) ? campo.unidade : ''}
-        onChange={(e) => {
-          onUpdate('unidade', e.target.value)
-          onSave('unidade', e.target.value)
-        }}
-        aria-label="Unidade do campo"
-      >
-        <option value=""></option>
-        {UNIDADES.map((u) => (
-          <option key={u} value={u}>
-            {u}
-          </option>
-        ))}
-      </select>
-      <input
-        className="row-input mono"
-        value={campo.valorReferencia}
-        inputMode="decimal"
-        onChange={(e) => onUpdate('valorReferencia', maskNumeroBR(e.target.value))}
-        onBlur={(e) => onSave('valorReferencia', maskNumeroBR(e.target.value))}
-        aria-label="Valor de referência"
-      />
-      <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
-        <Trash2 size={13} aria-hidden="true" />
-      </Button>
+    <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,0.8fr)_minmax(0,1fr)_24px_28px] gap-2 items-center">
+        <input
+          className="row-input"
+          value={campo.label}
+          onChange={(e) => onUpdate('label', e.target.value)}
+          onBlur={(e) => onSave('label', e.target.value)}
+          aria-label="Nome do campo operacional"
+        />
+        <select
+          className="row-input cursor-pointer bg-transparent"
+          value={UNIDADES.includes(campo.unidade) ? campo.unidade : ''}
+          onChange={(e) => {
+            onUpdate('unidade', e.target.value)
+            onSave('unidade', e.target.value)
+          }}
+          aria-label="Unidade do campo"
+        >
+          <option value=""></option>
+          {UNIDADES.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
+        {derivado ? (
+          <input
+            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            value={
+              avaliado?.valor != null
+                ? avaliado.valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+                : avaliado?.erro
+                  ? '⚠'
+                  : '—'
+            }
+            readOnly
+            title={avaliado?.erro ?? 'Calculado pela fórmula'}
+            aria-label="Valor de referência (calculado)"
+          />
+        ) : (
+          <input
+            className="row-input mono"
+            value={campo.valorReferencia}
+            inputMode="decimal"
+            onChange={(e) => onUpdate('valorReferencia', maskNumeroBR(e.target.value))}
+            onBlur={(e) => onSave('valorReferencia', maskNumeroBR(e.target.value))}
+            aria-label="Valor de referência"
+          />
+        )}
+        <button
+          type="button"
+          onClick={() => setMostrarFormula((v) => !v)}
+          className={`h-7 w-6 rounded-[6px] text-[11px] font-bold cursor-pointer border transition-colors ${
+            derivado
+              ? 'border-accent text-accent bg-accent-100'
+              : 'border-[rgba(20,21,26,.16)] text-c-text-2 hover:text-c-text'
+          }`}
+          title={derivado ? 'Editar fórmula' : 'Tornar campo derivado (fórmula)'}
+          aria-label="Alternar fórmula"
+        >
+          ƒ
+        </button>
+        <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
+          <Trash2 size={13} aria-hidden="true" />
+        </Button>
+      </div>
+      {mostrarFormula && (
+        <input
+          className="row-input mono text-[12px]"
+          value={campo.formula ?? ''}
+          placeholder="Ex.: Perímetro * Largura Berma * Altura Bancada (vazio = campo digitado)"
+          onChange={(e) => onUpdate('formula', e.target.value)}
+          onBlur={(e) => onSave('formula', e.target.value)}
+          aria-label="Fórmula do campo (referencia outro campo pelo nome)"
+        />
+      )}
     </div>
   )
 }
@@ -451,6 +514,7 @@ interface CampoOpProjetoRowProps {
   removeLabel: string
   statusPendenteLabel: string
   statusPreenchidoLabel: string
+  avaliado?: CampoAvaliado
 }
 
 function CampoOpProjetoRow({
@@ -461,58 +525,103 @@ function CampoOpProjetoRow({
   removeLabel,
   statusPendenteLabel,
   statusPreenchidoLabel,
+  avaliado,
 }: CampoOpProjetoRowProps) {
+  const [mostrarFormula, setMostrarFormula] = useState(campo.formula != null)
+  const derivado = campo.formula != null
+
   function toggleStatus() {
     const proximo: CampoOperacional['status'] = campo.status === 'preenchido' ? 'pendente' : 'preenchido'
     onUpdate('status', proximo)
     onSave('status', proximo)
   }
   return (
-    <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_28px] gap-2 items-center">
-      <input
-        className="row-input"
-        value={campo.label}
-        onChange={(e) => onUpdate('label', e.target.value)}
-        onBlur={(e) => onSave('label', e.target.value)}
-        aria-label="Nome do campo operacional"
-      />
-      <select
-        className="row-input cursor-pointer bg-transparent"
-        value={UNIDADES.includes(campo.unidade) ? campo.unidade : ''}
-        onChange={(e) => {
-          onUpdate('unidade', e.target.value)
-          onSave('unidade', e.target.value)
-        }}
-        aria-label="Unidade do campo"
-      >
-        <option value=""></option>
-        {UNIDADES.map((u) => (
-          <option key={u} value={u}>
-            {u}
-          </option>
-        ))}
-      </select>
-      <input
-        className="row-input mono"
-        value={campo.valor}
-        inputMode="decimal"
-        onChange={(e) => onUpdate('valor', maskNumeroBR(e.target.value))}
-        onBlur={(e) => onSave('valor', maskNumeroBR(e.target.value))}
-        aria-label="Valor preenchido"
-      />
-      <button
-        type="button"
-        onClick={toggleStatus}
-        className="cursor-pointer bg-transparent border-none p-0 text-left focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded"
-        aria-label="Alternar status"
-      >
-        <Badge variant={campo.status === 'preenchido' ? 'accent' : 'warning'}>
-          {campo.status === 'preenchido' ? statusPreenchidoLabel : statusPendenteLabel}
-        </Badge>
-      </button>
-      <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
-        <Trash2 size={13} aria-hidden="true" />
-      </Button>
+    <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,0.7fr)_minmax(0,0.9fr)_minmax(0,0.8fr)_24px_28px] gap-2 items-center">
+        <input
+          className="row-input"
+          value={campo.label}
+          onChange={(e) => onUpdate('label', e.target.value)}
+          onBlur={(e) => onSave('label', e.target.value)}
+          aria-label="Nome do campo operacional"
+        />
+        <select
+          className="row-input cursor-pointer bg-transparent"
+          value={UNIDADES.includes(campo.unidade) ? campo.unidade : ''}
+          onChange={(e) => {
+            onUpdate('unidade', e.target.value)
+            onSave('unidade', e.target.value)
+          }}
+          aria-label="Unidade do campo"
+        >
+          <option value=""></option>
+          {UNIDADES.map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
+        {derivado ? (
+          <input
+            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            value={
+              avaliado?.valor != null
+                ? avaliado.valor.toLocaleString('pt-BR', { maximumFractionDigits: 2 })
+                : avaliado?.erro
+                  ? '⚠'
+                  : '—'
+            }
+            readOnly
+            title={avaliado?.erro ?? 'Calculado pela fórmula'}
+            aria-label="Valor preenchido (calculado)"
+          />
+        ) : (
+          <input
+            className="row-input mono"
+            value={campo.valor}
+            inputMode="decimal"
+            onChange={(e) => onUpdate('valor', maskNumeroBR(e.target.value))}
+            onBlur={(e) => onSave('valor', maskNumeroBR(e.target.value))}
+            aria-label="Valor preenchido"
+          />
+        )}
+        <button
+          type="button"
+          onClick={toggleStatus}
+          className="cursor-pointer bg-transparent border-none p-0 text-left focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded"
+          aria-label="Alternar status"
+        >
+          <Badge variant={campo.status === 'preenchido' ? 'accent' : 'warning'}>
+            {campo.status === 'preenchido' ? statusPreenchidoLabel : statusPendenteLabel}
+          </Badge>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMostrarFormula((v) => !v)}
+          className={`h-7 w-6 rounded-[6px] text-[11px] font-bold cursor-pointer border transition-colors ${
+            derivado
+              ? 'border-accent text-accent bg-accent-100'
+              : 'border-[rgba(20,21,26,.16)] text-c-text-2 hover:text-c-text'
+          }`}
+          title={derivado ? 'Editar fórmula' : 'Tornar campo derivado (fórmula)'}
+          aria-label="Alternar fórmula"
+        >
+          ƒ
+        </button>
+        <Button variant="icon-danger" onClick={onRemove} aria-label={removeLabel}>
+          <Trash2 size={13} aria-hidden="true" />
+        </Button>
+      </div>
+      {mostrarFormula && (
+        <input
+          className="row-input mono text-[12px]"
+          value={campo.formula ?? ''}
+          placeholder="Ex.: Perímetro * Largura Berma * Altura Bancada (vazio = campo digitado)"
+          onChange={(e) => onUpdate('formula', e.target.value)}
+          onBlur={(e) => onSave('formula', e.target.value)}
+          aria-label="Fórmula do campo (referencia outro campo pelo nome)"
+        />
+      )}
     </div>
   )
 }
@@ -529,11 +638,34 @@ interface ItemRowProps {
   onSaveItem: (itemId: string, field: keyof CategoryItem, value: unknown) => void
   onRemoveItem: (itemId: string) => void
   onSaveDesembolso?: (itemId: string, valores: DesembolsoAno[]) => void
+  camposAvaliados?: Map<string, CampoAvaliado>
 }
 
-function ItemRow({ item, t, horizon, onUpdateItem, onSaveItem, onRemoveItem, onSaveDesembolso }: ItemRowProps) {
+function ItemRow({
+  item,
+  t,
+  horizon,
+  onUpdateItem,
+  onSaveItem,
+  onRemoveItem,
+  onSaveDesembolso,
+  camposAvaliados,
+}: ItemRowProps) {
   const detalhamentoAtivo = !!item.desembolsoPorAno && item.desembolsoPorAno.length > 0
   const [detalhamentoAberto, setDetalhamentoAberto] = useState(detalhamentoAtivo)
+  const [formulaAberta, setFormulaAberta] = useState(item.formulaQuantidade != null)
+
+  // Motor de fórmula (Subsistema 3) — quando o item tem formula_quantidade +
+  // custo_unitario_min/max, custo_min/max são CALCULADOS na leitura (nunca
+  // persistidos) a partir da quantidade avaliada × preço unitário. Item sem
+  // fórmula usa min/max estático exatamente como antes.
+  const formulaAtiva = item.formulaQuantidade != null && item.custoUnitarioMin !== '' && item.custoUnitarioMax !== ''
+  const quantidade =
+    formulaAtiva && camposAvaliados ? avaliarQuantidadeItem(item.formulaQuantidade!, camposAvaliados) : null
+  const custoCalculado =
+    quantidade?.valor != null
+      ? { min: quantidade.valor * parseMoedaBR(item.custoUnitarioMin), max: quantidade.valor * parseMoedaBR(item.custoUnitarioMax) }
+      : null
 
   // Save + update em um passo — usado em controles que emitem valor final
   // (select, multi-select, input number). Diferente de digitação livre, aqui
@@ -573,31 +705,52 @@ function ItemRow({ item, t, horizon, onUpdateItem, onSaveItem, onRemoveItem, onS
         {/* Custo Min / Max — máscara de moeda BR: bloqueia letras/símbolos,
           separador de milhar automático, decimal com vírgula (máx 2 dígitos).
           No blur, normaliza para o formato canônico ("R$ 1.234,56") via
-          parseMoedaBR → formatMoedaBR. */}
-        <input
-          className="row-input mono"
-          value={item.min}
-          inputMode="decimal"
-          onChange={(e) => onUpdateItem(item.id, 'min', maskMoedaBR(e.target.value))}
-          onBlur={(e) => {
-            const normalized = formatMoedaBR(parseMoedaBR(e.target.value))
-            onUpdateItem(item.id, 'min', normalized)
-            onSaveItem(item.id, 'min', normalized)
-          }}
-          aria-label="Custo mínimo"
-        />
-        <input
-          className="row-input mono"
-          value={item.max}
-          inputMode="decimal"
-          onChange={(e) => onUpdateItem(item.id, 'max', maskMoedaBR(e.target.value))}
-          onBlur={(e) => {
-            const normalized = formatMoedaBR(parseMoedaBR(e.target.value))
-            onUpdateItem(item.id, 'max', normalized)
-            onSaveItem(item.id, 'max', normalized)
-          }}
-          aria-label="Custo máximo"
-        />
+          parseMoedaBR → formatMoedaBR. Item com fórmula ativa: calculado na
+          leitura, nunca editável direto — não persiste, evita cache obsoleto. */}
+        {formulaAtiva ? (
+          <input
+            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            value={custoCalculado ? formatMoedaBR(custoCalculado.min) : quantidade?.erro ? '⚠ ' + quantidade.erro : '—'}
+            readOnly
+            title={quantidade?.erro ?? 'Calculado: quantidade × custo unitário mínimo'}
+            aria-label="Custo mínimo (calculado)"
+          />
+        ) : (
+          <input
+            className="row-input mono"
+            value={item.min}
+            inputMode="decimal"
+            onChange={(e) => onUpdateItem(item.id, 'min', maskMoedaBR(e.target.value))}
+            onBlur={(e) => {
+              const normalized = formatMoedaBR(parseMoedaBR(e.target.value))
+              onUpdateItem(item.id, 'min', normalized)
+              onSaveItem(item.id, 'min', normalized)
+            }}
+            aria-label="Custo mínimo"
+          />
+        )}
+        {formulaAtiva ? (
+          <input
+            className="row-input mono bg-[rgba(20,21,26,.04)] cursor-not-allowed"
+            value={custoCalculado ? formatMoedaBR(custoCalculado.max) : quantidade?.erro ? '⚠ ' + quantidade.erro : '—'}
+            readOnly
+            title={quantidade?.erro ?? 'Calculado: quantidade × custo unitário máximo'}
+            aria-label="Custo máximo (calculado)"
+          />
+        ) : (
+          <input
+            className="row-input mono"
+            value={item.max}
+            inputMode="decimal"
+            onChange={(e) => onUpdateItem(item.id, 'max', maskMoedaBR(e.target.value))}
+            onBlur={(e) => {
+              const normalized = formatMoedaBR(parseMoedaBR(e.target.value))
+              onUpdateItem(item.id, 'max', normalized)
+              onSaveItem(item.id, 'max', normalized)
+            }}
+            aria-label="Custo máximo"
+          />
+        )}
 
         {/* Fonte — texto livre (lookup futuro) */}
         <input
@@ -665,6 +818,79 @@ function ItemRow({ item, t, horizon, onUpdateItem, onSaveItem, onRemoveItem, onS
           <Trash2 size={13} aria-hidden="true" />
         </Button>
       </div>
+
+      {camposAvaliados && (
+        <div className="pl-2 pr-2 pb-2">
+          <button
+            type="button"
+            onClick={() => setFormulaAberta((a) => !a)}
+            className={`text-[0.72rem] font-medium transition-colors cursor-pointer bg-transparent border-none py-1 px-1 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 rounded ${
+              formulaAtiva ? 'text-accent' : 'text-c-text-2 hover:text-accent'
+            }`}
+            aria-expanded={formulaAberta}
+          >
+            {formulaAberta ? '▾ ' : '▸ '}
+            Fórmula (avançado){formulaAtiva ? ' — ativa' : ''}
+          </button>
+
+          {formulaAberta && (
+            <div className="mt-2 p-3 rounded-[8px] bg-[#faf9f8] border border-[rgba(20,21,26,.06)] flex flex-col gap-2">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="flex flex-col gap-1">
+                  <label className="text-[0.7rem] font-semibold uppercase tracking-wide text-c-text-2">
+                    Custo unitário min
+                  </label>
+                  <input
+                    className="row-input mono"
+                    value={item.custoUnitarioMin}
+                    inputMode="decimal"
+                    placeholder="Vazio = sem fórmula"
+                    onChange={(e) => onUpdateItem(item.id, 'custoUnitarioMin', maskMoedaBR(e.target.value))}
+                    onBlur={(e) => {
+                      const normalized = e.target.value.trim() === '' ? '' : formatUnitarioBR(parseMoedaBR(e.target.value))
+                      onUpdateItem(item.id, 'custoUnitarioMin', normalized)
+                      onSaveItem(item.id, 'custoUnitarioMin', normalized)
+                    }}
+                    aria-label="Custo unitário mínimo"
+                  />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <label className="text-[0.7rem] font-semibold uppercase tracking-wide text-c-text-2">
+                    Custo unitário max
+                  </label>
+                  <input
+                    className="row-input mono"
+                    value={item.custoUnitarioMax}
+                    inputMode="decimal"
+                    placeholder="Vazio = sem fórmula"
+                    onChange={(e) => onUpdateItem(item.id, 'custoUnitarioMax', maskMoedaBR(e.target.value))}
+                    onBlur={(e) => {
+                      const normalized = e.target.value.trim() === '' ? '' : formatUnitarioBR(parseMoedaBR(e.target.value))
+                      onUpdateItem(item.id, 'custoUnitarioMax', normalized)
+                      onSaveItem(item.id, 'custoUnitarioMax', normalized)
+                    }}
+                    aria-label="Custo unitário máximo"
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-[0.7rem] font-semibold uppercase tracking-wide text-c-text-2">
+                  Fórmula de quantidade
+                </label>
+                <input
+                  className="row-input mono text-[12px]"
+                  value={item.formulaQuantidade ?? ''}
+                  placeholder="Ex.: Tonelagem (referencia um campo operacional pelo nome)"
+                  onChange={(e) => onUpdateItem(item.id, 'formulaQuantidade', e.target.value)}
+                  onBlur={(e) => onSaveItem(item.id, 'formulaQuantidade', e.target.value.trim() === '' ? null : e.target.value)}
+                  aria-label="Fórmula de quantidade do item"
+                />
+              </div>
+              {quantidade?.erro && <p className="text-[11px] text-[color:var(--accent)]">⚠ {quantidade.erro}</p>}
+            </div>
+          )}
+        </div>
+      )}
 
       {onSaveDesembolso && (
         <DesembolsoToggleAndPanel

@@ -1,6 +1,6 @@
 import type { CategoryItem, CampoOperacional, CampoOperacionalTemplate, DesembolsoAno } from '@/types/categorias'
 import type { Fase } from '@/types/setores'
-import { formatMoedaBR } from '@/lib/financeiro'
+import { formatMoedaBR, formatUnitarioBR } from '@/lib/financeiro'
 
 // Shape estrutural comum a itens_custo e itens_template (mesmas colunas de
 // conteúdo, FK pra tabela pai diferente) — permite reaproveitar o mapper pros
@@ -27,6 +27,10 @@ interface ItemCustoLikeRow {
   // template). numeric(14,2) chega como string do driver.
   desembolso_item_ano?: DesembolsoAnoRow[] | null
   desembolso_item_template_ano?: DesembolsoAnoRow[] | null
+  // Motor de fórmula (migration 20260903150000). Ambos null = item estático.
+  custo_unitario_min?: number | null
+  custo_unitario_max?: number | null
+  formula_quantidade?: string | null
 }
 
 interface DesembolsoAnoRow {
@@ -46,6 +50,7 @@ interface CampoOperacionalTemplateRow {
   unidade: string | null
   valor_referencia: string | null
   ordem: number
+  formula?: string | null
 }
 
 export function mapCampoOperacionalTemplateRow(row: CampoOperacionalTemplateRow): CampoOperacionalTemplate {
@@ -55,6 +60,7 @@ export function mapCampoOperacionalTemplateRow(row: CampoOperacionalTemplateRow)
     unidade: row.unidade ?? '',
     valorReferencia: row.valor_referencia ?? '',
     ordem: row.ordem,
+    formula: row.formula ?? null,
   }
 }
 
@@ -64,6 +70,7 @@ interface CampoOperacionalLikeRow {
   valor: string | null
   unidade: string | null
   status: string
+  formula?: string | null
 }
 
 // Instância por projeto — herdada de campos_operacionais_template ao rodar
@@ -76,6 +83,7 @@ export function mapCampoOperacionalRow(row: CampoOperacionalLikeRow): CampoOpera
     valor: row.valor ?? '',
     unidade: row.unidade ?? '',
     status: row.status === 'preenchido' ? 'preenchido' : 'pendente',
+    formula: row.formula ?? null,
   }
 }
 
@@ -108,5 +116,8 @@ export function mapItemCustoRow(row: ItemCustoLikeRow): CategoryItem {
     aplicabilidade: row.aplicabilidade ?? '',
     anoPrevisto: row.ano_previsto ?? '',
     desembolsoPorAno,
+    custoUnitarioMin: row.custo_unitario_min != null ? formatUnitarioBR(row.custo_unitario_min) : '',
+    custoUnitarioMax: row.custo_unitario_max != null ? formatUnitarioBR(row.custo_unitario_max) : '',
+    formulaQuantidade: row.formula_quantidade ?? null,
   }
 }
