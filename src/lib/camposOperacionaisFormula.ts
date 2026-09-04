@@ -1,4 +1,4 @@
-import { Parser } from 'expr-eval'
+import { Parser } from 'expr-eval-fork'
 
 // Motor de avaliação do grafo de campos operacionais (Subsistema 3, ver spec
 // 2026-09-03-timing-formula-campos-operacionais-design.md). Campo sem
@@ -7,8 +7,11 @@ import { Parser } from 'expr-eval'
 // Altura Bancada"). Item de custo referencia um desses campos (avaliados) na
 // sua própria `formula_quantidade`.
 //
-// `expr-eval` (gramática restrita a aritmética, sem eval/Function, sem acesso
-// a objeto/protótipo arbitrário) — seguro mesmo com fórmula vinda do banco.
+// `expr-eval-fork` (gramática restrita a aritmética, sem eval/Function, sem
+// acesso a objeto/protótipo arbitrário) — seguro mesmo com fórmula vinda do
+// banco. Fork de `expr-eval` (2026-09-04): original tem 2 CVE sem patch
+// (prototype pollution + funções não restritas em evaluate), sem versão
+// corrigida publicada — o fork resolve os dois, mesma API (`Parser`).
 
 export interface CampoOperacionalInput {
   label: string
