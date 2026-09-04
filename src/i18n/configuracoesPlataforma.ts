@@ -16,6 +16,10 @@ export const configuracoesPlataformaT: Record<
     sectionFundo: string
     labelFundoAtivo: string
     hintFundoAtivo: string
+    fundoPresetsLabel: string
+    fundoPresetPontilhado: string
+    fundoPresetSemPontilhado: string
+    fundoPresetCustom: string
     labelFundoImagem: string
     hintFundoImagem: string
     change: string
@@ -47,7 +51,11 @@ export const configuracoesPlataformaT: Record<
     sectionFundo: 'Fundo',
     labelFundoAtivo: 'Mostrar textura de fundo',
     hintFundoAtivo: 'Desative pra usar fundo liso.',
-    labelFundoImagem: 'Imagem de fundo',
+    fundoPresetsLabel: 'Padrões prontos',
+    fundoPresetPontilhado: 'Com pontilhado',
+    fundoPresetSemPontilhado: 'Sem pontilhado',
+    fundoPresetCustom: 'Personalizado',
+    labelFundoImagem: 'Imagem de fundo personalizada',
     hintFundoImagem: 'PNG ou JPG, até 4MB.',
     change: 'Trocar',
     remove: 'Remover',
@@ -77,7 +85,11 @@ export const configuracoesPlataformaT: Record<
     sectionFundo: 'Background',
     labelFundoAtivo: 'Show background texture',
     hintFundoAtivo: 'Turn off for a flat background.',
-    labelFundoImagem: 'Background image',
+    fundoPresetsLabel: 'Presets',
+    fundoPresetPontilhado: 'Dotted',
+    fundoPresetSemPontilhado: 'Plain',
+    fundoPresetCustom: 'Custom',
+    labelFundoImagem: 'Custom background image',
     hintFundoImagem: 'PNG or JPG, up to 4MB.',
     change: 'Change',
     remove: 'Remove',
@@ -107,7 +119,11 @@ export const configuracoesPlataformaT: Record<
     sectionFundo: 'Fondo',
     labelFundoAtivo: 'Mostrar textura de fondo',
     hintFundoAtivo: 'Desactiva para usar fondo liso.',
-    labelFundoImagem: 'Imagen de fondo',
+    fundoPresetsLabel: 'Patrones predefinidos',
+    fundoPresetPontilhado: 'Con punteado',
+    fundoPresetSemPontilhado: 'Sin punteado',
+    fundoPresetCustom: 'Personalizado',
+    labelFundoImagem: 'Imagen de fondo personalizada',
     hintFundoImagem: 'PNG o JPG, hasta 4MB.',
     change: 'Cambiar',
     remove: 'Quitar',

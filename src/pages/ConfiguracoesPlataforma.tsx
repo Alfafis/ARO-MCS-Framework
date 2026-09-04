@@ -18,6 +18,8 @@ import {
 const MAX_LOGO_BYTES = 2 * 1024 * 1024
 const MAX_FUNDO_BYTES = 4 * 1024 * 1024
 
+const FUNDO_SEM_PONTILHADO = '/PADRONAGEM%20-%20FUNDO%20sem%20pontilhado.png'
+
 export default function ConfiguracoesPlataforma() {
   const t = useT(configuracoesPlataformaT)
   const { atualizarConfig } = usePlataformaConfig()
@@ -160,21 +162,52 @@ export default function ConfiguracoesPlataforma() {
               <p className="text-[12px] text-c-text-2 -mt-2">{t.hintFundoAtivo}</p>
 
               {fundoAtivo && (
-                <ImagemUploadRow
-                  label={t.labelFundoImagem}
-                  hint={t.hintFundoImagem}
-                  currentUrl={fundoUrl ?? DEFAULT_FUNDO}
-                  isCustom={fundoUrl != null}
-                  pasta="fundo"
-                  maxBytes={MAX_FUNDO_BYTES}
-                  changeLabel={t.change}
-                  removeLabel={t.remove}
-                  typeErrorMsg={t.uploadTypeError}
-                  sizeErrorMsg={t.uploadSizeError}
-                  uploadErrorMsg={t.uploadErrorToast}
-                  onUploaded={setFundoUrl}
-                  onRemoved={() => setFundoUrl(null)}
-                />
+                <>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[12px] font-medium text-c-text-2">{t.fundoPresetsLabel}</p>
+                    <div className="flex gap-3">
+                      {[
+                        { url: null, thumb: DEFAULT_FUNDO, label: t.fundoPresetPontilhado },
+                        { url: FUNDO_SEM_PONTILHADO, thumb: FUNDO_SEM_PONTILHADO, label: t.fundoPresetSemPontilhado },
+                      ].map((preset) => {
+                        const selected = fundoUrl === preset.url
+                        return (
+                          <button
+                            key={preset.label}
+                            type="button"
+                            onClick={() => setFundoUrl(preset.url)}
+                            className="flex flex-col gap-1.5 cursor-pointer border-none bg-transparent p-0"
+                          >
+                            <span
+                              className="block w-24 h-16 rounded-[10px] overflow-hidden border-2 bg-[#f4f3f1] bg-cover bg-center transition-colors"
+                              style={{
+                                backgroundImage: `url('${preset.thumb}')`,
+                                borderColor: selected ? 'var(--accent)' : 'rgba(20,21,26,.1)',
+                              }}
+                            />
+                            <span className="text-[11px] text-c-text-2">{preset.label}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <ImagemUploadRow
+                    label={t.labelFundoImagem}
+                    hint={t.hintFundoImagem}
+                    currentUrl={fundoUrl && fundoUrl !== FUNDO_SEM_PONTILHADO ? fundoUrl : DEFAULT_FUNDO}
+                    isCustom={fundoUrl != null && fundoUrl !== FUNDO_SEM_PONTILHADO}
+                    pasta="fundo"
+                    maxBytes={MAX_FUNDO_BYTES}
+                    changeLabel={t.change}
+                    removeLabel={t.remove}
+                    typeErrorMsg={t.uploadTypeError}
+                    sizeErrorMsg={t.uploadSizeError}
+                    uploadErrorMsg={t.uploadErrorToast}
+                    onUploaded={setFundoUrl}
+                    onRemoved={() => setFundoUrl(null)}
+                  />
+                </>
               )}
             </div>
 
