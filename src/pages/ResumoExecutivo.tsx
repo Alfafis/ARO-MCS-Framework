@@ -350,6 +350,7 @@ export default function ResumoExecutivo() {
                   current={modoDesembolso}
                   onChange={setModoDesembolso}
                   disableIpca={!disbursement.ipcaDisponivel}
+                  contingenciaPct={projeto.contingenciaPct}
                 />
               </div>
               <div className="flex items-center gap-2">

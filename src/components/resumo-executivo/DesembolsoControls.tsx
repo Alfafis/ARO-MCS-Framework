@@ -10,22 +10,29 @@ interface ModoToggleProps {
   current: ModoDesembolso
   onChange: (m: ModoDesembolso) => void
   disableIpca: boolean
-  labels?: { base: string; provisao: string; ipca: string; disabledTitle: string }
+  contingenciaPct: number
+  labels?: { base: string; provisaoTemplate: string; ipca: string; disabledTitle: string }
 }
 
 const DEFAULT_MODO_LABELS = {
   base: 'Sem provisão',
-  provisao: 'Com provisão 20%',
+  provisaoTemplate: 'Com provisão {pct}%',
   ipca: 'Com IPCA acumulado',
   disabledTitle: 'IPCA anual não configurado em Parâmetros Globais',
 }
 
-export function ModoToggle({ current, onChange, disableIpca, labels = DEFAULT_MODO_LABELS }: ModoToggleProps) {
-  const opts: { key: ModoDesembolso; label: string }[] = [
-    { key: 'base', label: labels.base },
-    { key: 'provisao', label: labels.provisao },
-    { key: 'ipca', label: labels.ipca },
-  ]
+export function ModoToggle({
+  current,
+  onChange,
+  disableIpca,
+  contingenciaPct,
+  labels = DEFAULT_MODO_LABELS,
+}: ModoToggleProps) {
+  const opts: { key: ModoDesembolso; label: string }[] = [{ key: 'base', label: labels.base }]
+  if (contingenciaPct > 0) {
+    opts.push({ key: 'provisao', label: labels.provisaoTemplate.replace('{pct}', String(contingenciaPct)) })
+  }
+  opts.push({ key: 'ipca', label: labels.ipca })
   return (
     <div className="inline-flex rounded-full bg-[#f6f5f3] p-1 gap-1">
       {opts.map((opt) => {

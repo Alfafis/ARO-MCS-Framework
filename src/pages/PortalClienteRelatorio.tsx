@@ -545,6 +545,7 @@ export default function PortalClienteRelatorio() {
                     current={modoDesembolso}
                     onChange={setModoDesembolso}
                     disableIpca={!disbursement.ipcaDisponivel}
+                    contingenciaPct={contingenciaPct}
                   />
                 </div>
                 <div className="flex items-center gap-2">
