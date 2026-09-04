@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/useLang'
 import { loginT } from '@/i18n/login'
@@ -84,6 +84,10 @@ export default function Login() {
           </Button>
         </form>
       </div>
+
+      <Link to="/privacidade" className="text-[12px] text-c-text-2 hover:text-accent transition-colors mt-6">
+        Política de Privacidade
+      </Link>
     </div>
   )
 }

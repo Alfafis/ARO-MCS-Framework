@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Download, Copy, Check, KeyRound } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
 import LangSelector from '@/components/layout/LangSelector'
@@ -575,6 +575,12 @@ export default function PortalClienteRelatorio() {
           {t.pdfGenerating}
         </div>
       )}
+
+      <div className="flex justify-center pb-8">
+        <Link to="/privacidade" className="text-[12px] text-c-text-2 hover:text-accent transition-colors">
+          Política de Privacidade
+        </Link>
+      </div>
     </div>
   )
 }

@@ -32,6 +32,7 @@ const RemediacaoPadrao = lazy(() => import('./pages/RemediacaoPadrao'))
 const Clientes = lazy(() => import('./pages/Clientes'))
 const ClienteProjetos = lazy(() => import('./pages/ClienteProjetos'))
 const PortalClienteRelatorio = lazy(() => import('./pages/PortalClienteRelatorio'))
+const PoliticaPrivacidade = lazy(() => import('./pages/PoliticaPrivacidade'))
 
 function useMediaQuery(query: string): boolean {
   const [matches, setMatches] = useState(() => window.matchMedia(query).matches)
@@ -283,6 +284,14 @@ export default function App() {
                 element={
                   <Suspense fallback={<SplashScreen />}>
                     <PortalClienteRelatorio />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/privacidade"
+                element={
+                  <Suspense fallback={<SplashScreen />}>
+                    <PoliticaPrivacidade />
                   </Suspense>
                 }
               />
