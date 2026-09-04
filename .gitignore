@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 *.env
+# `*.env` só cobre arquivo terminado em ".env" — não cobre a convenção Vite
+# `.env.production`/`.env.development` (achado na auditoria de segurança,
+# 2026-09-03: nada garantia que um `git add .` acidental não versionasse
+# esses arquivos).
+.env*
 CLAUDE.MD
 credenciais.local.txt
 

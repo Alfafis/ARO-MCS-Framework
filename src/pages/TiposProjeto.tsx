@@ -138,7 +138,14 @@ export default function TiposProjeto() {
                     }
                   }}
                   onRemove={() =>
-                    removerTipoProjeto(tipo.id).catch((err) => showToast(err?.message || t.deleteErrorToast))
+                    removerTipoProjeto(tipo.id).catch((err) => {
+                      // `remover_tipo_projeto` só levanta 2 mensagens curadas em português
+                      // (sem permissão / FK em uso, ver migration) — código P0001 confirma que
+                      // veio de `raise exception` da própria RPC, nunca erro cru do Postgres/rede.
+                      // Achado da auditoria de segurança (2026-09-03): sem essa checagem, um erro
+                      // futuro não-tratado na RPC vazaria texto interno pro toast.
+                      showToast(err?.code === 'P0001' && err.message ? err.message : t.deleteErrorToast)
+                    })
                   }
                 />
               ))}
