@@ -20,6 +20,17 @@ export const resumoT: Record<
     viewLabel: string
     viewAggregated: string
     viewDetailed: string
+    // Toggle Sem provisão / Com provisão X% / Com IPCA acumulado (modo do card de desembolso)
+    modoLabel: string
+    modoBase: string
+    modoProvisaoTemplate: string
+    modoIpca: string
+    modoIpcaDisabledTitle: string
+    // AncoragemBadge (card de desembolso ano-a-ano)
+    ancoragemIncompleteLabel: (qtdAnos: number) => string
+    ancoragemIncompleteTitle: (faltantes: string, anoInicio: number) => string
+    ancoragemLabel: (anoInicio: number, anoFim: number, pct: string) => string
+    ancoragemTitle: (fator: string, anoInicio: number, anoFim: number) => string
     // AnnualDisbursementDetailedCard (aba `9. Síntese Por Atividade` da planilha)
     disbursementDetailedTitle: string
     detailedActivityHeader: string
@@ -81,6 +92,17 @@ export const resumoT: Record<
     viewLabel: 'Visão:',
     viewAggregated: 'Agregado por categoria',
     viewDetailed: 'Detalhado por atividade',
+    modoLabel: 'Modo:',
+    modoBase: 'Sem provisão',
+    modoProvisaoTemplate: 'Com provisão {pct}%',
+    modoIpca: 'Com IPCA acumulado',
+    modoIpcaDisabledTitle: 'IPCA anual não configurado em Parâmetros Globais',
+    ancoragemIncompleteLabel: (qtdAnos) => `⚠ ancoragem incompleta (${qtdAnos} ano${qtdAnos === 1 ? '' : 's'} sem IPCA)`,
+    ancoragemIncompleteTitle: (faltantes, anoInicio) =>
+      `Anos sem IPCA em parâmetros anuais: ${faltantes}. Sem ancoragem — valores em base ${anoInicio}.`,
+    ancoragemLabel: (anoInicio, anoFim, pct) => `ancoragem ${anoInicio}→${anoFim} (+${pct}%)`,
+    ancoragemTitle: (fator, anoInicio, anoFim) =>
+      `Valores multiplicados por ${fator} (IPCA acumulado ${anoInicio}–${anoFim}).`,
     disbursementDetailedTitle: 'Detalhamento por atividade — item × ano',
     detailedActivityHeader: 'Atividade',
     detailedSubtotalLabel: (categoria) => `Subtotal ${categoria}`,
@@ -135,6 +157,17 @@ export const resumoT: Record<
     viewLabel: 'View:',
     viewAggregated: 'Aggregated by category',
     viewDetailed: 'Detailed by activity',
+    modoLabel: 'Mode:',
+    modoBase: 'No provision',
+    modoProvisaoTemplate: 'With {pct}% provision',
+    modoIpca: 'With accumulated CPI',
+    modoIpcaDisabledTitle: 'Annual CPI not configured in Global Parameters',
+    ancoragemIncompleteLabel: (qtdAnos) => `⚠ incomplete anchoring (${qtdAnos} year${qtdAnos === 1 ? '' : 's'} without CPI)`,
+    ancoragemIncompleteTitle: (faltantes, anoInicio) =>
+      `Years without CPI in annual parameters: ${faltantes}. No anchoring — values at base ${anoInicio}.`,
+    ancoragemLabel: (anoInicio, anoFim, pct) => `anchoring ${anoInicio}→${anoFim} (+${pct}%)`,
+    ancoragemTitle: (fator, anoInicio, anoFim) =>
+      `Values multiplied by ${fator} (accumulated CPI ${anoInicio}–${anoFim}).`,
     disbursementDetailedTitle: 'Detail by activity — item × year',
     detailedActivityHeader: 'Activity',
     detailedSubtotalLabel: (categoria) => `Subtotal ${categoria}`,
@@ -190,6 +223,17 @@ export const resumoT: Record<
     viewLabel: 'Vista:',
     viewAggregated: 'Agregado por categoría',
     viewDetailed: 'Detallado por actividad',
+    modoLabel: 'Modo:',
+    modoBase: 'Sin provisión',
+    modoProvisaoTemplate: 'Con provisión {pct}%',
+    modoIpca: 'Con IPC acumulado',
+    modoIpcaDisabledTitle: 'IPC anual no configurado en Parámetros Globales',
+    ancoragemIncompleteLabel: (qtdAnos) => `⚠ anclaje incompleto (${qtdAnos} año${qtdAnos === 1 ? '' : 's'} sin IPC)`,
+    ancoragemIncompleteTitle: (faltantes, anoInicio) =>
+      `Años sin IPC en parámetros anuales: ${faltantes}. Sin anclaje — valores en base ${anoInicio}.`,
+    ancoragemLabel: (anoInicio, anoFim, pct) => `anclaje ${anoInicio}→${anoFim} (+${pct}%)`,
+    ancoragemTitle: (fator, anoInicio, anoFim) =>
+      `Valores multiplicados por ${fator} (IPC acumulado ${anoInicio}–${anoFim}).`,
     disbursementDetailedTitle: 'Detalle por actividad — ítem × año',
     detailedActivityHeader: 'Actividad',
     detailedSubtotalLabel: (categoria) => `Subtotal ${categoria}`,

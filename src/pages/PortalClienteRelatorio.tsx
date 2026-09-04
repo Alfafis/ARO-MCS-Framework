@@ -569,12 +569,18 @@ export default function PortalClienteRelatorio() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
+                  <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">{tBase.modoLabel}</span>
                   <ModoToggle
                     current={modoDesembolso}
                     onChange={setModoDesembolso}
                     disableIpca={!disbursement.ipcaDisponivel}
                     contingenciaPct={contingenciaPct}
+                    labels={{
+                      base: tBase.modoBase,
+                      provisaoTemplate: tBase.modoProvisaoTemplate,
+                      ipca: tBase.modoIpca,
+                      disabledTitle: tBase.modoIpcaDisabledTitle,
+                    }}
                   />
                 </div>
                 <div className="flex items-center gap-2">
@@ -587,7 +593,15 @@ export default function PortalClienteRelatorio() {
                     labels={{ agregado: tBase.viewAggregated, detalhado: tBase.viewDetailed }}
                   />
                 </div>
-                <AncoragemBadge ancoragem={ancoragem} />
+                <AncoragemBadge
+                  ancoragem={ancoragem}
+                  labels={{
+                    incompleteLabel: tBase.ancoragemIncompleteLabel,
+                    incompleteTitle: tBase.ancoragemIncompleteTitle,
+                    label: tBase.ancoragemLabel,
+                    title: tBase.ancoragemTitle,
+                  }}
+                />
               </div>
               {viewDesembolso === 'agregado' ? (
                 <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />

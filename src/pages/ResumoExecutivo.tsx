@@ -345,12 +345,18 @@ export default function ResumoExecutivo() {
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex items-center gap-2">
-                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">Modo:</span>
+                <span className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2">{t.modoLabel}</span>
                 <ModoToggle
                   current={modoDesembolso}
                   onChange={setModoDesembolso}
                   disableIpca={!disbursement.ipcaDisponivel}
                   contingenciaPct={projeto.contingenciaPct}
+                  labels={{
+                    base: t.modoBase,
+                    provisaoTemplate: t.modoProvisaoTemplate,
+                    ipca: t.modoIpca,
+                    disabledTitle: t.modoIpcaDisabledTitle,
+                  }}
                 />
               </div>
               <div className="flex items-center gap-2">
@@ -363,7 +369,15 @@ export default function ResumoExecutivo() {
                   labels={{ agregado: t.viewAggregated, detalhado: t.viewDetailed }}
                 />
               </div>
-              <AncoragemBadge ancoragem={ancoragem} />
+              <AncoragemBadge
+                ancoragem={ancoragem}
+                labels={{
+                  incompleteLabel: t.ancoragemIncompleteLabel,
+                  incompleteTitle: t.ancoragemIncompleteTitle,
+                  label: t.ancoragemLabel,
+                  title: t.ancoragemTitle,
+                }}
+              />
             </div>
             {viewDesembolso === 'agregado' ? (
               <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
