@@ -20,6 +20,10 @@ export const configuracoesPlataformaT: Record<
     hintFundoImagem: string
     change: string
     remove: string
+    sectionPreview: string
+    previewNavLabel: string
+    previewButtonLabel: string
+    previewBrandLabel: string
     save: string
     saving: string
     savedToast: string
@@ -47,6 +51,10 @@ export const configuracoesPlataformaT: Record<
     hintFundoImagem: 'PNG ou JPG, até 4MB.',
     change: 'Trocar',
     remove: 'Remover',
+    sectionPreview: 'Pré-visualização',
+    previewNavLabel: 'Visão geral',
+    previewButtonLabel: 'Salvar',
+    previewBrandLabel: 'Be Planned',
     save: 'Salvar',
     saving: 'Salvando…',
     savedToast: 'Configurações salvas.',
@@ -73,6 +81,10 @@ export const configuracoesPlataformaT: Record<
     hintFundoImagem: 'PNG or JPG, up to 4MB.',
     change: 'Change',
     remove: 'Remove',
+    sectionPreview: 'Preview',
+    previewNavLabel: 'Overview',
+    previewButtonLabel: 'Save',
+    previewBrandLabel: 'Be Planned',
     save: 'Save',
     saving: 'Saving…',
     savedToast: 'Settings saved.',
@@ -99,6 +111,10 @@ export const configuracoesPlataformaT: Record<
     hintFundoImagem: 'PNG o JPG, hasta 4MB.',
     change: 'Cambiar',
     remove: 'Quitar',
+    sectionPreview: 'Vista previa',
+    previewNavLabel: 'Visión general',
+    previewButtonLabel: 'Guardar',
+    previewBrandLabel: 'Be Planned',
     save: 'Guardar',
     saving: 'Guardando…',
     savedToast: 'Configuración guardada.',
