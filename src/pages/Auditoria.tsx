@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import PageHeader from '@/components/layout/PageHeader'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 import { useT, useLang } from '@/i18n/useLang'
 import { auditoriaT } from '@/i18n/auditoria'
 import { supabase } from '@/integrations/supabase/client'
@@ -38,7 +36,7 @@ interface LogRow {
 }
 
 const selectClass =
-  'rounded-[11px] border-none bg-[#f6f5f3] px-[13px] py-[9px] text-[0.875rem] text-c-text outline-none cursor-pointer focus:shadow-[0_0_0_1.5px_var(--accent)]'
+  'rounded-[11px] border border-[rgba(20,21,26,.08)] bg-white px-[13px] py-[9px] text-[0.875rem] text-c-text outline-none cursor-pointer focus:border-accent focus:ring-2 focus:ring-accent/20'
 
 export default function Auditoria() {
   const t = useT(auditoriaT)
@@ -217,22 +215,22 @@ export default function Auditoria() {
           <div className="flex items-center justify-between">
             <p className="text-[12px] text-c-text-2">{t.pageInfo(page + 1, totalPages, total)}</p>
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
+              <button
+                type="button"
                 disabled={page === 0}
                 onClick={() => setPage((p) => Math.max(0, p - 1))}
-                className={cn(page === 0 && 'opacity-50')}
+                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-white rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
               >
-                {t.prev}
-              </Button>
-              <Button
-                variant="ghost"
+                <span className={page === 0 ? 'text-c-text-2' : 'text-c-text'}>{t.prev}</span>
+              </button>
+              <button
+                type="button"
                 disabled={page + 1 >= totalPages}
                 onClick={() => setPage((p) => p + 1)}
-                className={cn(page + 1 >= totalPages && 'opacity-50')}
+                className="inline-flex items-center justify-center gap-2 font-semibold cursor-pointer disabled:cursor-not-allowed bg-white rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms] disabled:hover:shadow-[0_1px_3px_rgba(20,21,26,.08)] disabled:hover:translate-y-0"
               >
-                {t.next}
-              </Button>
+                <span className={page + 1 >= totalPages ? 'text-c-text-2' : 'text-c-text'}>{t.next}</span>
+              </button>
             </div>
           </div>
         )}
