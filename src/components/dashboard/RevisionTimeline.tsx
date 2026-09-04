@@ -37,7 +37,7 @@ export default function RevisionTimeline({ revisions, emptyLabel, className = ''
               <div className="flex flex-col items-center shrink-0">
                 <div
                   className="w-5 h-5 rounded-full shrink-0 flex items-center justify-center"
-                  style={{ background: done ? 'var(--accent)' : '#d1cec9' }}
+                  style={{ background: done ? 'var(--accent)' : 'var(--c-track)' }}
                 >
                   {done ? (
                     <Check size={11} color="#fff" strokeWidth={2.5} aria-hidden="true" />

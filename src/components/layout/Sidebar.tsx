@@ -276,7 +276,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
               width: langMenuPos.width,
               background: 'var(--c-card)',
               borderRadius: 14,
-              boxShadow: '0 16px 40px -12px rgba(20,21,26,.18)',
+              boxShadow: 'var(--shadow-2)',
               padding: 6,
               zIndex: 200,
               opacity: langOpen ? 1 : 0,

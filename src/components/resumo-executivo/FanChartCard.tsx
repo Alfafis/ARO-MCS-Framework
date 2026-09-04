@@ -35,7 +35,7 @@ export default function FanChartCard({ data, cv }: Props) {
                       bottom: 0,
                       left: '50%',
                       transform: 'translateX(-50%)',
-                      background: '#ece9e6',
+                      background: 'var(--c-track)',
                       borderRadius: 8,
                     }}
                   />
