@@ -290,24 +290,30 @@ export type Database = {
       codigos_acesso: {
         Row: {
           atualizado_em: string
+          bloqueado_ate: string | null
           codigo: string
           criado_em: string
           id: string
           projeto_id: string
+          tentativas_falhas: number
         }
         Insert: {
           atualizado_em?: string
+          bloqueado_ate?: string | null
           codigo: string
           criado_em?: string
           id?: string
           projeto_id: string
+          tentativas_falhas?: number
         }
         Update: {
           atualizado_em?: string
+          bloqueado_ate?: string | null
           codigo?: string
           criado_em?: string
           id?: string
           projeto_id?: string
+          tentativas_falhas?: number
         }
         Relationships: [
           {
@@ -1230,7 +1236,7 @@ export type Database = {
         Returns: Json
       }
       obter_relatorio_publico_remediacao: {
-        Args: { p_projeto_id: string }
+        Args: { p_codigo?: string; p_projeto_id: string }
         Returns: Json
       }
       publicar_revisao: {

@@ -89,19 +89,27 @@ export default function PortalClienteRelatorio() {
     }>
   >([])
 
+  // Retorno discriminado — desde o fix de rate limiting (2026-09-04), código
+  // errado (com tentativas ainda disponíveis) não é mais exceção do Postgres
+  // (o UPDATE que incrementa o contador seria desfeito junto com o
+  // `raise exception` na mesma transação), é `{ codigoInvalido: true }` num
+  // retorno normal — distinguir aqui de "bloqueado" (exceção real, sem
+  // contador pra preservar) e "projeto não existe".
   const fetchRelatorio = useCallback(
-    async (codigo?: string) => {
+    async (codigo?: string): Promise<'ok' | 'wrong-code' | 'locked' | 'not-found'> => {
       const { data, error } = await supabase.rpc('obter_relatorio_publico', {
         p_projeto_id: projetoId,
         p_codigo: codigo,
       })
-      if (error || !data) {
-        setStatus(error?.message.includes('não encontrado') ? 'not-found' : 'need-code')
-        return false
+      if (error) {
+        if (error.message.includes('não encontrado')) return 'not-found'
+        if (error.message.includes('Muitas tentativas')) return 'locked'
+        return 'wrong-code'
       }
+      if (!data || (data as { codigoInvalido?: boolean }).codigoInvalido) return 'wrong-code'
       setBundle(data as unknown as RelatorioPublicoReturns)
       setStatus('ready')
-      return true
+      return 'ok'
     },
     [projetoId]
   )
@@ -109,19 +117,29 @@ export default function PortalClienteRelatorio() {
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session))
     const stored = sessionStorage.getItem(sessionKey(projetoId))
-    fetchRelatorio(stored ?? undefined).then((ok) => {
-      if (!ok && stored) sessionStorage.removeItem(sessionKey(projetoId))
+    fetchRelatorio(stored ?? undefined).then((result) => {
+      if (result === 'ok') return
+      if (stored) sessionStorage.removeItem(sessionKey(projetoId))
+      setStatus(result === 'not-found' ? 'not-found' : 'need-code')
+      if (result === 'locked') setCodeLockedMsg(t.modalCodeLocked)
     })
-  }, [projetoId, fetchRelatorio])
+  }, [projetoId, fetchRelatorio, t.modalCodeLocked])
 
   // Bundle de remediação — RPC própria, respeita o flag incluir_remediacao
   // da revisão vigente. Se a revisão não marcou opt-in, devolve array vazio.
+  // Exige o MESMO código de acesso do relatório principal (achado de
+  // segurança 2026-09-04: RPC antes não validava nada, bastava conhecer a
+  // URL) — reaproveita o código já validado em sessionStorage, sem pedir
+  // de novo ao visitante.
   useEffect(() => {
     if (status !== 'ready') return
-    supabase.rpc('obter_relatorio_publico_remediacao', { p_projeto_id: projetoId }).then(({ data, error }) => {
-      if (error || !data) return
-      setRemediacaoData(data as never)
-    })
+    const codigo = sessionStorage.getItem(sessionKey(projetoId)) ?? undefined
+    supabase
+      .rpc('obter_relatorio_publico_remediacao', { p_projeto_id: projetoId, p_codigo: codigo })
+      .then(({ data, error }) => {
+        if (error || !data) return
+        setRemediacaoData(data as never)
+      })
   }, [projetoId, status])
 
   const projeto = bundle?.projeto
@@ -303,6 +321,7 @@ export default function PortalClienteRelatorio() {
 
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
+  const [codeLockedMsg, setCodeLockedMsg] = useState<string | null>(null)
   const [toast, setToast] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [codeModalOpen, setCodeModalOpen] = useState(false)
@@ -320,13 +339,18 @@ export default function PortalClienteRelatorio() {
 
   async function handleCodeSubmit(e: FormEvent) {
     e.preventDefault()
-    const ok = await fetchRelatorio(codeInput)
-    if (ok) {
+    setCodeLockedMsg(null)
+    const result = await fetchRelatorio(codeInput)
+    if (result === 'ok') {
       sessionStorage.setItem(sessionKey(projetoId), codeInput)
       setCodeError(false)
-    } else {
-      setCodeError(true)
+      return
     }
+    if (result === 'locked') {
+      setCodeLockedMsg(t.modalCodeLocked)
+      return
+    }
+    setCodeError(true)
   }
 
   function handleDownload() {
@@ -383,10 +407,12 @@ export default function PortalClienteRelatorio() {
                 ].join(' ')}
               />
               {codeError && <p className="text-[12px] text-[#e33] mt-1.5">{t.modalCodeError}</p>}
+              {codeLockedMsg && <p className="text-[12px] text-[#e33] mt-1.5">{codeLockedMsg}</p>}
             </div>
             <button
               type="submit"
-              className="w-full py-2.5 rounded-[11px] bg-accent text-white font-semibold text-[0.875rem] cursor-pointer border-0 hover:opacity-90 transition-opacity duration-150"
+              disabled={!!codeLockedMsg}
+              className="w-full py-2.5 rounded-[11px] bg-accent text-white font-semibold text-[0.875rem] cursor-pointer border-0 hover:opacity-90 transition-opacity duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {t.modalSubmit}
             </button>

@@ -37,6 +37,7 @@ export const relatorioClienteT: Record<
     modalCodeLabel: string
     modalCodePlaceholder: string
     modalCodeError: string
+    modalCodeLocked: string
     modalSubmit: string
     // Toast
     pdfGenerating: string
@@ -73,6 +74,7 @@ export const relatorioClienteT: Record<
     modalCodeLabel: 'Código de acesso',
     modalCodePlaceholder: 'Ex: NXGOLD-2024',
     modalCodeError: 'Código inválido ou expirado. Verifique e tente novamente.',
+    modalCodeLocked: 'Muitas tentativas incorretas. Aguarde alguns minutos antes de tentar novamente.',
     modalSubmit: 'Acessar relatório',
     pdfGenerating: 'Gerando PDF…',
   },
@@ -107,6 +109,7 @@ export const relatorioClienteT: Record<
     modalCodeLabel: 'Access code',
     modalCodePlaceholder: 'e.g. NXGOLD-2024',
     modalCodeError: 'Invalid or expired code. Check and try again.',
+    modalCodeLocked: 'Too many incorrect attempts. Wait a few minutes before trying again.',
     modalSubmit: 'Access report',
     pdfGenerating: 'Generating PDF…',
   },
@@ -141,6 +144,7 @@ export const relatorioClienteT: Record<
     modalCodeLabel: 'Código de acceso',
     modalCodePlaceholder: 'Ej: NXGOLD-2024',
     modalCodeError: 'Código inválido o expirado. Verifique e intente nuevamente.',
+    modalCodeLocked: 'Demasiados intentos incorrectos. Espere unos minutos antes de intentar de nuevo.',
     modalSubmit: 'Acceder al informe',
     pdfGenerating: 'Generando PDF…',
   },
