@@ -263,12 +263,14 @@ export default function ConfiguracoesPlataforma() {
               ))}
             </div>
 
-            {/* Fundo */}
+            {/* Fundo — wash mais fraco que o real (0.55 vs 0.92 do app) só
+                aqui, pra diferença entre presets/imagem custom ficar visível
+                no preview; no app real o wash continua 92% (sutil de propósito). */}
             <div
               className="mt-4 mx-5 mb-5 h-20 rounded-[14px] border border-[rgba(20,21,26,.06)] bg-[#f4f3f1]"
               style={{
                 backgroundImage: fundoAtivo
-                  ? `linear-gradient(rgba(244, 243, 241, 0.92), rgba(244, 243, 241, 0.92)), url('${fundoUrl ?? DEFAULT_FUNDO}')`
+                  ? `linear-gradient(rgba(244, 243, 241, 0.55), rgba(244, 243, 241, 0.55)), url('${fundoUrl ?? DEFAULT_FUNDO}')`
                   : 'none',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
