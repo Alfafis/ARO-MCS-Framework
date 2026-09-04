@@ -16,6 +16,7 @@ import {
   SlidersHorizontal,
   MapPin,
   Sprout,
+  History,
 } from 'lucide-react'
 import { useLang, useT } from '@/i18n/useLang'
 import type { Lang } from '@/i18n/LangContext'
@@ -80,6 +81,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
     { to: '/parametros-globais', label: t.globalParams, Icon: SlidersHorizontal, matchExact: false },
     { to: '/setores', label: t.sectors, Icon: MapPin, matchExact: false },
     { to: '/remediacao-padrao', label: t.remediationTemplate, Icon: Sprout, matchExact: false },
+    { to: '/auditoria', label: t.auditLog, Icon: History, matchExact: false },
   ]
 
   async function fetchPerfil(userId: string) {

@@ -1288,6 +1288,17 @@ export type Database = {
       }
       gerar_codigo_acesso: { Args: { p_projeto_id: string }; Returns: string }
       is_consultor: { Args: never; Returns: boolean }
+      listar_audit_log: {
+        Args: {
+          p_ate?: string
+          p_desde?: string
+          p_limit?: number
+          p_offset?: number
+          p_operacao?: string
+          p_tabela?: string
+        }
+        Returns: Json
+      }
       obter_codigo_acesso: { Args: { p_projeto_id: string }; Returns: string }
       obter_relatorio_publico: {
         Args: { p_codigo?: string; p_projeto_id: string }

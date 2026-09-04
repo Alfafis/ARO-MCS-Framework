@@ -16,6 +16,7 @@ export const sidebarT: Record<
     sectors: string
     remediation: string
     remediationTemplate: string
+    auditLog: string
     expand: string
     collapse: string
     selectLang: string
@@ -40,6 +41,7 @@ export const sidebarT: Record<
     sectors: 'Setores',
     remediation: 'Remediação',
     remediationTemplate: 'Remediação',
+    auditLog: 'Auditoria',
     expand: 'Expandir menu lateral',
     collapse: 'Recolher menu lateral',
     selectLang: 'Selecionar idioma',
@@ -63,6 +65,7 @@ export const sidebarT: Record<
     sectors: 'Sectors',
     remediation: 'Remediation',
     remediationTemplate: 'Remediation',
+    auditLog: 'Audit log',
     expand: 'Expand sidebar',
     collapse: 'Collapse sidebar',
     selectLang: 'Select language',
@@ -86,6 +89,7 @@ export const sidebarT: Record<
     sectors: 'Sectores',
     remediation: 'Remediación',
     remediationTemplate: 'Remediación',
+    auditLog: 'Auditoría',
     expand: 'Expandir menú lateral',
     collapse: 'Contraer menú lateral',
     selectLang: 'Seleccionar idioma',

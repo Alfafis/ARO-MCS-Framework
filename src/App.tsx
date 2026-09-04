@@ -29,6 +29,7 @@ const ParametrosGlobais = lazy(() => import('./pages/ParametrosGlobais'))
 const Setores = lazy(() => import('./pages/Setores'))
 const Remediacao = lazy(() => import('./pages/Remediacao'))
 const RemediacaoPadrao = lazy(() => import('./pages/RemediacaoPadrao'))
+const Auditoria = lazy(() => import('./pages/Auditoria'))
 const Clientes = lazy(() => import('./pages/Clientes'))
 const ClienteProjetos = lazy(() => import('./pages/ClienteProjetos'))
 const PortalClienteRelatorio = lazy(() => import('./pages/PortalClienteRelatorio'))
@@ -258,6 +259,14 @@ export default function App() {
                 element={
                   <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
                     <RemediacaoPadrao />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/auditoria"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <Auditoria />
                   </ProtectedLayout>
                 }
               />
