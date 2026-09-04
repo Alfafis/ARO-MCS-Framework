@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/useLang'
 import { loginT } from '@/i18n/login'
 import { supabase } from '@/integrations/supabase/client'
+import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 
 export default function Login() {
   const navigate = useNavigate()
   const t = useT(loginT)
+  const { config } = usePlataformaConfig()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -31,7 +33,7 @@ export default function Login() {
       className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{
         background: '#f4f3f1',
-        backgroundImage: 'radial-gradient(ellipse at 50% 0%, rgba(236,48,19,0.07) 0%, transparent 60%)',
+        backgroundImage: `radial-gradient(ellipse at 50% 0%, color-mix(in srgb, ${config.corPrimaria} 10%, transparent) 0%, transparent 60%)`,
       }}
     >
       {/* Card principal */}
@@ -41,7 +43,7 @@ export default function Login() {
       >
         {/* Marca */}
         <div className="flex flex-col items-center mb-7">
-          <img src="/BePlanned Logo.png" alt="Be Planned" className="w-40 object-contain mb-2" />
+          <img src={config.logoCompletoUrl} alt="Be Planned" className="w-40 object-contain mb-2" />
           <p className="text-[13px] text-c-text-2 mt-1">{t.subtitle}</p>
         </div>
 

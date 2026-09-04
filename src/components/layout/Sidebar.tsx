@@ -17,11 +17,13 @@ import {
   MapPin,
   Sprout,
   History,
+  Palette,
 } from 'lucide-react'
 import { useLang, useT } from '@/i18n/useLang'
 import type { Lang } from '@/i18n/LangContext'
 import { sidebarT } from '@/i18n/sidebar'
 import { supabase } from '@/integrations/supabase/client'
+import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 
 const LANGUAGES: { code: Lang; label: string }[] = [
   { code: 'pt-BR', label: 'Português (Brasil)' },
@@ -53,6 +55,7 @@ interface SidebarProps {
 export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onMobileClose }: SidebarProps) {
   const { lang, setLang } = useLang()
   const t = useT(sidebarT)
+  const { config } = usePlataformaConfig()
 
   const [profileOpen, setProfileOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
@@ -82,6 +85,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
     { to: '/setores', label: t.sectors, Icon: MapPin, matchExact: false },
     { to: '/remediacao-padrao', label: t.remediationTemplate, Icon: Sprout, matchExact: false },
     { to: '/auditoria', label: t.auditLog, Icon: History, matchExact: false },
+    { to: '/plataforma', label: t.platformSettings, Icon: Palette, matchExact: false },
   ]
 
   async function fetchPerfil(userId: string) {
@@ -152,7 +156,7 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
           gap: '10px',
         }}
       >
-        <img src="/logo.png" alt="Be Planned" className="h-9 w-auto object-contain" />
+        <img src={config.logoIconeUrl} alt="Be Planned" className="h-9 w-auto object-contain" />
         {!collapsed && <span className="brand-label">Be Planned</span>}
       </div>
 

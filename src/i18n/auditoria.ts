@@ -63,6 +63,7 @@ export const auditoriaT: Record<
       itens_remediacao_template: 'Itens de remediação (template)',
       parametros_anuais: 'Parâmetros anuais',
       parametros_globais: 'Parâmetros globais',
+      configuracoes_plataforma: 'Configurações da plataforma',
     },
   },
   en: {
@@ -100,6 +101,7 @@ export const auditoriaT: Record<
       itens_remediacao_template: 'Remediation items (template)',
       parametros_anuais: 'Annual parameters',
       parametros_globais: 'Global parameters',
+      configuracoes_plataforma: 'Platform settings',
     },
   },
   es: {
@@ -137,6 +139,7 @@ export const auditoriaT: Record<
       itens_remediacao_template: 'Ítems de remediación (plantilla)',
       parametros_anuais: 'Parámetros anuales',
       parametros_globais: 'Parámetros globales',
+      configuracoes_plataforma: 'Configuración de la plataforma',
     },
   },
 }

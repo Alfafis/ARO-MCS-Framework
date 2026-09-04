@@ -18,6 +18,7 @@ import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
+import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
 import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
 import { useT } from '@/i18n/useLang'
@@ -66,6 +67,7 @@ export default function PortalClienteRelatorio() {
   const { id: projetoId = '' } = useParams<{ id: string }>()
   const t = useT(relatorioClienteT)
   const tBase = useT(resumoT)
+  const { config } = usePlataformaConfig()
 
   const [status, setStatus] = useState<'loading' | 'need-code' | 'not-found' | 'ready'>('loading')
   const [bundle, setBundle] = useState<RelatorioPublicoReturns | null>(null)
@@ -365,7 +367,7 @@ export default function PortalClienteRelatorio() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="max-w-[420px] text-center flex flex-col items-center gap-3">
-          <img src="/logo.png" alt="Be Planned" className="h-12 w-auto object-contain" />
+          <img src={config.logoIconeUrl} alt="Be Planned" className="h-12 w-auto object-contain" />
           <h1 className="text-[18px] font-bold text-c-text">{t.reportNotFoundTitle}</h1>
           <p className="text-[13px] text-c-text-2">{t.reportNotFoundBody}</p>
         </div>
@@ -382,7 +384,7 @@ export default function PortalClienteRelatorio() {
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-[400px] bg-white rounded-[20px] shadow-[0_24px_64px_-12px_rgba(20,21,26,.28)] p-7">
           <div className="flex items-center mb-5">
-            <img src="/BePlanned Logo.png" alt="Be Planned" className="h-9 w-auto object-contain" />
+            <img src={config.logoCompletoUrl} alt="Be Planned" className="h-9 w-auto object-contain" />
           </div>
           <h2 className="text-[17px] font-bold text-c-text mb-5">{t.modalTitle}</h2>
           <form onSubmit={handleCodeSubmit} className="flex flex-col gap-3">
@@ -428,7 +430,7 @@ export default function PortalClienteRelatorio() {
     <div className="min-h-screen print:bg-white">
       {/* ── Header fixo ── */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[rgba(20,21,26,.08)] flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
-        <img src="/BePlanned Logo.png" alt="Be Planned" className="h-10 w-auto object-contain" />
+        <img src={config.logoCompletoUrl} alt="Be Planned" className="h-10 w-auto object-contain" />
         <div className="flex items-center gap-3 print:hidden">
           <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-[#f0eeec] text-c-text-2 text-[12px] font-medium">
             {cliente.nome} — {t.portalPill}

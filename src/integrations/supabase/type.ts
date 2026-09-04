@@ -358,6 +358,39 @@ export type Database = {
           },
         ]
       }
+      configuracoes_plataforma: {
+        Row: {
+          atualizado_em: string
+          atualizado_por: string | null
+          cor_primaria: string | null
+          fundo_ativo: boolean
+          fundo_url: string | null
+          id: number
+          logo_completo_url: string | null
+          logo_icone_url: string | null
+        }
+        Insert: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          cor_primaria?: string | null
+          fundo_ativo?: boolean
+          fundo_url?: string | null
+          id?: number
+          logo_completo_url?: string | null
+          logo_icone_url?: string | null
+        }
+        Update: {
+          atualizado_em?: string
+          atualizado_por?: string | null
+          cor_primaria?: string | null
+          fundo_ativo?: boolean
+          fundo_url?: string | null
+          id?: number
+          logo_completo_url?: string | null
+          logo_icone_url?: string | null
+        }
+        Relationships: []
+      }
       desembolso_item_ano: {
         Row: {
           ano: number
@@ -1085,6 +1118,56 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      atualizar_configuracoes_plataforma:
+        | {
+            Args: {
+              p_cor_primaria?: string
+              p_fundo_ativo?: boolean
+              p_fundo_url?: string
+              p_logo_completo_url?: string
+              p_logo_icone_url?: string
+            }
+            Returns: {
+              atualizado_em: string
+              atualizado_por: string | null
+              cor_primaria: string | null
+              fundo_ativo: boolean
+              fundo_url: string | null
+              id: number
+              logo_completo_url: string | null
+              logo_icone_url: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "configuracoes_plataforma"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
+        | {
+            Args: {
+              p_cor_primaria?: string
+              p_fundo_ativo?: boolean
+              p_fundo_url?: string
+              p_logo_url?: string
+            }
+            Returns: {
+              atualizado_em: string
+              atualizado_por: string | null
+              cor_primaria: string | null
+              fundo_ativo: boolean
+              fundo_url: string | null
+              id: number
+              logo_completo_url: string | null
+              logo_icone_url: string | null
+            }
+            SetofOptions: {
+              from: "*"
+              to: "configuracoes_plataforma"
+              isOneToOne: true
+              isSetofReturn: false
+            }
+          }
       atualizar_foto_perfil: {
         Args: { p_foto_url: string }
         Returns: undefined

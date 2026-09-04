@@ -5,13 +5,16 @@ import './index.css'
 import App from './App.tsx'
 import { initSentry } from './lib/sentry'
 import ErrorFallback from './components/layout/ErrorFallback.tsx'
+import { PlataformaConfigProvider } from './context/PlataformaConfigContext'
 
 initSentry()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
-      <App />
+      <PlataformaConfigProvider>
+        <App />
+      </PlataformaConfigProvider>
     </Sentry.ErrorBoundary>
   </StrictMode>
 )

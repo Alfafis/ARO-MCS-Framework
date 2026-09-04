@@ -20,6 +20,7 @@ const TABELAS = [
   'itens_remediacao_template',
   'parametros_anuais',
   'parametros_globais',
+  'configuracoes_plataforma',
 ] as const
 
 const OPERACOES = ['INSERT', 'UPDATE', 'DELETE'] as const

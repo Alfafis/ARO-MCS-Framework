@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { supabase } from './integrations/supabase/client'
 import { LangProvider } from './i18n/LangContext'
+import { usePlataformaConfig } from './context/PlataformaConfigContext'
 import { ProjetoProvider } from './context/ProjetoContext'
 import { SimulationProvider } from './context/SimulationContext'
 import Sidebar from './components/layout/Sidebar'
@@ -30,6 +31,7 @@ const Setores = lazy(() => import('./pages/Setores'))
 const Remediacao = lazy(() => import('./pages/Remediacao'))
 const RemediacaoPadrao = lazy(() => import('./pages/RemediacaoPadrao'))
 const Auditoria = lazy(() => import('./pages/Auditoria'))
+const ConfiguracoesPlataforma = lazy(() => import('./pages/ConfiguracoesPlataforma'))
 const Clientes = lazy(() => import('./pages/Clientes'))
 const ClienteProjetos = lazy(() => import('./pages/ClienteProjetos'))
 const PortalClienteRelatorio = lazy(() => import('./pages/PortalClienteRelatorio'))
@@ -59,6 +61,7 @@ function ProtectedLayout({
   const [mobileOpen, setMobileOpen] = useState(false)
   const isMobile = useMediaQuery('(max-width: 767px)')
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1023px)')
+  const { config } = usePlataformaConfig()
 
   if (!isLoggedIn) return <Navigate to="/login" replace />
 
@@ -94,7 +97,7 @@ function ProtectedLayout({
             >
               <Menu size={18} strokeWidth={2} />
             </button>
-            <img src="/BePlanned Logo.png" alt="Be Planned" className="h-9 w-auto object-contain" />
+            <img src={config.logoCompletoUrl} alt="Be Planned" className="h-9 w-auto object-contain" />
             <div className="w-9" />
           </div>
           <main className="flex-1 overflow-auto">
@@ -267,6 +270,14 @@ export default function App() {
                 element={
                   <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
                     <Auditoria />
+                  </ProtectedLayout>
+                }
+              />
+              <Route
+                path="/plataforma"
+                element={
+                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                    <ConfiguracoesPlataforma />
                   </ProtectedLayout>
                 }
               />

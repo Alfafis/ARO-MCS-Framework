@@ -292,7 +292,7 @@ export default function Perfil() {
 
         {!loading && (
           <div className="rounded-[20px] bg-white shadow-[0_1px_2px_rgba(20,21,26,.06)] border border-[rgba(20,21,26,.06)] p-6 flex flex-col gap-4">
-            <p className="text-[13px] font-medium text-c-text-1">{t.lgpdSectionTitle}</p>
+            <p className="text-[13px] font-medium text-c-text">{t.lgpdSectionTitle}</p>
             <div className="flex flex-wrap gap-2">
               <Button variant="ghost" disabled={exporting} onClick={handleExportar}>
                 {exporting ? <Loader2 size={14} className="animate-spin" /> : null}
