@@ -13,6 +13,7 @@
   --color-c-surface-2-active: #ffffff;
   --color-c-line: rgba(20, 21, 26, 0.08);
   --color-c-track: #ece9e6;
+  --color-c-soft: #faf9f8;
 
   --color-accent: #2e7d32;
   --color-accent-700: #1b5e20;
@@ -33,6 +34,7 @@
   --c-surface-2-active: #ffffff;
   --c-line: rgba(20, 21, 26, 0.08);
   --c-track: #ece9e6;
+  --c-soft: #faf9f8;
 
   --accent: #2e7d32;
   --accent-700: #1b5e20;
@@ -67,6 +69,7 @@ html.dark {
   --c-surface-2-active: #40444c;
   --c-line: rgba(255, 255, 255, 0.08);
   --c-track: #2a2d33;
+  --c-soft: #232520;
 
   --accent-100: #143d17;
 
@@ -84,6 +87,7 @@ html.dark {
   --color-c-surface-2-active: #40444c;
   --color-c-line: rgba(255, 255, 255, 0.08);
   --color-c-track: #2a2d33;
+  --color-c-soft: #232520;
   --color-accent-100: #143d17;
 }
 

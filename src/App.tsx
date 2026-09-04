@@ -11,6 +11,7 @@ import DocumentTitle from './components/layout/DocumentTitle'
 import { PageLoader, SplashScreen } from './components/layout/PageLoader'
 import './index.css'
 
+const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
 const ResumoExecutivo = lazy(() => import('./pages/ResumoExecutivo'))
 const Categorias = lazy(() => import('./pages/Categorias'))
@@ -153,7 +154,19 @@ export default function App() {
           <BrowserRouter>
             <DocumentTitle />
             <Routes>
-              {/* Rota pública */}
+              {/* Rotas públicas */}
+              <Route
+                path="/"
+                element={
+                  isLoggedIn ? (
+                    <Navigate to="/visao-geral" replace />
+                  ) : (
+                    <Suspense fallback={<SplashScreen />}>
+                      <Landing />
+                    </Suspense>
+                  )
+                }
+              />
               <Route
                 path="/login"
                 element={
@@ -317,7 +330,7 @@ export default function App() {
               />
 
               {/* Fallback */}
-              <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/login'} replace />} />
+              <Route path="*" element={<Navigate to={isLoggedIn ? '/visao-geral' : '/'} replace />} />
             </Routes>
           </BrowserRouter>
         </SimulationProvider>
