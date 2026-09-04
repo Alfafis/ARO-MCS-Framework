@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/useLang'
 import { loginT } from '@/i18n/login'
@@ -12,6 +13,7 @@ export default function Login() {
   const { config } = usePlataformaConfig()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -32,14 +34,13 @@ export default function Login() {
     <div
       className="min-h-screen flex flex-col items-center justify-center px-4"
       style={{
-        background: '#f4f3f1',
         backgroundImage: `radial-gradient(ellipse at 50% 0%, color-mix(in srgb, ${config.corPrimaria} 10%, transparent) 0%, transparent 60%)`,
       }}
     >
       {/* Card principal */}
       <div
         className="w-full max-w-[400px] bg-c-card rounded-[20px] px-8 py-9"
-        style={{ boxShadow: '0 16px 40px -12px rgba(20,21,26,.18)' }}
+        style={{ boxShadow: 'var(--shadow-2)' }}
       >
         {/* Marca */}
         <div className="flex flex-col items-center mb-7">
@@ -58,8 +59,7 @@ export default function Login() {
               placeholder={t.emailPlaceholder}
               required
               autoComplete="email"
-              className="w-full rounded-[11px] px-4 py-2.5 text-[0.875rem] text-c-text placeholder:text-c-text-2 outline-none"
-              style={{ background: '#f6f5f3' }}
+              className="w-full rounded-[11px] px-4 py-2.5 text-[0.875rem] text-c-text placeholder:text-c-text-2 outline-none bg-c-surface-2"
             />
           </div>
 
@@ -67,16 +67,25 @@ export default function Login() {
             <label className="text-[12px] font-semibold text-c-text-2 uppercase tracking-widest">
               {t.passwordLabel}
             </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••"
-              required
-              autoComplete="current-password"
-              className="w-full rounded-[11px] px-4 py-2.5 text-[0.875rem] text-c-text placeholder:text-c-text-2 outline-none"
-              style={{ background: '#f6f5f3' }}
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••"
+                required
+                autoComplete="current-password"
+                className="w-full rounded-[11px] pl-4 pr-11 py-2.5 text-[0.875rem] text-c-text placeholder:text-c-text-2 outline-none bg-c-surface-2"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? t.hidePassword : t.showPassword}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-c-text-2 hover:text-c-text transition-colors cursor-pointer"
+              >
+                {showPassword ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+              </button>
+            </div>
           </div>
 
           {error && <p className="text-[12.5px] text-accent font-medium">{error}</p>}
