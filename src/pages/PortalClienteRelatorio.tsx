@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Download, Copy, Check, KeyRound } from 'lucide-react'
+import { Download, Copy, Check, KeyRound, Sun, Moon } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
 import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
@@ -116,17 +116,21 @@ export default function PortalClienteRelatorio() {
     [projetoId]
   )
 
-  // Portal do Cliente ignora preferência de tema — cliente anon não tem perfil,
-  // e o localStorage pode ter a preferência do consultor que logou no mesmo
-  // browser. Força light durante toda a vida do componente e restaura ao
-  // desmontar (evita "vazar" light quando o consultor volta pro admin).
+  // Portal do Cliente ignora perfis.tema/localStorage — cliente anon não tem
+  // perfil, e o localStorage pode ter a preferência do consultor que logou no
+  // mesmo browser. Toggle abaixo é local e efêmero (useState puro, nunca lê
+  // nem grava aro-tema/perfis.tema): default light, some ao sair da página.
+  // Restaura o tema real do browser (consultor logado ou não) ao desmontar.
+  const [temaPortal, setTemaPortal] = useState<'light' | 'dark'>('light')
   useEffect(() => {
     const eraDark = document.documentElement.classList.contains('dark')
-    document.documentElement.classList.remove('dark')
     return () => {
-      if (eraDark) document.documentElement.classList.add('dark')
+      document.documentElement.classList.toggle('dark', eraDark)
     }
   }, [])
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', temaPortal === 'dark')
+  }, [temaPortal])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => setIsAdmin(!!session))
@@ -478,6 +482,19 @@ export default function PortalClienteRelatorio() {
             {t.downloadPdfBtn}
           </button>
           <LangSelector ariaLabel={t.selectLang} />
+          <button
+            type="button"
+            onClick={() => setTemaPortal((v) => (v === 'dark' ? 'light' : 'dark'))}
+            aria-label={temaPortal === 'dark' ? t.themeSwitchToLight : t.themeSwitchToDark}
+            title={temaPortal === 'dark' ? t.themeSwitchToLight : t.themeSwitchToDark}
+            className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
+          >
+            {temaPortal === 'dark' ? (
+              <Sun size={14} strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <Moon size={14} strokeWidth={2} aria-hidden="true" />
+            )}
+          </button>
         </div>
       </header>
 

@@ -11,6 +11,8 @@ export const relatorioClienteT: Record<
     copyLinkPrompt: string
     downloadPdfBtn: string
     selectLang: string
+    themeSwitchToLight: string
+    themeSwitchToDark: string
     // Report header
     reportTitle: string
     reportRevisionCurrent: string
@@ -51,6 +53,8 @@ export const relatorioClienteT: Record<
     copyLinkPrompt: 'Copie o link do relatório:',
     downloadPdfBtn: 'Baixar PDF',
     selectLang: 'Selecionar idioma',
+    themeSwitchToLight: 'Mudar para tema claro',
+    themeSwitchToDark: 'Mudar para tema escuro',
     reportTitle: 'Relatório',
     reportRevisionCurrent: 'Vigente',
     reportSubtitleBase: (nome) => `Provisionamento financeiro ${nome}`,
@@ -86,6 +90,8 @@ export const relatorioClienteT: Record<
     copyLinkPrompt: 'Copy the report link:',
     downloadPdfBtn: 'Download PDF',
     selectLang: 'Select language',
+    themeSwitchToLight: 'Switch to light theme',
+    themeSwitchToDark: 'Switch to dark theme',
     reportTitle: 'Report',
     reportRevisionCurrent: 'Current',
     reportSubtitleBase: (nome) => `${nome} financial provisioning`,
@@ -121,6 +127,8 @@ export const relatorioClienteT: Record<
     copyLinkPrompt: 'Copie el enlace del informe:',
     downloadPdfBtn: 'Descargar PDF',
     selectLang: 'Seleccionar idioma',
+    themeSwitchToLight: 'Cambiar a tema claro',
+    themeSwitchToDark: 'Cambiar a tema oscuro',
     reportTitle: 'Informe',
     reportRevisionCurrent: 'Vigente',
     reportSubtitleBase: (nome) => `Provisión financiera ${nome}`,
