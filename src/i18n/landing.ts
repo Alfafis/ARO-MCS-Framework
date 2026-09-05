@@ -17,6 +17,7 @@ interface LandingT {
   heroCheck3: string
 
   painelTitulo: string
+  painelExemplo: string
   painelBadge: string
   painelProvisaoLabel: string
   painelProvisaoValor: string
@@ -100,6 +101,7 @@ export const landingT: Record<Lang, LandingT> = {
     heroCheck3: 'Relatório do cliente pronto para entregar, sem anexos',
 
     painelTitulo: 'Amostra do painel',
+    painelExemplo: 'Exemplo ilustrativo',
     painelBadge: 'Rev1 · Vigente',
     painelProvisaoLabel: 'PROVISÃO ESPERADA',
     painelProvisaoValor: 'R$ 48,0 M',
@@ -193,6 +195,7 @@ export const landingT: Record<Lang, LandingT> = {
     heroCheck3: 'Client report ready to hand over, no attachments',
 
     painelTitulo: 'Panel sample',
+    painelExemplo: 'Illustrative example',
     painelBadge: 'Rev1 · Current',
     painelProvisaoLabel: 'EXPECTED PROVISION',
     painelProvisaoValor: 'R$ 48.0 M',
@@ -286,6 +289,7 @@ export const landingT: Record<Lang, LandingT> = {
     heroCheck3: 'Informe del cliente listo para entregar, sin anexos',
 
     painelTitulo: 'Muestra del panel',
+    painelExemplo: 'Ejemplo ilustrativo',
     painelBadge: 'Rev1 · Vigente',
     painelProvisaoLabel: 'APROVISIONAMIENTO ESPERADO',
     painelProvisaoValor: 'R$ 48,0 M',

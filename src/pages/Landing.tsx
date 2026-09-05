@@ -225,7 +225,12 @@ export default function Landing() {
             style={{ padding: '44px' }}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[14px] font-semibold text-c-text-2">{t.painelTitulo}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-[14px] font-semibold text-c-text-2">{t.painelTitulo}</span>
+                <span className="inline-flex items-center px-[8px] py-[2px] rounded-full bg-c-track text-c-text-2 text-[10.5px] font-semibold">
+                  {t.painelExemplo}
+                </span>
+              </div>
               <span className="inline-flex items-center px-[10px] py-[3px] rounded-full bg-c-track text-c-text-2 text-[11.5px] font-semibold">
                 {t.painelBadge}
               </span>
