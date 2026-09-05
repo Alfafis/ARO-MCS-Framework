@@ -139,6 +139,7 @@ export default function Perfil() {
     if (error) {
       switch (error.code) {
         case 'invalid_credentials':
+        case 'current_password_invalid':
           setSenhaError(tSenha.wrongCurrentPassword)
           break
         case 'same_password':
