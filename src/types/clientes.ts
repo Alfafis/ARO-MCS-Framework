@@ -7,6 +7,7 @@ export interface Cliente {
   id: string
   nome: string
   initials: string
+  email: string | null
 }
 
 export interface Projeto {

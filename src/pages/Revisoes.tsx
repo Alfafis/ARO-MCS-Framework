@@ -29,7 +29,7 @@ function subtituloRevisao(rev: RevisaoRow, t: RevisoesT): string {
 
 export default function Revisoes() {
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
-  const { atualizarRevLocal } = useProjeto()
+  const { atualizarRevLocal, clientes } = useProjeto()
   const t = useT(revisoesT)
   const tRem = useT(remediacaoT)
 
@@ -105,6 +105,26 @@ export default function Revisoes() {
     )
     setEditingId(null)
     atualizarRevLocal(projeto.id, `Rev${data.codigo.replace(/\D/g, '')}`)
+
+    // Notificação ao cliente é best-effort — sem e-mail cadastrado, sem toast de
+    // erro nenhum: publicar a revisão não pode falhar por causa disso.
+    const cliente = clientes.find((c) => c.id === projeto.clienteId)
+    if (cliente?.email) {
+      supabase.functions
+        .invoke('send-transactional-email', {
+          body: {
+            to: cliente.email,
+            template: 'revisao_publicada',
+            data: {
+              projectName: projeto.projeto,
+              clientName: cliente.nome,
+              revisionCode: `Rev${data.codigo.replace(/\D/g, '')}`,
+              portalUrl: `${window.location.origin}/relatorio/${projeto.id}`,
+            },
+          },
+        })
+        .catch(() => {})
+    }
   }
 
   return (

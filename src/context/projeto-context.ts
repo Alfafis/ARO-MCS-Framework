@@ -40,6 +40,7 @@ export interface ProjetoContextValue {
   loading: boolean
   clientes: Cliente[]
   criarCliente: (nome: string) => Promise<string>
+  atualizarEmailCliente: (id: string, email: string | null) => Promise<void>
   tiposProjeto: TipoProjeto[]
   criarTipoProjeto: (nome: string) => Promise<TipoProjeto>
   renomearTipoProjeto: (id: string, novoNome: string) => Promise<void>

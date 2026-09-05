@@ -635,6 +635,7 @@ export default function PortalClienteRelatorio() {
       {codeModalOpen && (
         <CodigoAcessoModal
           reportId={projetoId}
+          clienteId={cliente.id}
           clientName={cliente.nome}
           projectName={projeto.nome}
           onClose={() => setCodeModalOpen(false)}

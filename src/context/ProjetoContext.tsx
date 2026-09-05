@@ -224,11 +224,11 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   function fetchAll() {
     const fetchClientes = supabase
       .from('clientes')
-      .select('id, nome')
+      .select('id, nome, email')
       .order('nome')
       .then(({ data, error }) => {
         if (error || !data) return
-        setClientes(data.map((c) => ({ id: c.id, nome: c.nome, initials: initials(c.nome) })))
+        setClientes(data.map((c) => ({ id: c.id, nome: c.nome, email: c.email, initials: initials(c.nome) })))
       })
     const fetchTipos = supabase
       .from('tipos_projeto')
@@ -309,9 +309,21 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     setClientes((prev) =>
       prev.some((c) => c.id === data.id)
         ? prev
-        : [...prev, { id: data.id, nome: data.nome, initials: initials(data.nome) }]
+        : [...prev, { id: data.id, nome: data.nome, email: data.email, initials: initials(data.nome) }]
     )
     return data.id
+  }, [])
+
+  const atualizarEmailCliente = useCallback(async (id: string, email: string | null): Promise<void> => {
+    // p_email aceita NULL em runtime (coluna nullable) mas o gerador de tipos do Supabase não
+    // marca arg `text` simples como nullable — mesmo padrão já registrado em
+    // ProjetoContext.atualizarParametroAnual / Perfil.handleRemoverFoto.
+    const { data, error } = await supabase.rpc('atualizar_email_cliente', {
+      p_id: id,
+      p_email: email as unknown as string,
+    })
+    if (error || !data) throw error ?? new Error('Falha ao atualizar e-mail do cliente')
+    setClientes((prev) => prev.map((c) => (c.id === id ? { ...c, email: data.email } : c)))
   }, [])
 
   // Dedup por nome vive na RPC (mesmo padrão de create_cliente) — chamar de
@@ -1299,6 +1311,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         loading,
         clientes,
         criarCliente,
+        atualizarEmailCliente,
         tiposProjeto,
         criarTipoProjeto,
         renomearTipoProjeto,

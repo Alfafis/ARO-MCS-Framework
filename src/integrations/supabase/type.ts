@@ -305,16 +305,19 @@ export type Database = {
       clientes: {
         Row: {
           criado_em: string
+          email: string | null
           id: string
           nome: string
         }
         Insert: {
           criado_em?: string
+          email?: string | null
           id?: string
           nome: string
         }
         Update: {
           criado_em?: string
+          email?: string | null
           id?: string
           nome?: string
         }
@@ -1171,6 +1174,21 @@ export type Database = {
               isSetofReturn: false
             }
           }
+      atualizar_email_cliente: {
+        Args: { p_email: string; p_id: string }
+        Returns: {
+          criado_em: string
+          email: string | null
+          id: string
+          nome: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "clientes"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       atualizar_foto_perfil: {
         Args: { p_foto_url: string }
         Returns: undefined
@@ -1258,6 +1276,7 @@ export type Database = {
         Args: { p_nome: string }
         Returns: {
           criado_em: string
+          email: string | null
           id: string
           nome: string
         }

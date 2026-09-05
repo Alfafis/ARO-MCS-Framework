@@ -193,6 +193,7 @@ export default function Projetos() {
       {codeModalFor && (
         <CodigoAcessoModal
           reportId={codeModalFor.id}
+          clienteId={codeModalFor.clienteId}
           clientName={clienteNomePorId.get(codeModalFor.clienteId) ?? '—'}
           projectName={codeModalFor.projeto}
           onClose={() => setCodeModalFor(null)}

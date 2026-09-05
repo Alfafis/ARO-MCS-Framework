@@ -1,21 +1,30 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import { Check, Copy, RefreshCw } from 'lucide-react'
+import { Check, Copy, Loader2, RefreshCw, Send } from 'lucide-react'
 import { Dialog } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/integrations/supabase/client'
+import { useProjeto } from '@/context/useProjeto'
 
 interface Props {
   reportId: string // projeto_id
+  clienteId: string
   clientName: string
   projectName: string
   onClose: () => void
 }
 
-export default function CodigoAcessoModal({ reportId, clientName, projectName, onClose }: Props) {
+export default function CodigoAcessoModal({ reportId, clienteId, clientName, projectName, onClose }: Props) {
+  const { clientes, atualizarEmailCliente } = useProjeto()
+  const cliente = clientes.find((c) => c.id === clienteId)
+
   const [code, setCode] = useState<string>('')
   const [manualInput, setManualInput] = useState('')
   const [manualError, setManualError] = useState('')
   const [copied, setCopied] = useState(false)
+
+  const [emailInput, setEmailInput] = useState(cliente?.email ?? '')
+  const [sending, setSending] = useState(false)
+  const [sendResult, setSendResult] = useState<'ok' | 'error' | null>(null)
 
   useEffect(() => {
     supabase.rpc('obter_codigo_acesso', { p_projeto_id: reportId }).then(({ data }) => {
@@ -53,6 +62,36 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
     navigator.clipboard.writeText(code).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  async function handleEnviarEmail() {
+    const email = emailInput.trim()
+    if (!email || !code) return
+    setSending(true)
+    setSendResult(null)
+    try {
+      if (email !== (cliente?.email ?? '')) {
+        await atualizarEmailCliente(clienteId, email)
+      }
+      const { error } = await supabase.functions.invoke('send-transactional-email', {
+        body: {
+          to: email,
+          template: 'projeto_enviado',
+          data: {
+            projectName,
+            clientName,
+            code,
+            portalUrl: `${window.location.origin}/relatorio/${reportId}`,
+          },
+        },
+      })
+      if (error) throw error
+      setSendResult('ok')
+    } catch {
+      setSendResult('error')
+    } finally {
+      setSending(false)
+    }
   }
 
   return (
@@ -133,6 +172,41 @@ export default function CodigoAcessoModal({ reportId, clientName, projectName, o
                 Salvar
               </Button>
             </form>
+          </div>
+
+          <div className="h-px bg-c-line" />
+
+          {/* Envio por e-mail */}
+          <div className="flex flex-col gap-2">
+            <span className="text-[12px] font-semibold text-c-text">Enviar por e-mail</span>
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                value={emailInput}
+                onChange={(e) => {
+                  setEmailInput(e.target.value)
+                  setSendResult(null)
+                }}
+                placeholder="cliente@empresa.com"
+                className="flex-1 bg-c-surface-2 rounded-[11px] px-[13px] py-[10px] text-[0.875rem] text-c-text outline-none border border-transparent focus:border-accent transition-colors duration-150"
+              />
+              <Button
+                variant="ghost"
+                disabled={!code || !emailInput.trim() || sending}
+                onClick={handleEnviarEmail}
+                className="inline-flex items-center gap-2 whitespace-nowrap"
+              >
+                {sending ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <Send size={13} strokeWidth={2} />
+                )}
+                Enviar
+              </Button>
+            </div>
+            {!code && <p className="text-[11.5px] text-c-text-2">Gere um código antes de enviar.</p>}
+            {sendResult === 'ok' && <p className="text-[11.5px] text-success">E-mail enviado.</p>}
+            {sendResult === 'error' && <p className="text-[11.5px] text-error">Não foi possível enviar.</p>}
           </div>
 
           <div className="flex justify-end mt-1">
