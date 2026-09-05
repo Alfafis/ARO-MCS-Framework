@@ -115,7 +115,7 @@ export const landingT: Record<Lang, LandingT> = {
     painelUltimaValor: 'Abr/2026',
     painelNota: 'Ranking por categoria · dados ilustrativos',
 
-    kpi1Num: '8',
+    kpi1Num: '9',
     kpi1Label: 'Categorias de custo estruturadas',
     kpi2Num: '10',
     kpi2Label: 'Anos de desembolso projetado',
@@ -165,7 +165,7 @@ export const landingT: Record<Lang, LandingT> = {
 
     depQuote:
       'Antes, defender a provisão em auditoria era uma arqueologia de planilhas. Hoje é abrir a revisão vigente.',
-    depAuthor: 'Controladoria — cliente Be Planned',
+    depAuthor: 'Cenário típico de auditoria',
 
     ctaFinalTitulo: 'Seu passivo ambiental merece mais que uma aba.',
     ctaFinalSub:
@@ -208,7 +208,7 @@ export const landingT: Record<Lang, LandingT> = {
     painelUltimaValor: 'Apr/2026',
     painelNota: 'Ranking by category · illustrative data',
 
-    kpi1Num: '8',
+    kpi1Num: '9',
     kpi1Label: 'Structured cost categories',
     kpi2Num: '10',
     kpi2Label: 'Years of projected disbursement',
@@ -258,7 +258,7 @@ export const landingT: Record<Lang, LandingT> = {
 
     depQuote:
       'Before, defending the provision in an audit was spreadsheet archaeology. Today it is opening the current revision.',
-    depAuthor: 'Controlling — Be Planned client',
+    depAuthor: 'Typical audit scenario',
 
     ctaFinalTitulo: 'Your environmental liability deserves more than a tab.',
     ctaFinalSub:
@@ -301,7 +301,7 @@ export const landingT: Record<Lang, LandingT> = {
     painelUltimaValor: 'Abr/2026',
     painelNota: 'Ranking por categoría · datos ilustrativos',
 
-    kpi1Num: '8',
+    kpi1Num: '9',
     kpi1Label: 'Categorías de costo estructuradas',
     kpi2Num: '10',
     kpi2Label: 'Años de desembolso proyectado',
@@ -351,7 +351,7 @@ export const landingT: Record<Lang, LandingT> = {
 
     depQuote:
       'Antes, defender el aprovisionamiento en auditoría era una arqueología de planillas. Hoy es abrir la revisión vigente.',
-    depAuthor: 'Controlling — cliente Be Planned',
+    depAuthor: 'Escenario típico de auditoría',
 
     ctaFinalTitulo: 'Tu pasivo ambiental merece más que una pestaña.',
     ctaFinalSub:
