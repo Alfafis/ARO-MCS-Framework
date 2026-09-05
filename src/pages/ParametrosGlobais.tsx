@@ -309,7 +309,7 @@ function ParametroAnualTable({
   }
 
   return (
-    <div className="flex flex-col gap-2 py-2 border-b border-[rgba(20,21,26,.04)] last:border-b-0">
+    <div className="flex flex-col gap-2 min-w-0">
       <div className="flex items-center justify-between">
         <span className="text-[13px] font-medium text-c-text">{label}</span>
         <div className="flex items-center gap-2">
@@ -336,7 +336,7 @@ function ParametroAnualTable({
           </Button>
         </div>
       </div>
-      <div className="max-h-64 overflow-y-auto rounded-[11px] border border-c-line">
+      <div className="max-h-[520px] overflow-y-auto rounded-[11px] border border-c-line">
         <button
           type="button"
           onClick={() => setMostrarAnteriores((v) => !v)}
@@ -409,22 +409,23 @@ export default function ParametrosGlobais() {
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
       <div className="px-4 sm:px-8 pb-8 overflow-y-auto flex-1">
-        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4 max-w-[560px]">
+        <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4 max-w-[1080px]">
           <div className="flex items-center gap-1.5 text-sm font-semibold text-c-text">
             <SlidersHorizontal size={14} color="var(--accent)" aria-hidden="true" />
             <span>{t.headerTitle}</span>
           </div>
 
-          <div className="flex flex-col">
-            {loading && (
-              <div className="flex flex-col gap-2 py-1">
-                {Array.from({ length: 3 }, (_, i) => (
-                  <Skeleton key={i} className="h-9 w-full" />
-                ))}
-              </div>
-            )}
-            {!loading &&
-              PARAMETRO_ORDEM.map((chave) => {
+          {loading && (
+            <div className="flex flex-col gap-2 py-1">
+              {Array.from({ length: 3 }, (_, i) => (
+                <Skeleton key={i} className="h-9 w-full" />
+              ))}
+            </div>
+          )}
+
+          {!loading && (
+            <div className="flex flex-col">
+              {PARAMETRO_ORDEM.map((chave) => {
                 const parametro = parametrosGlobais.find((p) => p.chave === chave)
                 if (!parametro) return null
                 return (
@@ -446,8 +447,14 @@ export default function ParametrosGlobais() {
                   />
                 )
               })}
-            {!loading &&
-              PARAMETRO_ANUAL_ORDEM.map((chave) => (
+            </div>
+          )}
+
+          <div className="h-px bg-c-line" />
+
+          {!loading && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+              {PARAMETRO_ANUAL_ORDEM.map((chave) => (
                 <ParametroAnualTable
                   key={chave}
                   chave={chave}
@@ -466,7 +473,8 @@ export default function ParametrosGlobais() {
                   }}
                 />
               ))}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
