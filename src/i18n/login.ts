@@ -13,6 +13,8 @@ export const loginT: Record<
     emailNotConfirmed: string
     showPassword: string
     hidePassword: string
+    forgotPassword: string
+    passwordChanged: string
   }
 > = {
   'pt-BR': {
@@ -26,6 +28,8 @@ export const loginT: Record<
     emailNotConfirmed: 'Confirme seu e-mail antes de entrar — verifique sua caixa de entrada.',
     showPassword: 'Mostrar senha',
     hidePassword: 'Ocultar senha',
+    forgotPassword: 'Esqueceu a senha?',
+    passwordChanged: 'Senha alterada com sucesso. Entre com a nova senha.',
   },
   en: {
     subtitle: 'Asset Retirement Obligation · Aro Simulação',
@@ -38,6 +42,8 @@ export const loginT: Record<
     emailNotConfirmed: 'Confirm your e-mail before signing in — check your inbox.',
     showPassword: 'Show password',
     hidePassword: 'Hide password',
+    forgotPassword: 'Forgot your password?',
+    passwordChanged: 'Password changed successfully. Sign in with your new password.',
   },
   es: {
     subtitle: 'Asset Retirement Obligation · Aro Simulação',
@@ -50,5 +56,7 @@ export const loginT: Record<
     emailNotConfirmed: 'Confirma tu correo antes de iniciar sesión — revisa tu bandeja de entrada.',
     showPassword: 'Mostrar contraseña',
     hidePassword: 'Ocultar contraseña',
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    passwordChanged: 'Contraseña cambiada con éxito. Inicia sesión con la nueva contraseña.',
   },
 }

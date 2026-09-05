@@ -248,6 +248,14 @@ otp_expiry = 3600
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
 
+# Template real, com a identidade visual da plataforma (logo + verde Be Planned).
+# Aplica só no ambiente local (supabase start/db reset) — o Dashboard remoto (produção)
+# não lê este arquivo, precisa colar o mesmo HTML manualmente em Authentication → Emails →
+# Reset Password (ver nota no ADR/Changelog).
+[auth.email.template.recovery]
+subject = "Redefinir sua senha — Be Planned"
+content_path = "./supabase/templates/recovery.html"
+
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
 # enabled = true

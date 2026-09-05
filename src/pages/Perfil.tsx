@@ -1,12 +1,17 @@
-import { useEffect, useRef, useState } from 'react'
-import { Check, Loader2, User } from 'lucide-react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
+import { Check, Eye, EyeOff, Loader2, User } from 'lucide-react'
+import type { Factor } from '@supabase/supabase-js'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import PageHeader from '@/components/layout/PageHeader'
+import MfaEnrollModal from '@/components/perfil/MfaEnrollModal'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { useT } from '@/i18n/useLang'
 import { perfilT } from '@/i18n/perfil'
+import { mfaT } from '@/i18n/mfa'
+import { trocarSenhaT } from '@/i18n/trocar-senha'
 import { supabase } from '@/integrations/supabase/client'
 import { formatTelefone } from '@/lib/telefone'
 import type { PerfilRow } from '@/types'
@@ -15,6 +20,8 @@ const MAX_PHOTO_BYTES = 2 * 1024 * 1024
 
 export default function Perfil() {
   const t = useT(perfilT)
+  const tMfa = useT(mfaT)
+  const tSenha = useT(trocarSenhaT)
 
   const [userId, setUserId] = useState('')
   const [email, setEmail] = useState('')
@@ -23,6 +30,19 @@ export default function Perfil() {
   const [exporting, setExporting] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [exclusaoPendenteEm, setExclusaoPendenteEm] = useState<string | null>(null)
+
+  const [totpFactor, setTotpFactor] = useState<Factor | null>(null)
+  const [disablingMfa, setDisablingMfa] = useState(false)
+  const [showMfaEnroll, setShowMfaEnroll] = useState(false)
+  const [showDisableMfaConfirm, setShowDisableMfaConfirm] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+
+  const [senhaAtual, setSenhaAtual] = useState('')
+  const [novaSenha, setNovaSenha] = useState('')
+  const [confirmarNovaSenha, setConfirmarNovaSenha] = useState('')
+  const [showSenhaFields, setShowSenhaFields] = useState(false)
+  const [senhaError, setSenhaError] = useState('')
+  const [changingPassword, setChangingPassword] = useState(false)
 
   const [nome, setNome] = useState('')
   const [profissao, setProfissao] = useState('')
@@ -37,6 +57,11 @@ export default function Perfil() {
   function showToast(msg: string) {
     setToast(msg)
     setTimeout(() => setToast(null), 2500)
+  }
+
+  async function carregarMfaFactors() {
+    const { data } = await supabase.auth.mfa.listFactors()
+    setTotpFactor(data?.totp[0] ?? null)
   }
 
   useEffect(() => {
@@ -60,9 +85,82 @@ export default function Perfil() {
         .limit(1)
         .maybeSingle()
       if (solicitacao) setExclusaoPendenteEm(solicitacao.criado_em)
+      await carregarMfaFactors()
       setLoading(false)
     })
   }, [])
+
+  async function handleDisableMfa() {
+    if (!totpFactor) return
+    setShowDisableMfaConfirm(false)
+    setDisablingMfa(true)
+    try {
+      const { error } = await supabase.auth.mfa.unenroll({ factorId: totpFactor.id })
+      if (error) throw error
+      setTotpFactor(null)
+      showToast(tMfa.disableSuccessToast)
+    } catch {
+      showToast(tMfa.disableErrorToast)
+    } finally {
+      setDisablingMfa(false)
+    }
+  }
+
+  function handleMfaEnrolled() {
+    setShowMfaEnroll(false)
+    void carregarMfaFactors()
+    showToast(tMfa.enrollSuccessToast)
+  }
+
+  async function handleChangePassword(e: FormEvent) {
+    e.preventDefault()
+    setSenhaError('')
+
+    if (novaSenha.length < 8) {
+      setSenhaError(tSenha.tooShort)
+      return
+    }
+    if (novaSenha !== confirmarNovaSenha) {
+      setSenhaError(tSenha.mismatch)
+      return
+    }
+
+    setChangingPassword(true)
+    // current_password é validado no servidor (GoTrue), não é campo decorativo — exige
+    // "Secure password change" habilitado no Dashboard (Auth → Providers → Email). Sem sessão
+    // nova nem downgrade de AAL, ao contrário de reautenticar via signInWithPassword (que criaria
+    // uma sessão aal1 nova e derrubaria quem tem 2FA de volta pro gate de /verificar-codigo).
+    const { error } = await supabase.auth.updateUser({
+      password: novaSenha,
+      current_password: senhaAtual,
+    })
+    setChangingPassword(false)
+
+    if (error) {
+      switch (error.code) {
+        case 'invalid_credentials':
+          setSenhaError(tSenha.wrongCurrentPassword)
+          break
+        case 'same_password':
+          setSenhaError(tSenha.samePassword)
+          break
+        case 'weak_password':
+          setSenhaError(tSenha.weakPassword)
+          break
+        case 'reauthentication_needed':
+          setSenhaError(tSenha.reauthNeeded)
+          break
+        default:
+          setSenhaError(tSenha.genericError)
+      }
+      return
+    }
+
+    setSenhaAtual('')
+    setNovaSenha('')
+    setConfirmarNovaSenha('')
+    showToast(tSenha.successToast)
+  }
 
   async function handleExportar() {
     setExporting(true)
@@ -84,7 +182,7 @@ export default function Perfil() {
   }
 
   async function handleSolicitarExclusao() {
-    if (!confirm(t.deleteConfirm)) return
+    setShowDeleteConfirm(false)
     setDeleting(true)
     try {
       const { data, error } = await supabase.rpc('solicitar_exclusao_conta')
@@ -195,7 +293,7 @@ export default function Perfil() {
     <div className="flex flex-col h-full">
       <PageHeader title={t.headerTitle} subtitle={t.headerSubtitle} />
 
-      <div className="flex flex-col gap-6 px-4 sm:px-8 pb-8 overflow-y-auto flex-1 max-w-[560px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start px-4 sm:px-8 pb-8 overflow-y-auto flex-1 max-w-[960px]">
         {!loading && (
           <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-6">
             {/* Foto */}
@@ -291,27 +389,138 @@ export default function Perfil() {
         )}
 
         {!loading && (
-          <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4">
-            <p className="text-[13px] font-medium text-c-text">{t.lgpdSectionTitle}</p>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="ghost" disabled={exporting} onClick={handleExportar}>
-                {exporting ? <Loader2 size={14} className="animate-spin" /> : null}
-                {t.exportButton}
-              </Button>
-              {!exclusaoPendenteEm && (
-                <Button variant="link" disabled={deleting} onClick={handleSolicitarExclusao}>
-                  {t.deleteButton}
+          <div className="flex flex-col gap-6">
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[13px] font-medium text-c-text">{tSenha.sectionTitle}</p>
+                <button
+                  type="button"
+                  onClick={() => setShowSenhaFields((v) => !v)}
+                  aria-label={showSenhaFields ? tSenha.hidePassword : tSenha.showPassword}
+                  className="text-c-text-2 hover:text-c-text transition-colors cursor-pointer"
+                >
+                  {showSenhaFields ? <EyeOff size={16} aria-hidden="true" /> : <Eye size={16} aria-hidden="true" />}
+                </button>
+              </div>
+              <p className="text-[12px] text-c-text-2">{tSenha.sectionDescription}</p>
+
+              <form onSubmit={handleChangePassword} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="senha-atual">{tSenha.currentPasswordLabel}</Label>
+                  <Input
+                    id="senha-atual"
+                    type={showSenhaFields ? 'text' : 'password'}
+                    autoComplete="current-password"
+                    value={senhaAtual}
+                    onChange={(e) => setSenhaAtual(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="nova-senha">{tSenha.newPasswordLabel}</Label>
+                  <Input
+                    id="nova-senha"
+                    type={showSenhaFields ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={novaSenha}
+                    onChange={(e) => setNovaSenha(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <Label htmlFor="confirmar-nova-senha">{tSenha.confirmPasswordLabel}</Label>
+                  <Input
+                    id="confirmar-nova-senha"
+                    type={showSenhaFields ? 'text' : 'password'}
+                    autoComplete="new-password"
+                    value={confirmarNovaSenha}
+                    onChange={(e) => setConfirmarNovaSenha(e.target.value)}
+                    required
+                  />
+                </div>
+
+                {senhaError && <p className="text-[12.5px] text-error font-medium">{senhaError}</p>}
+
+                <div className="flex justify-end mt-1">
+                  <Button variant="primary" type="submit" disabled={changingPassword}>
+                    {changingPassword ? tSenha.submitting : tSenha.submit}
+                  </Button>
+                </div>
+              </form>
+            </div>
+
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[13px] font-medium text-c-text">{tMfa.sectionTitle}</p>
+                <Badge variant={totpFactor ? 'success' : 'default'}>
+                  {totpFactor ? tMfa.enabledBadge : tMfa.disabledBadge}
+                </Badge>
+              </div>
+              <p className="text-[12px] text-c-text-2">{tMfa.sectionDescription}</p>
+              {totpFactor ? (
+                <Button
+                  variant="link"
+                  disabled={disablingMfa}
+                  onClick={() => setShowDisableMfaConfirm(true)}
+                  className="self-start"
+                >
+                  {disablingMfa ? tMfa.disabling : tMfa.disableButton}
+                </Button>
+              ) : (
+                <Button variant="ghost" onClick={() => setShowMfaEnroll(true)} className="self-start">
+                  {tMfa.enableButton}
                 </Button>
               )}
             </div>
-            {exclusaoPendenteEm && (
-              <p className="text-[12px] text-c-text-2">
-                {t.deletePendingNotice(new Date(exclusaoPendenteEm).toLocaleDateString())}
-              </p>
-            )}
+
+            <div className="rounded-[20px] bg-c-card shadow-[var(--shadow-1)] border border-c-line p-6 flex flex-col gap-4">
+              <p className="text-[13px] font-medium text-c-text">{t.lgpdSectionTitle}</p>
+              <div className="flex flex-wrap gap-2">
+                <Button variant="ghost" disabled={exporting} onClick={handleExportar}>
+                  {exporting ? <Loader2 size={14} className="animate-spin" /> : null}
+                  {t.exportButton}
+                </Button>
+                {!exclusaoPendenteEm && (
+                  <Button variant="link" disabled={deleting} onClick={() => setShowDeleteConfirm(true)}>
+                    {t.deleteButton}
+                  </Button>
+                )}
+              </div>
+              {exclusaoPendenteEm && (
+                <p className="text-[12px] text-c-text-2">
+                  {t.deletePendingNotice(new Date(exclusaoPendenteEm).toLocaleDateString())}
+                </p>
+              )}
+            </div>
           </div>
         )}
       </div>
+
+      {showMfaEnroll && (
+        <MfaEnrollModal onClose={() => setShowMfaEnroll(false)} onEnrolled={handleMfaEnrolled} />
+      )}
+
+      {showDisableMfaConfirm && (
+        <ConfirmDialog
+          title={tMfa.disableConfirmTitle}
+          message={tMfa.disableConfirm}
+          confirmLabel={tMfa.disableConfirmAction}
+          cancelLabel={tMfa.cancelButton}
+          onConfirm={handleDisableMfa}
+          onClose={() => setShowDisableMfaConfirm(false)}
+        />
+      )}
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          title={t.deleteConfirmTitle}
+          message={t.deleteConfirm}
+          confirmLabel={t.deleteConfirmAction}
+          cancelLabel={t.deleteCancelAction}
+          onConfirm={handleSolicitarExclusao}
+          onClose={() => setShowDeleteConfirm(false)}
+        />
+      )}
 
       {/* Toast */}
       <div

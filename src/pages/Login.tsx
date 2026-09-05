@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useT } from '@/i18n/useLang'
@@ -9,8 +9,10 @@ import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 
 export default function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const t = useT(loginT)
   const { config } = usePlataformaConfig()
+  const passwordChanged = Boolean((location.state as { passwordChanged?: boolean } | null)?.passwordChanged)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -88,11 +90,21 @@ export default function Login() {
             </div>
           </div>
 
-          {error && <p className="text-[12.5px] text-accent font-medium">{error}</p>}
+          {passwordChanged && !error && (
+            <p className="text-[12.5px] text-c-text-2 font-medium">{t.passwordChanged}</p>
+          )}
+          {error && <p className="text-[12.5px] text-error font-medium">{error}</p>}
 
           <Button variant="primary" type="submit" className="w-full mt-1 justify-center" disabled={loading}>
             {loading ? t.entering : t.enter}
           </Button>
+
+          <Link
+            to="/esqueci-senha"
+            className="text-[12.5px] text-c-text-2 hover:text-accent transition-colors text-center mt-0.5"
+          >
+            {t.forgotPassword}
+          </Link>
         </form>
       </div>
 

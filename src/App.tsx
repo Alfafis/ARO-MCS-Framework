@@ -13,6 +13,9 @@ import './index.css'
 
 const Landing = lazy(() => import('./pages/Landing'))
 const Login = lazy(() => import('./pages/Login'))
+const EsqueciSenha = lazy(() => import('./pages/EsqueciSenha'))
+const RedefinirSenha = lazy(() => import('./pages/RedefinirSenha'))
+const VerificarCodigo = lazy(() => import('./pages/VerificarCodigo'))
 const ResumoExecutivo = lazy(() => import('./pages/ResumoExecutivo'))
 const Categorias = lazy(() => import('./pages/Categorias'))
 const Simulacao = lazy(() => import('./pages/Simulacao'))
@@ -50,11 +53,11 @@ function useMediaQuery(query: string): boolean {
 }
 
 function ProtectedLayout({
-  isLoggedIn,
+  authStatus,
   onLogout,
   children,
 }: {
-  isLoggedIn: boolean
+  authStatus: AuthStatus
   onLogout: () => void
   children: ReactNode
 }) {
@@ -64,7 +67,8 @@ function ProtectedLayout({
   const isTablet = useMediaQuery('(min-width: 768px) and (max-width: 1023px)')
   const { config } = usePlataformaConfig()
 
-  if (!isLoggedIn) return <Navigate to="/login" replace />
+  if (authStatus === 'mfa_required') return <Navigate to="/verificar-codigo" replace />
+  if (authStatus !== 'authenticated') return <Navigate to="/login" replace />
 
   if (isMobile) {
     return (
@@ -122,19 +126,28 @@ function ProtectedLayout({
   )
 }
 
-type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated'
+type AuthStatus = 'loading' | 'authenticated' | 'mfa_required' | 'unauthenticated'
+
+// Sessão existir não basta: um fator TOTP verificado exige currentLevel==='aal2' antes de liberar
+// rotas protegidas, senão 2FA vira decorativo (senha sozinha já dá acesso total). Ver ADR.
+async function resolveAuthStatus(hasSession: boolean): Promise<AuthStatus> {
+  if (!hasSession) return 'unauthenticated'
+  const { data } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+  if (data && data.nextLevel === 'aal2' && data.currentLevel !== 'aal2') return 'mfa_required'
+  return 'authenticated'
+}
 
 export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setAuthStatus(session ? 'authenticated' : 'unauthenticated')
+      resolveAuthStatus(Boolean(session)).then(setAuthStatus)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setAuthStatus(session ? 'authenticated' : 'unauthenticated')
+      resolveAuthStatus(Boolean(session)).then(setAuthStatus)
     })
     return () => subscription.unsubscribe()
   }, [])
@@ -146,6 +159,10 @@ export default function App() {
   if (authStatus === 'loading') return <SplashScreen />
 
   const isLoggedIn = authStatus === 'authenticated'
+  // Alvo de redirect pra quem já passou da tela de login (senha ok ou totalmente autenticado) —
+  // usado pelas rotas "só deslogado" abaixo. null = deixa a rota pública renderizar normal.
+  const publicOnlyRedirect =
+    authStatus === 'authenticated' ? '/visao-geral' : authStatus === 'mfa_required' ? '/verificar-codigo' : null
 
   return (
     <LangProvider>
@@ -158,8 +175,8 @@ export default function App() {
               <Route
                 path="/"
                 element={
-                  isLoggedIn ? (
-                    <Navigate to="/visao-geral" replace />
+                  publicOnlyRedirect ? (
+                    <Navigate to={publicOnlyRedirect} replace />
                   ) : (
                     <Suspense fallback={<SplashScreen />}>
                       <Landing />
@@ -170,11 +187,48 @@ export default function App() {
               <Route
                 path="/login"
                 element={
-                  isLoggedIn ? (
-                    <Navigate to="/visao-geral" replace />
+                  publicOnlyRedirect ? (
+                    <Navigate to={publicOnlyRedirect} replace />
                   ) : (
                     <Suspense fallback={<SplashScreen />}>
                       <Login />
+                    </Suspense>
+                  )
+                }
+              />
+              <Route
+                path="/esqueci-senha"
+                element={
+                  publicOnlyRedirect ? (
+                    <Navigate to={publicOnlyRedirect} replace />
+                  ) : (
+                    <Suspense fallback={<SplashScreen />}>
+                      <EsqueciSenha />
+                    </Suspense>
+                  )
+                }
+              />
+              {/* Sem gate de isLoggedIn de propósito: o link de recuperação do Supabase cria uma
+                  sessão temporária ao carregar, o que faria o gate acima expulsar o usuário pra
+                  /visao-geral antes de ele conseguir trocar a senha. */}
+              <Route
+                path="/redefinir-senha"
+                element={
+                  <Suspense fallback={<SplashScreen />}>
+                    <RedefinirSenha />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/verificar-codigo"
+                element={
+                  authStatus === 'unauthenticated' ? (
+                    <Navigate to="/login" replace />
+                  ) : authStatus === 'authenticated' ? (
+                    <Navigate to="/visao-geral" replace />
+                  ) : (
+                    <Suspense fallback={<SplashScreen />}>
+                      <VerificarCodigo />
                     </Suspense>
                   )
                 }
@@ -184,7 +238,7 @@ export default function App() {
               <Route
                 path="/visao-geral"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <VisaoGeral />
                   </ProtectedLayout>
                 }
@@ -192,7 +246,7 @@ export default function App() {
               <Route
                 path="/projetos"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <Projetos />
                   </ProtectedLayout>
                 }
@@ -200,7 +254,7 @@ export default function App() {
               <Route
                 path="/projetos/novo"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ProjetoNovo />
                   </ProtectedLayout>
                 }
@@ -208,7 +262,7 @@ export default function App() {
               <Route
                 path="/projetos/:projetoId/config-inicial"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ProjetoConfigInicial />
                   </ProtectedLayout>
                 }
@@ -216,7 +270,7 @@ export default function App() {
               <Route
                 path="/projetos/:projetoId"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ProjetoWorkspace />
                   </ProtectedLayout>
                 }
@@ -233,7 +287,7 @@ export default function App() {
               <Route
                 path="/perfil"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <Perfil />
                   </ProtectedLayout>
                 }
@@ -241,7 +295,7 @@ export default function App() {
               <Route
                 path="/tipos-projeto"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <TiposProjeto />
                   </ProtectedLayout>
                 }
@@ -249,7 +303,7 @@ export default function App() {
               <Route
                 path="/categorias-custo"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <CategoriasCusto />
                   </ProtectedLayout>
                 }
@@ -257,7 +311,7 @@ export default function App() {
               <Route
                 path="/parametros-globais"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ParametrosGlobais />
                   </ProtectedLayout>
                 }
@@ -265,7 +319,7 @@ export default function App() {
               <Route
                 path="/setores"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <Setores />
                   </ProtectedLayout>
                 }
@@ -273,7 +327,7 @@ export default function App() {
               <Route
                 path="/remediacao-padrao"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <RemediacaoPadrao />
                   </ProtectedLayout>
                 }
@@ -281,7 +335,7 @@ export default function App() {
               <Route
                 path="/auditoria"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <Auditoria />
                   </ProtectedLayout>
                 }
@@ -289,7 +343,7 @@ export default function App() {
               <Route
                 path="/plataforma"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ConfiguracoesPlataforma />
                   </ProtectedLayout>
                 }
@@ -297,7 +351,7 @@ export default function App() {
               <Route
                 path="/clientes"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <Clientes />
                   </ProtectedLayout>
                 }
@@ -305,7 +359,7 @@ export default function App() {
               <Route
                 path="/clientes/:clienteId"
                 element={
-                  <ProtectedLayout isLoggedIn={isLoggedIn} onLogout={handleLogout}>
+                  <ProtectedLayout authStatus={authStatus} onLogout={handleLogout}>
                     <ClienteProjetos />
                   </ProtectedLayout>
                 }
