@@ -195,6 +195,16 @@ export default function Perfil() {
       setTelefone('')
       setPerfil((p) => (p ? { ...p, nome: null, profissao: null, telefone: null, foto_url: null } : p))
       showToast(t.deleteRequestedToast)
+
+      // Confirmação por e-mail é best-effort — a solicitação já foi registrada no
+      // banco acima; falha no envio não pode reverter isso nem mostrar erro.
+      if (email) {
+        supabase.functions
+          .invoke('send-transactional-email', {
+            body: { to: email, template: 'exclusao_solicitada', data: {} },
+          })
+          .catch(() => {})
+      }
     } catch {
       showToast(t.deleteErrorToast)
     } finally {

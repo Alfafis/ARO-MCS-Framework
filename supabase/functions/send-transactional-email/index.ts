@@ -19,7 +19,7 @@ const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
 const FROM_ADDRESS = 'Be Planned <contato@beplanned.com.br>'
 const SITE_URL = 'https://beplanned.com.br'
 
-type TemplateName = 'projeto_enviado' | 'revisao_publicada'
+type TemplateName = 'projeto_enviado' | 'revisao_publicada' | 'exclusao_solicitada'
 
 interface RequestPayload {
   to: string
@@ -112,17 +112,34 @@ function renderTemplate(template: TemplateName, data: Record<string, string>): {
     return { subject, html }
   }
 
-  // revisao_publicada
-  const subject = `Nova revisão disponível — ${projectName}`
+  if (template === 'revisao_publicada') {
+    const subject = `Nova revisão disponível — ${projectName}`
+    const html = emailShell(
+      subject,
+      [
+        heading('Nova revisão publicada'),
+        paragraph(
+          `Olá${clientName ? `, ${clientName}` : ''}. Uma nova revisão${data.revisionCode ? ` (${data.revisionCode})` : ''} do projeto <strong>${projectName}</strong> foi publicada.`
+        ),
+        button('Ver relatório atualizado', portalUrl),
+        paragraph('Use o mesmo código de acesso que você já tem — ele não muda entre revisões.'),
+      ].join('\n')
+    )
+    return { subject, html }
+  }
+
+  // exclusao_solicitada
+  const subject = 'Solicitação de exclusão recebida — Be Planned'
   const html = emailShell(
     subject,
     [
-      heading('Nova revisão publicada'),
+      heading('Recebemos sua solicitação'),
       paragraph(
-        `Olá${clientName ? `, ${clientName}` : ''}. Uma nova revisão${data.revisionCode ? ` (${data.revisionCode})` : ''} do projeto <strong>${projectName}</strong> foi publicada.`
+        'Confirmamos o pedido de exclusão da sua conta Be Planned. Seus dados de perfil (nome, ' +
+          'profissão, telefone, foto) já foram removidos agora — o e-mail e o histórico de ' +
+          'auditoria ficam retidos até a solicitação ser processada, conforme LGPD art. 16.'
       ),
-      button('Ver relatório atualizado', portalUrl),
-      paragraph('Use o mesmo código de acesso que você já tem — ele não muda entre revisões.'),
+      paragraph('Nossa equipe processa o pedido manualmente. Se não foi você quem solicitou, entre em contato o quanto antes.'),
     ].join('\n')
   )
   return { subject, html }
