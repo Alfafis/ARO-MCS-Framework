@@ -13,10 +13,10 @@ const buttonVariants = cva(
           'bg-c-card text-c-text rounded-full px-5 py-[11px] text-[13.5px] whitespace-nowrap flex-none shadow-[0_1px_3px_rgba(20,21,26,.08)] hover:shadow-[0_4px_12px_rgba(20,21,26,.14)] hover:-translate-y-px transition-[box-shadow,transform] duration-[220ms]',
         icon: 'w-7 h-7 rounded-md text-c-text-2 hover:bg-c-surface-2-hover font-medium',
         'icon-btn': 'w-7 h-7 rounded-md text-c-text-2 hover:bg-c-surface-2-hover font-medium',
-        'icon-danger': 'w-7 h-7 rounded-md text-accent-700 hover:bg-accent-100 font-medium',
+        'icon-danger': 'w-7 h-7 rounded-md text-error hover:bg-error/10 font-medium',
         menu: 'w-full px-[10px] py-2 text-[13px] font-medium text-c-text rounded-[8px] hover:bg-c-surface-2-hover justify-start',
         'menu-danger':
-          'w-full px-[10px] py-2 text-[13px] font-medium text-accent-700 rounded-[8px] hover:bg-accent-100 justify-start',
+          'w-full px-[10px] py-2 text-[13px] font-medium text-error rounded-[8px] hover:bg-error/10 justify-start',
         link: 'text-accent text-[13px] underline-offset-4 hover:underline font-medium',
       },
     },
