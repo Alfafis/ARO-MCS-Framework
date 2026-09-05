@@ -1185,6 +1185,7 @@ export type Database = {
           papel: string
           profissao: string | null
           telefone: string | null
+          tema: string
         }
         SetofOptions: {
           from: "*"
@@ -1193,6 +1194,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      atualizar_meu_tema: { Args: { p_tema: string }; Returns: undefined }
       atualizar_parametro_anual: {
         Args: {
           p_ano: number

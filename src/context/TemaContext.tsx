@@ -101,7 +101,13 @@ export function TemaProvider({ children }: { children: ReactNode }) {
       data: { session },
     } = await supabase.auth.getSession()
     if (session) {
-      await supabase.from('perfis').update({ tema: novo }).eq('id', session.user.id)
+      // RPC, não .from().update() direto — `perfis` só tem policy de SELECT
+      // (perfis_select_own), sem UPDATE nenhuma. Update direto retorna 204
+      // "sucesso" sem afetar linha nenhuma (RLS default-deny filtrando em
+      // silêncio), nunca persistindo o tema de fato. Ver migration
+      // 20260904180000_atualizar_meu_tema_rpc.sql.
+      const { error } = await supabase.rpc('atualizar_meu_tema', { p_tema: novo })
+      if (error) console.error('Falha ao salvar tema:', error)
     }
   }
 
