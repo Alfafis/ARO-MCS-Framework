@@ -71,10 +71,5 @@ $function$;
 revoke execute on function public.create_cliente(text) from public, anon;
 grant execute on function public.create_cliente(text) to authenticated;
 
--- ----------------------------------------------------------------------------
--- Seed — os mesmos 5 clientes demo que só existiam no mock
--- ----------------------------------------------------------------------------
-
-insert into public.clientes (nome) values
-  ('NX Gold'), ('Ferro Linhares'), ('Cobre Brasil'), ('Minérios do Sul'), ('Aço Zafira')
-on conflict (lower(nome)) do nothing;
+-- Seed de clientes demo movido pra supabase/seed.sql (2026-09-04) — só roda em
+-- `db reset` local, nunca em `db push`/produção. Ver _ADRs.md do vault.

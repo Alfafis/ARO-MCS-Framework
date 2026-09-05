@@ -81,22 +81,5 @@ $function$;
 revoke execute on function public.concluir_projeto(uuid) from public, anon;
 grant execute on function public.concluir_projeto(uuid) to authenticated;
 
--- ----------------------------------------------------------------------------
--- Seed — os 4 projetos demo que só existiam no mock (SEED_OUTROS em
--- ProjetoContext.tsx), ligados aos clientes reais pelo nome. NX Gold (o 5º
--- projeto demo) tinha categorias/itens_custo pré-populados só no mock —
--- não replicado aqui: nasce em branco como qualquer projeto novo.
--- ----------------------------------------------------------------------------
-
-insert into public.projetos (cliente_id, tipo_projeto_id, nome, status, rev, data_base)
-select c.id, 'outro', p.nome, p.status, p.rev, '2023'
-from (values
-  ('Ferro Linhares',  'Encerramento de Lavra — Cava Norte', 'aguardando', 'Rev1'),
-  ('Cobre Brasil',    'Descomissionamento de Barragem',     'andamento',  'Rev2'),
-  ('Minérios do Sul', 'Reabilitação de Área Degradada',     'concluido',  'Rev3'),
-  ('Aço Zafira',      'Fechamento de Pátio de Estéril',     'andamento',  'Rev0')
-) as p(cliente_nome, nome, status, rev)
-join public.clientes c on c.nome = p.cliente_nome
-where not exists (
-  select 1 from public.projetos existing where existing.nome = p.nome
-);
+-- Seed de projetos demo movido pra supabase/seed.sql (2026-09-04) — só roda em
+-- `db reset` local, nunca em `db push`/produção. Ver _ADRs.md do vault.
