@@ -76,6 +76,7 @@ interface LandingT {
 
   ctaFinalTitulo: string
   ctaFinalSub: string
+  ctaFinalCta: string
 
   footTexto: string
 }
@@ -90,10 +91,10 @@ export const landingT: Record<Lang, LandingT> = {
     themeTitleDark: 'Ativar tema claro',
     langFull: 'Português (Brasil)',
 
-    heroTag: 'Provisionamento de fechamento de mina',
-    heroTitulo: 'Sua provisão de fechamento, fora da planilha.',
+    heroTag: 'Provisionamento de passivos ambientais',
+    heroTitulo: 'Seu passivo ambiental, fora da planilha.',
     heroParagrafo:
-      'A Be Planned reúne o levantamento de custos de desmobilização, o provisionamento financeiro e o relatório que sua auditoria vai pedir. Cada revisão fica registrada, datada e rastreável — sem versões circulando por e-mail.',
+      'A Be Planned reúne o levantamento de passivos ambientais, o provisionamento financeiro e o relatório que sua auditoria vai pedir — de fechamento de mina a qualquer obrigação de encerramento ou recuperação ambiental. Cada revisão fica registrada, datada e rastreável — sem versões circulando por e-mail.',
     heroCheck1: 'Faixa de incerteza explicitada, não um número solto',
     heroCheck2: 'Cada revisão publicada como versão fechada e rastreável',
     heroCheck3: 'Relatório do cliente pronto para entregar, sem anexos',
@@ -127,7 +128,7 @@ export const landingT: Record<Lang, LandingT> = {
     secFuncoesKicker: 'CINCO FUNÇÕES, UM FLUXO',
     func1Titulo: 'Cadastro de custos por categoria',
     func1Desc:
-      'Cada item de desmobilização entra com sua faixa de custo, unidade e a fonte de referência que a sustenta. As categorias acompanham a estrutura da operação, e cada linha registra quem a preencheu.',
+      'Cada item de passivo entra com sua faixa de custo, unidade e a fonte de referência que a sustenta. As categorias acompanham a estrutura da operação, e cada linha registra quem a preencheu.',
     func2Titulo: 'Provisão com faixa de incerteza',
     func2Desc:
       'O valor esperado vem acompanhado da faixa em que pode variar e do nível de confiança associado. Em vez de um número solto, a diretoria recebe um intervalo defensável — e sabe quais categorias mais pesam nessa incerteza.',
@@ -136,13 +137,13 @@ export const landingT: Record<Lang, LandingT> = {
       'A provisão aparece na data-base do estudo e atualizada para o exercício corrente, com os principais métodos de correção lado a lado. Você escolhe a premissa; o relatório registra a escolha.',
     func4Titulo: 'Realizado contra planejado',
     func4Desc:
-      'Conforme o fechamento avança, os custos executados são lançados com comprovante e comparados ao que havia sido provisionado. O desvio aparece no ano em que aconteceu, por categoria.',
+      'Conforme o projeto avança, os custos executados são lançados com comprovante e comparados ao que havia sido provisionado. O desvio aparece no ano em que aconteceu, por categoria.',
     func5Titulo: 'Revisões com trilha de auditoria',
     func5Desc:
       'Cada revisão é publicada como uma versão fechada: o que mudou, quando, e um registro de integridade que comprova depois que o documento não foi alterado. A revisão anterior continua consultável.',
     conviteTitulo: 'Do levantamento ao balanço',
     conviteDesc: 'Um único fluxo, de ponta a ponta, sem exportar para outra ferramenta no meio do caminho.',
-    conviteCta: 'Ver o fluxo completo',
+    conviteCta: 'Começar agora',
 
     entregTag: 'Entregável',
     entregTitulo: 'Um relatório que se entrega sem anexos',
@@ -152,10 +153,10 @@ export const landingT: Record<Lang, LandingT> = {
     entregCheck2: 'Desembolso projetado ano a ano',
     entregCheck3: 'Revisão vigente e data-base identificadas',
 
-    quem1Titulo: 'Consultoria de fechamento',
+    quem1Titulo: 'Consultoria ambiental',
     quem1Desc:
       'Monta o levantamento, controla as revisões e emite o relatório de cada cliente a partir de uma base única — sem reconstruir a planilha a cada ciclo.',
-    quem2Titulo: 'Operação de mineração',
+    quem2Titulo: 'Empresas com passivo ambiental',
     quem2Desc:
       'Recebe a provisão que precisa levar ao balanço, com a faixa de incerteza explicitada e o histórico de como o número evoluiu entre exercícios.',
     quem3Titulo: 'Auditoria e controladoria',
@@ -166,11 +167,12 @@ export const landingT: Record<Lang, LandingT> = {
       'Antes, defender a provisão em auditoria era uma arqueologia de planilhas. Hoje é abrir a revisão vigente.',
     depAuthor: 'Controladoria — cliente Be Planned',
 
-    ctaFinalTitulo: 'Sua provisão de fechamento merece mais que uma aba.',
+    ctaFinalTitulo: 'Seu passivo ambiental merece mais que uma aba.',
     ctaFinalSub:
       'Um único fluxo, de ponta a ponta, com cada revisão publicada como versão fechada e a trilha de alterações preservada.',
+    ctaFinalCta: 'Começar agora',
 
-    footTexto: 'Be Planned — provisionamento financeiro.',
+    footTexto: 'Be Planned — inteligência econômica para passivos ambientais.',
   },
 
   en: {
@@ -182,10 +184,10 @@ export const landingT: Record<Lang, LandingT> = {
     themeTitleDark: 'Switch to light theme',
     langFull: 'English',
 
-    heroTag: 'Mine closure provisioning',
-    heroTitulo: 'Your closure provision, out of the spreadsheet.',
+    heroTag: 'Environmental liability provisioning',
+    heroTitulo: 'Your environmental liability, out of the spreadsheet.',
     heroParagrafo:
-      'Be Planned brings together demobilization cost estimation, financial provisioning and the report your auditor will ask for. Every revision is recorded, dated and traceable — no versions circulating over e-mail.',
+      'Be Planned brings together environmental liability estimation, financial provisioning and the report your auditor will ask for — from mine closure to any decommissioning or remediation obligation. Every revision is recorded, dated and traceable — no versions circulating over e-mail.',
     heroCheck1: 'Uncertainty range made explicit, not a lone number',
     heroCheck2: 'Each revision published as a closed, traceable version',
     heroCheck3: 'Client report ready to hand over, no attachments',
@@ -219,7 +221,7 @@ export const landingT: Record<Lang, LandingT> = {
     secFuncoesKicker: 'FIVE FUNCTIONS, ONE FLOW',
     func1Titulo: 'Cost registration by category',
     func1Desc:
-      'Each demobilization item is entered with its cost range, unit and the reference source that supports it. Categories follow the operation structure, and every line records who filled it in.',
+      'Each liability item is entered with its cost range, unit and the reference source that supports it. Categories follow the operation structure, and every line records who filled it in.',
     func2Titulo: 'Provision with an uncertainty range',
     func2Desc:
       'The expected value comes with the range it may vary within and the associated confidence level. Instead of a lone number, the board receives a defensible interval — and knows which categories weigh most on that uncertainty.',
@@ -228,13 +230,13 @@ export const landingT: Record<Lang, LandingT> = {
       'The provision appears at the study base date and updated to the current fiscal year, with the main correction methods side by side. You choose the premise; the report records the choice.',
     func4Titulo: 'Actual versus planned',
     func4Desc:
-      'As closure progresses, executed costs are recorded with supporting evidence and compared to what had been provisioned. The variance shows up in the year it happened, by category.',
+      'As the project progresses, executed costs are recorded with supporting evidence and compared to what had been provisioned. The variance shows up in the year it happened, by category.',
     func5Titulo: 'Revisions with an audit trail',
     func5Desc:
       'Each revision is published as a closed version: what changed, when, and an integrity record that later proves the document was not altered. The previous revision remains consultable.',
     conviteTitulo: 'From estimation to the balance sheet',
     conviteDesc: 'A single flow, end to end, without exporting to another tool along the way.',
-    conviteCta: 'See the full flow',
+    conviteCta: 'Get started',
 
     entregTag: 'Deliverable',
     entregTitulo: 'A report that ships without attachments',
@@ -244,10 +246,10 @@ export const landingT: Record<Lang, LandingT> = {
     entregCheck2: 'Projected disbursement year by year',
     entregCheck3: 'Current revision and base date identified',
 
-    quem1Titulo: 'Closure consultancy',
+    quem1Titulo: 'Environmental consultancy',
     quem1Desc:
       'Builds the estimate, controls revisions and issues each client report from a single base — without rebuilding the spreadsheet every cycle.',
-    quem2Titulo: 'Mining operation',
+    quem2Titulo: 'Companies with environmental liability',
     quem2Desc:
       'Receives the provision to book on the balance sheet, with the uncertainty range made explicit and the history of how the number evolved between fiscal years.',
     quem3Titulo: 'Audit and controlling',
@@ -258,11 +260,12 @@ export const landingT: Record<Lang, LandingT> = {
       'Before, defending the provision in an audit was spreadsheet archaeology. Today it is opening the current revision.',
     depAuthor: 'Controlling — Be Planned client',
 
-    ctaFinalTitulo: 'Your closure provision deserves more than a tab.',
+    ctaFinalTitulo: 'Your environmental liability deserves more than a tab.',
     ctaFinalSub:
       'A single flow, end to end, with each revision published as a closed version and the change trail preserved.',
+    ctaFinalCta: 'Get started',
 
-    footTexto: 'Be Planned — financial provisioning.',
+    footTexto: 'Be Planned — economic intelligence for environmental liabilities.',
   },
 
   es: {
@@ -274,10 +277,10 @@ export const landingT: Record<Lang, LandingT> = {
     themeTitleDark: 'Activar tema claro',
     langFull: 'Español',
 
-    heroTag: 'Aprovisionamiento de cierre de mina',
-    heroTitulo: 'Tu aprovisionamiento de cierre, fuera de la planilla.',
+    heroTag: 'Aprovisionamiento de pasivos ambientales',
+    heroTitulo: 'Tu pasivo ambiental, fuera de la planilla.',
     heroParagrafo:
-      'Be Planned reúne el levantamiento de costos de desmovilización, el aprovisionamiento financiero y el informe que tu auditoría va a pedir. Cada revisión queda registrada, fechada y trazable — sin versiones circulando por correo.',
+      'Be Planned reúne el levantamiento de pasivos ambientales, el aprovisionamiento financiero y el informe que tu auditoría va a pedir — desde el cierre de mina hasta cualquier obligación de desmantelamiento o remediación ambiental. Cada revisión queda registrada, fechada y trazable — sin versiones circulando por correo.',
     heroCheck1: 'Rango de incertidumbre explícito, no un número suelto',
     heroCheck2: 'Cada revisión publicada como versión cerrada y trazable',
     heroCheck3: 'Informe del cliente listo para entregar, sin anexos',
@@ -311,7 +314,7 @@ export const landingT: Record<Lang, LandingT> = {
     secFuncoesKicker: 'CINCO FUNCIONES, UN FLUJO',
     func1Titulo: 'Registro de costos por categoría',
     func1Desc:
-      'Cada ítem de desmovilización entra con su rango de costo, unidad y la fuente de referencia que lo respalda. Las categorías acompañan la estructura de la operación, y cada línea registra quién la completó.',
+      'Cada ítem de pasivo entra con su rango de costo, unidad y la fuente de referencia que lo respalda. Las categorías acompañan la estructura de la operación, y cada línea registra quién la completó.',
     func2Titulo: 'Aprovisionamiento con rango de incertidumbre',
     func2Desc:
       'El valor esperado viene acompañado del rango en el que puede variar y del nivel de confianza asociado. En lugar de un número suelto, la dirección recibe un intervalo defendible — y sabe qué categorías pesan más en esa incertidumbre.',
@@ -320,13 +323,13 @@ export const landingT: Record<Lang, LandingT> = {
       'El aprovisionamiento aparece en la fecha base del estudio y actualizado al ejercicio corriente, con los principales métodos de corrección lado a lado. Eliges la premisa; el informe registra la elección.',
     func4Titulo: 'Realizado contra planeado',
     func4Desc:
-      'A medida que el cierre avanza, los costos ejecutados se registran con comprobante y se comparan con lo que se había aprovisionado. El desvío aparece en el año en que sucedió, por categoría.',
+      'A medida que el proyecto avanza, los costos ejecutados se registran con comprobante y se comparan con lo que se había aprovisionado. El desvío aparece en el año en que sucedió, por categoría.',
     func5Titulo: 'Revisiones con pista de auditoría',
     func5Desc:
       'Cada revisión se publica como una versión cerrada: qué cambió, cuándo, y un registro de integridad que comprueba después que el documento no fue alterado. La revisión anterior sigue consultable.',
     conviteTitulo: 'Del levantamiento al balance',
     conviteDesc: 'Un único flujo, de punta a punta, sin exportar a otra herramienta en el camino.',
-    conviteCta: 'Ver el flujo completo',
+    conviteCta: 'Comenzar ahora',
 
     entregTag: 'Entregable',
     entregTitulo: 'Un informe que se entrega sin anexos',
@@ -336,10 +339,10 @@ export const landingT: Record<Lang, LandingT> = {
     entregCheck2: 'Desembolso proyectado año a año',
     entregCheck3: 'Revisión vigente y fecha base identificadas',
 
-    quem1Titulo: 'Consultoría de cierre',
+    quem1Titulo: 'Consultoría ambiental',
     quem1Desc:
       'Arma el levantamiento, controla las revisiones y emite el informe de cada cliente desde una base única — sin reconstruir la planilla cada ciclo.',
-    quem2Titulo: 'Operación de minería',
+    quem2Titulo: 'Empresas con pasivo ambiental',
     quem2Desc:
       'Recibe el aprovisionamiento que necesita llevar al balance, con el rango de incertidumbre explícito y el histórico de cómo evolucionó el número entre ejercicios.',
     quem3Titulo: 'Auditoría y controlling',
@@ -350,10 +353,11 @@ export const landingT: Record<Lang, LandingT> = {
       'Antes, defender el aprovisionamiento en auditoría era una arqueología de planillas. Hoy es abrir la revisión vigente.',
     depAuthor: 'Controlling — cliente Be Planned',
 
-    ctaFinalTitulo: 'Tu aprovisionamiento de cierre merece más que una pestaña.',
+    ctaFinalTitulo: 'Tu pasivo ambiental merece más que una pestaña.',
     ctaFinalSub:
       'Un único flujo, de punta a punta, con cada revisión publicada como versión cerrada y la pista de cambios preservada.',
+    ctaFinalCta: 'Comenzar ahora',
 
-    footTexto: 'Be Planned — aprovisionamiento financiero.',
+    footTexto: 'Be Planned — inteligencia económica para pasivos ambientales.',
   },
 }

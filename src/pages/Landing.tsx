@@ -489,6 +489,14 @@ export default function Landing() {
               {t.ctaFinalSub}
             </p>
           </div>
+
+          <Link
+            to="/login"
+            className="h-[44px] px-[22px] flex items-center rounded-full bg-white no-underline shrink-0 text-[14px] font-bold"
+            style={{ color: 'var(--accent)', transition: 'transform 220ms ease, box-shadow 220ms ease' }}
+          >
+            {t.ctaFinalCta}
+          </Link>
         </section>
 
         {/* ── 12. Rodapé ────────────────────────────────────────── */}
