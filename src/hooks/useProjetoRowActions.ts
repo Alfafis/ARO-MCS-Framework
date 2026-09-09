@@ -3,10 +3,18 @@ import { useNavigate } from 'react-router-dom'
 import { useProjeto } from '@/context/useProjeto'
 import type { Projeto } from '@/types/clientes'
 
-export type ProjetoRowAction = 'concluir' | 'arquivar' | 'categorias' | 'relatorio' | 'gerar-link' | 'gerar-codigo'
+export type ProjetoRowAction =
+  | 'concluir'
+  | 'arquivar'
+  | 'excluir'
+  | 'categorias'
+  | 'relatorio'
+  | 'gerar-link'
+  | 'gerar-codigo'
 
 // Compartilhado entre ClienteProjetos e Projetos (lista global) — mesma lógica de
-// ação em linha de projeto, pra não divergir entre as duas telas.
+// ação em linha de projeto, pra não divergir entre as duas telas. 'excluir' é
+// tratado pela página (confirm dialog + toast), este hook ignora.
 export function useProjetoRowActions(rows: Projeto[]) {
   const navigate = useNavigate()
   const { arquivarProjeto, concluirProjeto } = useProjeto()
@@ -29,9 +37,10 @@ export function useProjetoRowActions(rows: Projeto[]) {
         navigate(`/projetos/${id}/categorias`)
       } else if (action === 'arquivar') {
         arquivarProjeto(id)
-      } else {
+      } else if (action === 'concluir') {
         concluirProjeto(id)
       }
+      // 'excluir' cai fora — página trata (confirm dialog + toast)
     },
     [navigate, rows, arquivarProjeto, concluirProjeto]
   )

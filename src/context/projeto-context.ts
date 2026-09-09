@@ -153,6 +153,7 @@ export interface ProjetoContextValue {
   carregarTemplateExemplo: (projetoId: string, tipoProjetoId: string) => Promise<void>
   arquivarProjeto: (id: string) => Promise<void>
   concluirProjeto: (id: string) => Promise<void>
+  removerProjeto: (id: string) => Promise<void>
   atualizarConfigFinanceira: (projetoId: string, form: ConfigFinanceiraForm) => Promise<void>
   addCategoria: (projetoId: string) => Promise<void>
   removeCategoria: (projetoId: string, catId: string) => Promise<void>

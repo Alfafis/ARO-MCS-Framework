@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Check, Search } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import CustomSelect from '@/components/categorias/CustomSelect'
 import { useT } from '@/i18n/useLang'
@@ -25,7 +26,7 @@ function initials(name: string): string {
 export default function Projetos() {
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos, tiposProjeto, loading } = useProjeto()
+  const { clientes, projetos, tiposProjeto, loading, removerProjeto } = useProjeto()
   const { handleAction: sharedHandleAction, linkCopied, codeModalFor, setCodeModalFor } = useProjetoRowActions(projetos)
 
   const FILTER_OPTS: { value: FilterTab; label: string }[] = [
@@ -49,7 +50,14 @@ export default function Projetos() {
   const [tipoFilter, setTipoFilter] = useState('all')
   const [openFilter, setOpenFilter] = useState<'cliente' | 'tipo' | null>(null)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
   const filtersRef = useRef<HTMLDivElement>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2800)
+  }
 
   useEffect(() => {
     function onMouseDown(e: MouseEvent) {
@@ -76,8 +84,30 @@ export default function Projetos() {
 
   const handleAction = (id: string, action: Parameters<typeof sharedHandleAction>[1]) => {
     setOpenMenu(null)
+    if (action === 'excluir') {
+      setConfirmingDelete(id)
+      return
+    }
     sharedHandleAction(id, action)
   }
+
+  const projetoToDelete = confirmingDelete ? projetos.find((p) => p.id === confirmingDelete) : null
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!confirmingDelete) return
+    const id = confirmingDelete
+    setConfirmingDelete(null)
+    try {
+      await removerProjeto(id)
+      showToast(t.deleteProjectSuccess)
+    } catch (err) {
+      const msg =
+        err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P0001'
+          ? ((err as { message?: string }).message ?? t.deleteProjectErrorGeneric)
+          : t.deleteProjectErrorGeneric
+      showToast(msg)
+    }
+  }, [confirmingDelete, removerProjeto, t])
 
   return (
     <div className="flex flex-col h-full">
@@ -200,6 +230,17 @@ export default function Projetos() {
         />
       )}
 
+      {projetoToDelete && (
+        <ConfirmDialog
+          title={t.deleteProjectTitle}
+          message={t.deleteProjectMessage(projetoToDelete.projeto)}
+          confirmLabel={t.deleteProjectConfirm}
+          cancelLabel={t.deleteProjectCancel}
+          onConfirm={handleConfirmDelete}
+          onClose={() => setConfirmingDelete(null)}
+        />
+      )}
+
       <div
         style={{
           position: 'fixed',
@@ -214,14 +255,15 @@ export default function Projetos() {
           fontWeight: 500,
           padding: '8px 14px',
           borderRadius: 10,
-          opacity: linkCopied ? 1 : 0,
-          transform: linkCopied ? 'translateY(0)' : 'translateY(6px)',
+          opacity: toast || linkCopied ? 1 : 0,
+          transform: toast || linkCopied ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
+          maxWidth: 'calc(100vw - 48px)',
         }}
       >
         <Check size={13} />
-        {t.linkCopied}
+        {toast ?? t.linkCopied}
       </div>
     </div>
   )

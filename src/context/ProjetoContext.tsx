@@ -436,6 +436,12 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     setProjetos((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'concluido' } : p)))
   }, [])
 
+  const removerProjeto = useCallback(async (id: string) => {
+    const { error } = await supabase.rpc('remover_projeto', { p_id: id })
+    if (error) throw error
+    setProjetos((prev) => prev.filter((p) => p.id !== id))
+  }, [])
+
   const atualizarConfigFinanceira = useCallback(async (projetoId: string, form: ConfigFinanceiraForm) => {
     const { data, error } = await supabase.rpc('atualizar_config_financeira', {
       p_projeto_id: projetoId,
@@ -1372,6 +1378,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         carregarTemplateExemplo,
         arquivarProjeto,
         concluirProjeto,
+        removerProjeto,
         atualizarConfigFinanceira,
         addCategoria,
         removeCategoria,

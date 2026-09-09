@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { Check, Search } from 'lucide-react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import PageHeader from '@/components/layout/PageHeader'
 import { useT } from '@/i18n/useLang'
 import { clientesT } from '@/i18n/clientes'
@@ -25,7 +26,7 @@ export default function ClienteProjetos() {
   const { clienteId = '' } = useParams<{ clienteId: string }>()
   const navigate = useNavigate()
   const t = useT(clientesT)
-  const { clientes, projetos: allProjetos, tiposProjeto, loading } = useProjeto()
+  const { clientes, projetos: allProjetos, tiposProjeto, loading, removerProjeto } = useProjeto()
 
   const cliente = clientes.find((c) => c.id === clienteId)
   const rows = allProjetos.filter((p) => p.clienteId === clienteId)
@@ -41,6 +42,13 @@ export default function ClienteProjetos() {
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState<FilterTab>('all')
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [confirmingDelete, setConfirmingDelete] = useState<string | null>(null)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 2800)
+  }
 
   useEffect(() => {
     function onMouseDown() {
@@ -59,10 +67,32 @@ export default function ClienteProjetos() {
   const handleAction = useCallback(
     (id: string, action: Parameters<typeof sharedHandleAction>[1]) => {
       setOpenMenu(null)
+      if (action === 'excluir') {
+        setConfirmingDelete(id)
+        return
+      }
       sharedHandleAction(id, action)
     },
     [sharedHandleAction]
   )
+
+  const projetoToDelete = confirmingDelete ? rows.find((r) => r.id === confirmingDelete) : null
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (!confirmingDelete) return
+    const id = confirmingDelete
+    setConfirmingDelete(null)
+    try {
+      await removerProjeto(id)
+      showToast(t.deleteProjectSuccess)
+    } catch (err) {
+      const msg =
+        err && typeof err === 'object' && 'code' in err && (err as { code?: string }).code === 'P0001'
+          ? ((err as { message?: string }).message ?? t.deleteProjectErrorGeneric)
+          : t.deleteProjectErrorGeneric
+      showToast(msg)
+    }
+  }, [confirmingDelete, removerProjeto, t])
 
   if (loading) {
     return (
@@ -184,6 +214,17 @@ export default function ClienteProjetos() {
         />
       )}
 
+      {projetoToDelete && (
+        <ConfirmDialog
+          title={t.deleteProjectTitle}
+          message={t.deleteProjectMessage(projetoToDelete.projeto)}
+          confirmLabel={t.deleteProjectConfirm}
+          cancelLabel={t.deleteProjectCancel}
+          onConfirm={handleConfirmDelete}
+          onClose={() => setConfirmingDelete(null)}
+        />
+      )}
+
       <div
         style={{
           position: 'fixed',
@@ -198,14 +239,15 @@ export default function ClienteProjetos() {
           fontWeight: 500,
           padding: '8px 14px',
           borderRadius: 10,
-          opacity: linkCopied ? 1 : 0,
-          transform: linkCopied ? 'translateY(0)' : 'translateY(6px)',
+          opacity: toast || linkCopied ? 1 : 0,
+          transform: toast || linkCopied ? 'translateY(0)' : 'translateY(6px)',
           transition: 'opacity 180ms ease, transform 180ms ease',
           pointerEvents: 'none',
+          maxWidth: 'calc(100vw - 48px)',
         }}
       >
         <Check size={13} />
-        {t.linkCopied}
+        {toast ?? t.linkCopied}
       </div>
     </div>
   )

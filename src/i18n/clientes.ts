@@ -52,6 +52,13 @@ export const clientesT: Record<
     actionCategories: string
     actionComplete: string
     actionArchive: string
+    actionDelete: string
+    deleteProjectTitle: string
+    deleteProjectMessage: (nome: string) => string
+    deleteProjectConfirm: string
+    deleteProjectCancel: string
+    deleteProjectSuccess: string
+    deleteProjectErrorGeneric: string
     menuAriaLabel: string
     linkCopied: string
     backToClients: string
@@ -126,6 +133,14 @@ export const clientesT: Record<
     actionCategories: 'Ver categorias de custo',
     actionComplete: 'Marcar como concluído',
     actionArchive: 'Arquivar projeto',
+    actionDelete: 'Excluir projeto',
+    deleteProjectTitle: 'Excluir projeto?',
+    deleteProjectMessage: (nome) =>
+      `Esta ação não pode ser desfeita. O projeto "${nome}" e seus dados (categorias, itens, remediação, códigos de acesso) serão removidos permanentemente.`,
+    deleteProjectConfirm: 'Excluir',
+    deleteProjectCancel: 'Cancelar',
+    deleteProjectSuccess: 'Projeto excluído.',
+    deleteProjectErrorGeneric: 'Não foi possível excluir o projeto.',
     menuAriaLabel: 'Ações do projeto',
     linkCopied: 'Link copiado!',
     backToClients: '← Clientes',
@@ -196,6 +211,14 @@ export const clientesT: Record<
     actionCategories: 'View cost categories',
     actionComplete: 'Mark as completed',
     actionArchive: 'Archive project',
+    actionDelete: 'Delete project',
+    deleteProjectTitle: 'Delete project?',
+    deleteProjectMessage: (nome) =>
+      `This action cannot be undone. The project "${nome}" and its data (categories, items, remediation, access codes) will be permanently removed.`,
+    deleteProjectConfirm: 'Delete',
+    deleteProjectCancel: 'Cancel',
+    deleteProjectSuccess: 'Project deleted.',
+    deleteProjectErrorGeneric: 'Could not delete the project.',
     menuAriaLabel: 'Project actions',
     linkCopied: 'Link copied!',
     backToClients: '← Clients',
@@ -266,6 +289,14 @@ export const clientesT: Record<
     actionCategories: 'Ver categorías de costo',
     actionComplete: 'Marcar como completado',
     actionArchive: 'Archivar proyecto',
+    actionDelete: 'Eliminar proyecto',
+    deleteProjectTitle: '¿Eliminar proyecto?',
+    deleteProjectMessage: (nome) =>
+      `Esta acción no se puede deshacer. El proyecto "${nome}" y sus datos (categorías, ítems, remediación, códigos de acceso) serán eliminados permanentemente.`,
+    deleteProjectConfirm: 'Eliminar',
+    deleteProjectCancel: 'Cancelar',
+    deleteProjectSuccess: 'Proyecto eliminado.',
+    deleteProjectErrorGeneric: 'No se pudo eliminar el proyecto.',
     menuAriaLabel: 'Acciones del proyecto',
     linkCopied: '¡Enlace copiado!',
     backToClients: '← Clientes',

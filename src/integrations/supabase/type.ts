@@ -1466,6 +1466,7 @@ export type Database = {
       remover_categoria_projeto: { Args: { p_id: string }; Returns: undefined }
       remover_cliente: { Args: { p_id: string }; Returns: undefined }
       remover_lancamento: { Args: { p_id: string }; Returns: undefined }
+      remover_projeto: { Args: { p_id: string }; Returns: undefined }
       remover_tipo_projeto: { Args: { p_id: string }; Returns: undefined }
       renomear_categoria_catalogo: {
         Args: { p_id: string; p_novo_nome: string }

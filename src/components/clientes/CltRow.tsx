@@ -17,7 +17,9 @@ interface Props {
   isMenuOpen: boolean
   onOpen: () => void
   onMenuToggle: (e: React.MouseEvent) => void
-  onAction: (action: 'concluir' | 'arquivar' | 'categorias' | 'relatorio' | 'gerar-link' | 'gerar-codigo') => void
+  onAction: (
+    action: 'concluir' | 'arquivar' | 'excluir' | 'categorias' | 'relatorio' | 'gerar-link' | 'gerar-codigo'
+  ) => void
 }
 
 export default function CltRow({
@@ -131,8 +133,11 @@ export default function CltRow({
             <Button variant="menu" role="menuitem" onClick={() => onAction('concluir')}>
               {t.actionComplete}
             </Button>
-            <Button variant="menu-danger" role="menuitem" onClick={() => onAction('arquivar')}>
+            <Button variant="menu" role="menuitem" onClick={() => onAction('arquivar')}>
               {t.actionArchive}
+            </Button>
+            <Button variant="menu-danger" role="menuitem" onClick={() => onAction('excluir')}>
+              {t.actionDelete}
             </Button>
           </div>,
           document.body
