@@ -211,11 +211,18 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   // erro), e login subsequente não remonta o provider — sem esse listener, o
   // dashboard ficava preso no snapshot vazio pelo resto da sessão SPA (só um F5,
   // que já carrega a sessão do localStorage antes do fetch, mostrava dado real).
+  //
+  // Filtra pra SIGNED_IN (login submetido) e INITIAL_SESSION (F5 com sessão no
+  // localStorage) — os dois cenários que exigem hidratação. TOKEN_REFRESHED
+  // dispara toda vez que a aba volta ao foco depois de tempo suficiente, e
+  // re-fetchar ali substitui o array de projetos, zerando estado de UI local
+  // (categorias expandidas viram `expanded: false` no mapRowToProjeto).
   useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (!session) return
+      if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') return
       fetchAll()
     })
     return () => subscription.unsubscribe()
