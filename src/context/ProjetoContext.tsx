@@ -314,6 +314,12 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
     return data.id
   }, [])
 
+  const removerCliente = useCallback(async (id: string): Promise<void> => {
+    const { error } = await supabase.rpc('remover_cliente', { p_id: id })
+    if (error) throw error
+    setClientes((prev) => prev.filter((c) => c.id !== id))
+  }, [])
+
   const atualizarEmailCliente = useCallback(async (id: string, email: string | null): Promise<void> => {
     // p_email aceita NULL em runtime (coluna nullable) mas o gerador de tipos do Supabase não
     // marca arg `text` simples como nullable — mesmo padrão já registrado em
@@ -1312,6 +1318,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         clientes,
         criarCliente,
         atualizarEmailCliente,
+        removerCliente,
         tiposProjeto,
         criarTipoProjeto,
         renomearTipoProjeto,

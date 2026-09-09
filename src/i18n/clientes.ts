@@ -13,6 +13,16 @@ export const clientesT: Record<
     colProjectsCount: string
     projectsCount: (n: number) => string
     emptyClients: string
+    // Menu de ações da linha de cliente
+    clientMenuAriaLabel: string
+    actionDeleteClient: string
+    // Confirmação de exclusão de cliente
+    deleteClientTitle: string
+    deleteClientMessage: (nome: string) => string
+    deleteClientConfirm: string
+    deleteClientCancel: string
+    deleteClientSuccess: string
+    deleteClientErrorGeneric: string
     // NovoClienteModal
     newClientModalTitle: string
     labelClientName: string
@@ -80,6 +90,15 @@ export const clientesT: Record<
     colProjectsCount: 'PROJETOS',
     projectsCount: (n) => (n === 1 ? '1 projeto' : `${n} projetos`),
     emptyClients: 'Nenhum cliente encontrado.',
+    clientMenuAriaLabel: 'Ações do cliente',
+    actionDeleteClient: 'Excluir cliente',
+    deleteClientTitle: 'Excluir cliente?',
+    deleteClientMessage: (nome) =>
+      `Esta ação não pode ser desfeita. O cliente "${nome}" será removido permanentemente.`,
+    deleteClientConfirm: 'Excluir',
+    deleteClientCancel: 'Cancelar',
+    deleteClientSuccess: 'Cliente excluído.',
+    deleteClientErrorGeneric: 'Não foi possível excluir o cliente.',
     newClientModalTitle: 'Novo cliente',
     labelClientName: 'Nome do cliente',
     placeholderClientName: 'Ex: Mineradora São João',
@@ -141,6 +160,15 @@ export const clientesT: Record<
     colProjectsCount: 'PROJECTS',
     projectsCount: (n) => (n === 1 ? '1 project' : `${n} projects`),
     emptyClients: 'No clients found.',
+    clientMenuAriaLabel: 'Client actions',
+    actionDeleteClient: 'Delete client',
+    deleteClientTitle: 'Delete client?',
+    deleteClientMessage: (nome) =>
+      `This action cannot be undone. The client "${nome}" will be permanently removed.`,
+    deleteClientConfirm: 'Delete',
+    deleteClientCancel: 'Cancel',
+    deleteClientSuccess: 'Client deleted.',
+    deleteClientErrorGeneric: 'Could not delete the client.',
     newClientModalTitle: 'New client',
     labelClientName: 'Client name',
     placeholderClientName: 'e.g.: Sao Joao Mining',
@@ -202,6 +230,15 @@ export const clientesT: Record<
     colProjectsCount: 'PROYECTOS',
     projectsCount: (n) => (n === 1 ? '1 proyecto' : `${n} proyectos`),
     emptyClients: 'No se encontraron clientes.',
+    clientMenuAriaLabel: 'Acciones del cliente',
+    actionDeleteClient: 'Eliminar cliente',
+    deleteClientTitle: '¿Eliminar cliente?',
+    deleteClientMessage: (nome) =>
+      `Esta acción no se puede deshacer. El cliente "${nome}" será eliminado permanentemente.`,
+    deleteClientConfirm: 'Eliminar',
+    deleteClientCancel: 'Cancelar',
+    deleteClientSuccess: 'Cliente eliminado.',
+    deleteClientErrorGeneric: 'No se pudo eliminar el cliente.',
     newClientModalTitle: 'Nuevo cliente',
     labelClientName: 'Nombre del cliente',
     placeholderClientName: 'Ej: Minera San Juan',
