@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
 import { supabase } from '@/integrations/supabase/client'
 
 export type Tema = 'light' | 'dark'
@@ -53,6 +53,11 @@ export function TemaProvider({ children }: { children: ReactNode }) {
 
   // Sincroniza com o perfil ao entrar/sair de sessão. Portal do Cliente
   // (`/relatorio/:id`) roda sem sessão — Provider mantém default light.
+  //
+  // Rastreio por user.id evita refetch em SIGNED_IN de refresh de sessão
+  // (dispara ao retomar foco da aba). Só recarrega o tema quando o usuário
+  // muda de verdade.
+  const fetchedForUserRef = useRef<string | null>(null)
   useEffect(() => {
     let cancelado = false
 
@@ -72,15 +77,25 @@ export function TemaProvider({ children }: { children: ReactNode }) {
     }
 
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) void carregarDoPerfil(session.user.id)
+      if (session && fetchedForUserRef.current !== session.user.id) {
+        fetchedForUserRef.current = session.user.id
+        void carregarDoPerfil(session.user.id)
+      }
     })
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) void carregarDoPerfil(session.user.id)
-      // Logout não força reset — usuário volta ao Login mantendo a preferência
-      // em cache até o próximo login definir de novo.
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        fetchedForUserRef.current = null
+        // Logout não força reset do tema em si — usuário volta ao Login mantendo
+        // a preferência em cache até o próximo login definir de novo.
+        return
+      }
+      if (!session) return
+      if (fetchedForUserRef.current === session.user.id) return
+      fetchedForUserRef.current = session.user.id
+      void carregarDoPerfil(session.user.id)
     })
 
     return () => {

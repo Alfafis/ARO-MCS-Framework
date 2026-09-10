@@ -1,4 +1,4 @@
-import { useEffect, useState, lazy, Suspense, type ReactNode } from 'react'
+import { useEffect, useRef, useState, lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { supabase } from './integrations/supabase/client'
@@ -140,13 +140,23 @@ async function resolveAuthStatus(hasSession: boolean): Promise<AuthStatus> {
 export default function App() {
   const [authStatus, setAuthStatus] = useState<AuthStatus>('loading')
 
+  // Rastreio por user.id evita rechamar mfa.getAuthenticatorAssuranceLevel()
+  // em SIGNED_IN de refresh de sessão (dispara ao retomar foco da aba).
+  // Sessão sem usuário (unauthenticated) rastreada como '__none__'.
+  const resolvedForUserRef = useRef<string | null>(null)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
+      const key = session?.user.id ?? '__none__'
+      if (resolvedForUserRef.current === key) return
+      resolvedForUserRef.current = key
       resolveAuthStatus(Boolean(session)).then(setAuthStatus)
     })
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      const key = session?.user.id ?? '__none__'
+      if (resolvedForUserRef.current === key) return
+      resolvedForUserRef.current = key
       resolveAuthStatus(Boolean(session)).then(setAuthStatus)
     })
     return () => subscription.unsubscribe()

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import type {
   Category,
   CategoryItem,
@@ -212,17 +212,23 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   // dashboard ficava preso no snapshot vazio pelo resto da sessão SPA (só um F5,
   // que já carrega a sessão do localStorage antes do fetch, mostrava dado real).
   //
-  // Filtra pra SIGNED_IN (login submetido) e INITIAL_SESSION (F5 com sessão no
-  // localStorage) — os dois cenários que exigem hidratação. TOKEN_REFRESHED
-  // dispara toda vez que a aba volta ao foco depois de tempo suficiente, e
-  // re-fetchar ali substitui o array de projetos, zerando estado de UI local
-  // (categorias expandidas viram `expanded: false` no mapRowToProjeto).
+  // Filtrar por evento não basta — Supabase v2 dispara SIGNED_IN toda vez que
+  // a aba retoma foco e refresca a sessão, não só no login submetido. Rastrear
+  // por user.id garante fetch UMA vez por sessão de usuário: primeiro login/F5
+  // hidrata (fetchedForUserRef vazio); voltar pra aba na mesma sessão ignora
+  // (mesmo id); logout limpa (SIGNED_OUT); login com outro user re-hidrata.
+  const fetchedForUserRef = useRef<string | null>(null)
   useEffect(() => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        fetchedForUserRef.current = null
+        return
+      }
       if (!session) return
-      if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') return
+      if (fetchedForUserRef.current === session.user.id) return
+      fetchedForUserRef.current = session.user.id
       fetchAll()
     })
     return () => subscription.unsubscribe()

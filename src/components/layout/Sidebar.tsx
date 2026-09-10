@@ -98,20 +98,32 @@ export default function Sidebar({ collapsed, onToggle, onLogout, hideToggle, onM
     setFotoUrl(data?.foto_url ?? null)
   }
 
+  // Rastreio por user.id evita refetch em SIGNED_IN de refresh de sessão
+  // (que dispara toda vez que a aba retoma foco). Sem isso, trocar de aba
+  // e voltar refazia a query em `perfis` sem necessidade.
+  const fetchedForUserRef = useRef<string | null>(null)
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setEmail(session?.user.email ?? '')
-      if (session) void fetchPerfil(session.user.id)
+      if (session && fetchedForUserRef.current !== session.user.id) {
+        fetchedForUserRef.current = session.user.id
+        void fetchPerfil(session.user.id)
+      }
     })
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setEmail(session?.user.email ?? '')
-      if (session) void fetchPerfil(session.user.id)
-      else {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        fetchedForUserRef.current = null
+        setEmail('')
         setNome('')
         setFotoUrl(null)
+        return
       }
+      setEmail(session.user.email ?? '')
+      if (fetchedForUserRef.current === session.user.id) return
+      fetchedForUserRef.current = session.user.id
+      void fetchPerfil(session.user.id)
     })
     return () => subscription.unsubscribe()
   }, [])
