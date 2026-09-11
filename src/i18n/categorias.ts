@@ -50,7 +50,10 @@ export const categoriasT: Record<
     desembolsoTargetOk: string
     desembolsoMismatch: (diff: string) => string
     desembolsoClearAll: string
-    simStatsTitle: (n: string) => string
+    simStatsTitle: string
+    simDistNormal: (n: string) => string
+    simDistTriangular: (n: string) => string
+    simDistUniforme: (n: string) => string
     simStatsMean: string
     simStatsStddev: string
     simStatsP80: string
@@ -107,7 +110,10 @@ export const categoriasT: Record<
     desembolsoTargetOk: 'confere com Custo Max',
     desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
     desembolsoClearAll: 'Limpar todos',
-    simStatsTitle: (n) => `Estatísticas Aro Simulação (Triangular, ${n} iter.)`,
+    simStatsTitle: 'Estatísticas Aro Simulação',
+    simDistNormal: (n) => `Normal (${n} iter.)`,
+    simDistTriangular: (n) => `Triangular (${n} iter.)`,
+    simDistUniforme: (n) => `Uniforme (${n} iter.)`,
     simStatsMean: 'Média',
     simStatsStddev: 'Desvio padrão',
     simStatsP80: 'P80',
@@ -162,7 +168,10 @@ export const categoriasT: Record<
     desembolsoTargetOk: 'matches Max Cost',
     desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
     desembolsoClearAll: 'Clear all',
-    simStatsTitle: (n) => `Aro Simulação statistics (Triangular, ${n} iter.)`,
+    simStatsTitle: 'Aro Simulação statistics',
+    simDistNormal: (n) => `Normal (${n} iter.)`,
+    simDistTriangular: (n) => `Triangular (${n} iter.)`,
+    simDistUniforme: (n) => `Uniform (${n} iter.)`,
     simStatsMean: 'Mean',
     simStatsStddev: 'Stddev',
     simStatsP80: 'P80',
@@ -217,7 +226,10 @@ export const categoriasT: Record<
     desembolsoTargetOk: 'coincide con Costo Máx',
     desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
     desembolsoClearAll: 'Limpiar todos',
-    simStatsTitle: (n) => `Estadísticas Aro Simulação (Triangular, ${n} iter.)`,
+    simStatsTitle: 'Estadísticas Aro Simulação',
+    simDistNormal: (n) => `Normal (${n} iter.)`,
+    simDistTriangular: (n) => `Triangular (${n} iter.)`,
+    simDistUniforme: (n) => `Uniforme (${n} iter.)`,
     simStatsMean: 'Media',
     simStatsStddev: 'Desviación estándar',
     simStatsP80: 'P80',

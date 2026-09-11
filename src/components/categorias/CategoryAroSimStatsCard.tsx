@@ -4,19 +4,23 @@ import { categoriasT } from '@/i18n/categorias'
 import { aroSimForOneCategory, MIN_ITERATIONS, type CategoryParam } from '@/lib/aroSimulacao'
 import { formatMoedaCompact } from '@/lib/financeiro'
 
-// Painel Aro Simulação compacto POR CATEGORIA. Roda a Triangular no useMemo
-// — recomputa só quando min/mode/max mudam (edit de item + blur atualiza o
-// state → recompute). Engine aplica o piso RB-03 (mínimo 10.000 iterações,
-// convergência dinâmica) igual à "simulação oficial" em /simulacao — o
-// título do card mostra `sim.iterationsRun`, a contagem real que rodou, não
-// um número pedido que a engine pode ter ignorado ou excedido.
+// Painel Aro Simulação POR CATEGORIA. Replica as 3 seções da aba de categoria da
+// planilha NX Gold (`1.Estudos` linhas 20-57): Normal (F21-F31), Triangular
+// (F34-F44) e Uniforme (F47-F57). Cada bloco é uma rodada independente da
+// engine — na planilha, coluna B (Normal), D (Triangular) e E (Uniforme) usam
+// sementes independentes, então as médias variam levemente entre rodadas.
+//
+// **Nota de fidelidade:** a "Normal" da planilha é RANDBETWEEN(min, max) —
+// tecnicamente uniforme discreta, rotulada "Normal" por convenção do autor.
+// Aqui usamos o sampler Uniforme para o bloco Normal (opção A do alinhamento
+// 2026-09-10), reproduzindo o comportamento da planilha ao invés da normal
+// PERT-Beta que o motor tem em `sampleNormal`. Consequência esperada: blocos
+// Normal e Uniforme dão resultados quase idênticos (≈ (min+max)/2, com ruído
+// estatístico), só Triangular usa `custo_provavel`.
 //
 // `param` já vem escalado pela ancoragem base_template → data_base_projeto
 // (fator aplicado em categoryParamsFromCategorias) — este card mostra as
 // métricas no mesmo espaço de valores do dashboard.
-//
-// Espelha a linha 21-32 de cada aba de categoria da planilha NX Gold:
-// F21 (média), F22 (σ), F27 (P80), F25/F26 (IC 95% sup/inf), σ/média (CV).
 interface Props {
   param: CategoryParam
 }
@@ -26,29 +30,57 @@ const CONFIDENCE = 95
 export default function CategoryAroSimStatsCard({ param }: Props) {
   const t = useT(categoriasT)
 
-  const sim = useMemo(() => {
+  const sims = useMemo(() => {
     if (param.min <= 0 && param.max <= 0) return null
-    return aroSimForOneCategory('Triangular', MIN_ITERATIONS, param, CONFIDENCE)
+    return {
+      normal: aroSimForOneCategory('Uniforme', MIN_ITERATIONS, param, CONFIDENCE),
+      triangular: aroSimForOneCategory('Triangular', MIN_ITERATIONS, param, CONFIDENCE),
+      uniforme: aroSimForOneCategory('Uniforme', MIN_ITERATIONS, param, CONFIDENCE),
+    }
   }, [param])
 
-  if (!sim) return null
-
-  const cvPct = (sim.cv * 100).toFixed(2).replace('.', ',') + '%'
+  if (!sims) return null
 
   return (
-    <div className="mt-4 pt-3 border-t border-c-line">
-      <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2 mb-2">
-        {t.simStatsTitle(sim.iterationsRun.toLocaleString('pt-BR'))}
+    <div className="mt-4 pt-3 border-t border-c-line flex flex-col gap-4">
+      <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2">
+        {t.simStatsTitle}
+      </div>
+      <DistBlock label={t.simDistNormal(sims.normal.iterationsRun.toLocaleString('pt-BR'))} sim={sims.normal} tLabels={t} />
+      <DistBlock label={t.simDistTriangular(sims.triangular.iterationsRun.toLocaleString('pt-BR'))} sim={sims.triangular} tLabels={t} />
+      <DistBlock label={t.simDistUniforme(sims.uniforme.iterationsRun.toLocaleString('pt-BR'))} sim={sims.uniforme} tLabels={t} />
+    </div>
+  )
+}
+
+interface DistBlockProps {
+  label: string
+  sim: ReturnType<typeof aroSimForOneCategory>
+  tLabels: {
+    simStatsMean: string
+    simStatsStddev: string
+    simStatsP80: string
+    simStatsIC: (conf: number) => string
+    simStatsCV: string
+  }
+}
+
+function DistBlock({ label, sim, tLabels }: DistBlockProps) {
+  const cvPct = (sim.cv * 100).toFixed(2).replace('.', ',') + '%'
+  return (
+    <div>
+      <div className="text-[0.7rem] font-semibold tracking-widest uppercase text-c-text-2 mb-2">
+        {label}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <StatCell label={t.simStatsMean} value={formatMoedaCompact(sim.mean)} />
-        <StatCell label={t.simStatsStddev} value={formatMoedaCompact(sim.stddev)} />
-        <StatCell label={t.simStatsP80} value={formatMoedaCompact(sim.p80)} />
+        <StatCell label={tLabels.simStatsMean} value={formatMoedaCompact(sim.mean)} />
+        <StatCell label={tLabels.simStatsStddev} value={formatMoedaCompact(sim.stddev)} />
+        <StatCell label={tLabels.simStatsP80} value={formatMoedaCompact(sim.p80)} />
         <StatCell
-          label={t.simStatsIC(CONFIDENCE)}
+          label={tLabels.simStatsIC(CONFIDENCE)}
           value={`${formatMoedaCompact(sim.icLo)} – ${formatMoedaCompact(sim.icHi)}`}
         />
-        <StatCell label={t.simStatsCV} value={cvPct} />
+        <StatCell label={tLabels.simStatsCV} value={cvPct} />
       </div>
     </div>
   )

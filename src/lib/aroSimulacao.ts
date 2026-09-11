@@ -238,16 +238,17 @@ export interface MCResult {
 }
 
 // Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
-// estatísticas Aro Simulação no CategoryBlock. Semanticamente equivalente a
-// runAroSimulacao com activeCategories = {param.name}, mas com nome
-// explícito pra o call-site ficar legível.
+// estatísticas Aro Simulação no CategoryBlock. Passa `fixedIterations=true` (ADR-011)
+// para replicar o comportamento da planilha NX Gold, que roda exatamente 10.000
+// iterações sem convergência dinâmica. `/simulacao` continua usando RB-03
+// (convergência dinâmica em blocos) via `runAroSimulacao` sem esse flag.
 export function aroSimForOneCategory(
   dist: Distribution,
   iterations: number,
   param: CategoryParam,
   confidence = 95
 ): MCResult {
-  return runAroSimulacao(dist, iterations, [param], new Set([param.name]), confidence)
+  return runAroSimulacao(dist, iterations, [param], new Set([param.name]), confidence, undefined, true)
 }
 
 const BLOCO_SIZE = 1_000
@@ -259,7 +260,8 @@ export function runAroSimulacao(
   categoryParams: CategoryParam[],
   activeCategories: Set<string>,
   confidence = 95,
-  seed?: number
+  seed?: number,
+  fixedIterations = false
 ): MCResult {
   const cats = categoryParams.filter((c) => activeCategories.has(c.name))
   const seedUsed = seed ?? randomSeed()
@@ -270,7 +272,13 @@ export function runAroSimulacao(
   // bloco completo — só pode parar antes do teto depois de bater o mínimo
   // E convergir. Buffer pré-alocado no teto máximo; `filled` marca até onde
   // está preenchido de fato.
+  //
+  // ADR-011: quando `fixedIterations=true`, ignora convergência dinâmica e
+  // roda exatamente `iterations` iterações (clamped em [MIN, MAX]). Usado
+  // pelo card de estatísticas por categoria pra replicar a planilha NX Gold
+  // (10.000 iterações fixas). `/simulacao` continua com RB-03.
   const minIterations = Math.max(MIN_ITERATIONS, Math.min(MAX_ITERATIONS, iterations))
+  const targetIterations = fixedIterations ? minIterations : MAX_ITERATIONS
   const results = new Float64Array(MAX_ITERATIONS)
   // Valor de CADA categoria por iteração, pareado por índice com `results`
   // — necessário pra Pearson (Engine 6) e pros percentis por categoria
@@ -281,8 +289,8 @@ export function runAroSimulacao(
   let mediaBlocoAnterior: number | null = null
   let converged = false
 
-  while (filled < MAX_ITERATIONS) {
-    const blockEnd = Math.min(filled + BLOCO_SIZE, MAX_ITERATIONS)
+  while (filled < targetIterations) {
+    const blockEnd = Math.min(filled + BLOCO_SIZE, targetIterations)
     for (; filled < blockEnd; filled++) {
       let total = 0
       for (let ci = 0; ci < cats.length; ci++) {
@@ -297,6 +305,8 @@ export function runAroSimulacao(
       results[filled] = total
       runningSum += total
     }
+
+    if (fixedIterations) continue
 
     const mediaAtual = runningSum / filled
     if (mediaBlocoAnterior !== null) {

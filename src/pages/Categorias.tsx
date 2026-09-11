@@ -7,7 +7,6 @@ import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import { useProjeto } from '@/context/useProjeto'
 import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
-import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import type { Projeto } from '@/types/clientes'
 
 export default function Categorias() {
@@ -17,7 +16,6 @@ export default function Categorias() {
     catalogo,
     tiposProjeto,
     tiposComTemplate,
-    parametrosAnuais,
     addCategoria,
     removeCategoria,
     updateCategoria,
@@ -35,18 +33,14 @@ export default function Categorias() {
     renomearCategoriaCatalogo,
   } = useProjeto()
 
-  // Params da Aro Simulação por categoria (min/mode/max escalados pela ancoragem base→data-base),
-  // usados pelo CategoryAroSimStatsCard renderizado no fim de cada CategoryBlock.
+  // ADR-010: estatísticas por categoria NÃO aplicam ancoragem — a planilha NX
+  // Gold roda o MC em cima dos valores crus (base do template) e só aplica o
+  // multiplicador IPCA downstream, no Resumo Executivo / Portal do Cliente.
   // Match por `name` porque `categoryParamsFromCategorias` filtra categorias
   // vazias e usa o nome do catálogo — mesma chave usada no dashboard.
-  const ancoragem = useMemo(() => {
-    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
-    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
-    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
-  }, [projeto.dataBase, parametrosAnuais])
   const categoryParams = useMemo(
-    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
-    [projeto.categorias, catalogo, ancoragem.fator]
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo),
+    [projeto.categorias, catalogo]
   )
   const simParamPorNome = useMemo(() => {
     const map = new Map<string, (typeof categoryParams)[number]>()
