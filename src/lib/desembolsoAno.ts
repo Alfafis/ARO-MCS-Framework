@@ -18,7 +18,7 @@ import { parseMoedaBR } from '@/lib/financeiro'
 // - 'provisao' — multiplica cada ano por (1 + contingenciaPct/100)
 // - 'ipca'     — depois da provisão, aplica ∏(1+ipca_i) do ano 1 até N
 export interface DesembolsoMatrixResult {
-  // Matriz[categoria][ano-1] = valor bruto
+  // Matriz[categoria][ano-1] = valor bruto (cenário midpoint quando bands ativas)
   matrix: number[][]
   // Nomes de categoria em mesma ordem de matrix
   categorias: string[]
@@ -26,6 +26,16 @@ export interface DesembolsoMatrixResult {
   totaisPorAno: number[]
   // Valor total acumulado (soma de tudo)
   totalGeral: number
+  // Bandas min/max — só presentes quando `ipcaMinPorAno`/`ipcaMaxPorAno` +
+  // `fatorAncoragemMin`/`fatorAncoragemMax` são fornecidos (modo 'ipca').
+  // Replicam linhas 20-21 de `0. Síntese Por Setor` da planilha NX Gold — ver
+  // ADR-013 e D15 em `_Divergencias_Planilha.md`.
+  matrixMin?: number[][]
+  matrixMax?: number[][]
+  totaisPorAnoMin?: number[]
+  totaisPorAnoMax?: number[]
+  totalGeralMin?: number
+  totalGeralMax?: number
 }
 
 export type ModoDesembolso = 'base' | 'provisao' | 'ipca'
@@ -41,6 +51,14 @@ interface ComputeArgs {
   // Aplicado antes dos modos 'provisao' e 'ipca' — todas as células da matriz
   // são shift-ajustadas. Ver `computeFatorAncoragem` em src/lib/ancoragem.ts.
   fatorAncoragem?: number
+  // Bandas de IPCA min/max ano-a-ano e fatores de ancoragem min/max — quando
+  // fornecidos + modo === 'ipca', a função também emite matrixMin/matrixMax
+  // (cenários determinísticos otimista e pessimista). Fiel à planilha NX Gold
+  // que calcula os dois cenários paralelos (ADR-013, D15).
+  ipcaMinPorAno?: number[] | null
+  ipcaMaxPorAno?: number[] | null
+  fatorAncoragemMin?: number
+  fatorAncoragemMax?: number
 }
 
 export function computeDesembolsoMatrix({
@@ -51,8 +69,12 @@ export function computeDesembolsoMatrix({
   ipcaPorAno,
   modo,
   fatorAncoragem = 1,
+  ipcaMinPorAno = null,
+  ipcaMaxPorAno = null,
+  fatorAncoragemMin,
+  fatorAncoragemMax,
 }: ComputeArgs): DesembolsoMatrixResult {
-  const matrix: number[][] = []
+  const baseMatrix: number[][] = []
   const categoriasNomes: string[] = []
 
   for (const cat of categorias) {
@@ -92,42 +114,51 @@ export function computeDesembolsoMatrix({
     if (algumValor) {
       const nome = catalogo.find((c) => c.id === cat.catalogoId)?.nome ?? '—'
       categoriasNomes.push(nome)
-      matrix.push(valoresAno)
+      baseMatrix.push(valoresAno)
     }
   }
 
-  // Ancoragem base_template → data_base_projeto. Aplica um multiplicador
-  // uniforme em todas as células da matriz antes dos modos. fator=1 = no-op
-  // (é o default e o caso quando data_base <= ano_base_template ou quando
-  // faltam anos em parametros_anuais).
-  if (fatorAncoragem !== 1) {
-    for (const row of matrix) {
-      for (let a = 0; a < horizonYears; a++) row[a] *= fatorAncoragem
-    }
-  }
+  const bandsEnabled =
+    modo === 'ipca' &&
+    ipcaMinPorAno != null &&
+    ipcaMaxPorAno != null &&
+    ipcaMinPorAno.length >= horizonYears &&
+    ipcaMaxPorAno.length >= horizonYears &&
+    fatorAncoragemMin != null &&
+    fatorAncoragemMax != null
 
-  // Aplica modos coluna a coluna. Provisão e IPCA são multiplicadores da
-  // planilha (linhas 22/44 e 20/21 de "0. Síntese Por Setor"): provisão é
-  // por-ano (SUM(coluna)*0.2 → equivalente a somar 20% em cada célula da
-  // coluna), IPCA é cumulativo ∏(1+r_i) do ano 1 até o ano N.
-  if (modo !== 'base') {
-    const provFator = 1 + contingenciaPct / 100
-    const ipcaFatoresAcum: number[] = []
-    if (modo === 'ipca' && ipcaPorAno && ipcaPorAno.length >= horizonYears) {
+  // Aplica ancoragem + modos por cenário. O cenário "mid" (matrix) mantém a
+  // API antiga sem breaking change. Quando bandsEnabled, também computa min
+  // e max — replica linhas 20-21 de `0. Síntese Por Setor` da planilha
+  // (IPCA min ac. e IPCA max ac.), ADR-013, D15. Provisão é por-ano
+  // (SUM(coluna)*0.2 = somar 20% em cada célula), IPCA é ∏(1+r_i) ano 1..N.
+  const provFator = modo === 'base' ? 1 : 1 + contingenciaPct / 100
+
+  function computeCenario(fatorAnc: number, ipcaSerie: number[] | null): number[][] {
+    const out = baseMatrix.map((row) => row.slice())
+    if (fatorAnc !== 1) {
+      for (const row of out) {
+        for (let a = 0; a < horizonYears; a++) row[a] *= fatorAnc
+      }
+    }
+    if (modo === 'base') return out
+    const ipcaFatoresAcum: number[] = new Array(horizonYears).fill(1)
+    if (modo === 'ipca' && ipcaSerie && ipcaSerie.length >= horizonYears) {
       let acum = 1
       for (let i = 0; i < horizonYears; i++) {
-        acum *= 1 + ipcaPorAno[i]
-        ipcaFatoresAcum.push(acum)
+        acum *= 1 + ipcaSerie[i]
+        ipcaFatoresAcum[i] = acum
       }
     }
-    for (let c = 0; c < matrix.length; c++) {
+    for (let c = 0; c < out.length; c++) {
       for (let a = 0; a < horizonYears; a++) {
-        let v = matrix[c][a] * provFator
-        if (modo === 'ipca' && ipcaFatoresAcum.length > 0) v *= ipcaFatoresAcum[a]
-        matrix[c][a] = v
+        out[c][a] = out[c][a] * provFator * ipcaFatoresAcum[a]
       }
     }
+    return out
   }
+
+  const matrix = computeCenario(fatorAncoragem, modo === 'ipca' ? ipcaPorAno : null)
 
   const totaisPorAno = new Array<number>(horizonYears).fill(0)
   let totalGeral = 0
@@ -138,7 +169,32 @@ export function computeDesembolsoMatrix({
     }
   }
 
-  return { matrix, categorias: categoriasNomes, totaisPorAno, totalGeral }
+  const result: DesembolsoMatrixResult = { matrix, categorias: categoriasNomes, totaisPorAno, totalGeral }
+
+  if (bandsEnabled) {
+    const matrixMin = computeCenario(fatorAncoragemMin!, ipcaMinPorAno)
+    const matrixMax = computeCenario(fatorAncoragemMax!, ipcaMaxPorAno)
+    const totaisPorAnoMin = new Array<number>(horizonYears).fill(0)
+    const totaisPorAnoMax = new Array<number>(horizonYears).fill(0)
+    let totalGeralMin = 0
+    let totalGeralMax = 0
+    for (let c = 0; c < matrixMin.length; c++) {
+      for (let a = 0; a < horizonYears; a++) {
+        totaisPorAnoMin[a] += matrixMin[c][a]
+        totaisPorAnoMax[a] += matrixMax[c][a]
+        totalGeralMin += matrixMin[c][a]
+        totalGeralMax += matrixMax[c][a]
+      }
+    }
+    result.matrixMin = matrixMin
+    result.matrixMax = matrixMax
+    result.totaisPorAnoMin = totaisPorAnoMin
+    result.totaisPorAnoMax = totaisPorAnoMax
+    result.totalGeralMin = totalGeralMin
+    result.totalGeralMax = totalGeralMax
+  }
+
+  return result
 }
 
 // Distribuição item-a-item (base, sem provisão e sem IPCA). Segue a mesma

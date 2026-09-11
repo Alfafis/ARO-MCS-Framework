@@ -44,6 +44,9 @@ export const categoriasT: Record<
     custoProvavelLabel: string
     custoProvavelPh: string
     custoProvavelHint: string
+    custoProvavelOutOfRange: (moda: string, catMin: string, catMax: string, clamped: string) => string
+    simModaClampedTitle: string
+    simModaClampedBody: (moda: string, catMin: string, catMax: string, clamped: string) => string
     desembolsoToggle: string
     desembolsoLabel: (ano: number) => string
     desembolsoSum: string
@@ -104,6 +107,11 @@ export const categoriasT: Record<
     custoProvavelPh: '(min + max) / 2',
     custoProvavelHint:
       'Moda "pela experiência" da categoria — alimenta a Triangular da Aro Simulação. Deixe vazio pra usar (min+max)/2.',
+    custoProvavelOutOfRange: (moda, catMin, catMax, clamped) =>
+      `${moda} está fora do range dos itens (${catMin} – ${catMax}). A Aro Simulação vai usar ${clamped} na Triangular — o pico da distribuição fica no extremo, média e P80 puxados pra lá. Ajuste os itens ou a moda pra evitar a distorção.`,
+    simModaClampedTitle: 'Moda clampada — Triangular degenerada',
+    simModaClampedBody: (moda, catMin, catMax, clamped) =>
+      `A moda cadastrada (${moda}) está fora do range dos itens (${catMin} – ${catMax}); a simulação usou ${clamped}. Só a Triangular é afetada — o pico fica num extremo (mode = min ou max), média e P80 puxados pra esse lado. Normal e Uniforme não usam a moda por design.`,
     desembolsoToggle: 'Detalhar por ano',
     desembolsoLabel: (ano) => `Ano ${ano}`,
     desembolsoSum: 'Soma',
@@ -158,6 +166,11 @@ export const categoriasT: Record<
     camposOpStatusPreenchido: 'Filled',
     camposOpAdd: '+ Add field',
     camposOpRemove: 'Delete field',
+    custoProvavelOutOfRange: (moda, catMin, catMax, clamped) =>
+      `${moda} is outside the items' range (${catMin} – ${catMax}). The Aro Simulação will use ${clamped} for Triangular — the distribution peak sits at the extreme, mean and P80 are pulled toward it. Adjust items or the mode to avoid the distortion.`,
+    simModaClampedTitle: 'Mode clamped — degenerate Triangular',
+    simModaClampedBody: (moda, catMin, catMax, clamped) =>
+      `The configured mode (${moda}) is outside the items' range (${catMin} – ${catMax}); the simulation used ${clamped}. Only Triangular is affected — its peak lands on an extreme (mode = min or max), mean and P80 are pulled that way. Normal and Uniform do not use the mode by design.`,
     custoProvavelLabel: 'Most likely cost',
     custoProvavelPh: '(min + max) / 2',
     custoProvavelHint:
@@ -216,6 +229,11 @@ export const categoriasT: Record<
     camposOpStatusPreenchido: 'Rellenado',
     camposOpAdd: '+ Agregar campo',
     camposOpRemove: 'Eliminar campo',
+    custoProvavelOutOfRange: (moda, catMin, catMax, clamped) =>
+      `${moda} está fuera del rango de los ítems (${catMin} – ${catMax}). La Aro Simulação usará ${clamped} en la Triangular — el pico queda en el extremo, media y P80 empujados hacia allá. Ajuste los ítems o la moda para evitar la distorsión.`,
+    simModaClampedTitle: 'Moda clampada — Triangular degenerada',
+    simModaClampedBody: (moda, catMin, catMax, clamped) =>
+      `La moda configurada (${moda}) está fuera del rango de los ítems (${catMin} – ${catMax}); la simulación usó ${clamped}. Solo la Triangular es afectada — su pico queda en un extremo (mode = min o max), media y P80 empujados hacia ese lado. Normal y Uniforme no usan la moda por diseño.`,
     custoProvavelLabel: 'Costo probable',
     custoProvavelPh: '(min + max) / 2',
     custoProvavelHint:

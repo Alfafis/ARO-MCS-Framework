@@ -92,3 +92,33 @@ export function sequenciaMidpoints(
   }
   return sequencia
 }
+
+// Mesma semântica de `sequenciaMidpoints`, mas retorna as 3 sequências (min,
+// mid, max) numa única varredura. Usada onde precisamos propagar a banda de
+// incerteza do IPCA/Selic como cenários determinísticos paralelos — replica
+// as linhas 18-21 de `0. Síntese Por Setor` da planilha NX Gold, que calcula
+// valor esperado ano-a-ano com IPCA min E IPCA max separadamente
+// (ver `_Dados_Formulas_Planilha.md` §Etapa 3, ADR-013, D15).
+//
+// Retorna null pelo mesmo critério de `sequenciaMidpoints`: qualquer ano
+// faltante = null.
+export function sequenciaByBounds(
+  parametrosAnuais: ParametroAnual[],
+  chave: ParametroAnualChave,
+  anoBase: number,
+  horizonYears: number
+): { min: number[]; mid: number[]; max: number[] } | null {
+  if (!Number.isFinite(anoBase)) return null
+  const porAno = new Map(parametrosAnuais.filter((p) => p.chave === chave).map((p) => [p.ano, p]))
+  const min: number[] = []
+  const mid: number[] = []
+  const max: number[] = []
+  for (let ano = anoBase; ano < anoBase + horizonYears; ano++) {
+    const p = porAno.get(ano)
+    if (!p || p.valorMin === null || p.valorMax === null) return null
+    min.push(p.valorMin / 100)
+    mid.push((p.valorMin + p.valorMax) / 2 / 100)
+    max.push(p.valorMax / 100)
+  }
+  return { min, mid, max }
+}

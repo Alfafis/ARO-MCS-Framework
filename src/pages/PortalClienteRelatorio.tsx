@@ -28,7 +28,7 @@ import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { Category, CategoriaCatalogo } from '@/types/categorias'
 import type { SimResult } from '@/types/simulacao'
 import type { RelatorioPublicoReturns } from '@/types'
-import { sequenciaMidpoints, mapParametroAnualRow } from '@/types/parametrosGlobais'
+import { sequenciaMidpoints, sequenciaByBounds, mapParametroAnualRow } from '@/types/parametrosGlobais'
 
 type ResumoT = (typeof resumoT)['pt-BR']
 
@@ -195,13 +195,31 @@ export default function PortalClienteRelatorio() {
   const ancoragem = useMemo(() => {
     const dataBaseAno =
       projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
-    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    if (dataBaseAno == null)
+      return {
+        fator: 1,
+        fatorMin: 1,
+        fatorMid: 1,
+        fatorMax: 1,
+        faltantes: [],
+        anoInicio: ANO_BASE_TEMPLATE,
+        anoFim: ANO_BASE_TEMPLATE,
+      }
     return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
   }, [projeto?.data_base, parametrosAnuais])
 
+  // categoryParams usa fator MID — mantém baseTotal e métodos monetários
+  // alinhados ao histórico. As bandas min/max do IPCA entram só na
+  // apresentação (CostByCategoryTable) via ancoragem.fatorMin/fatorMax
+  // (ADR-013, D15). Ver comentário equivalente em ResumoExecutivo.
   const categoryParams = useMemo(
-    () => categoryParamsFromCategorias(categorias, catalogo, ancoragem.fator),
-    [categorias, catalogo, ancoragem.fator]
+    () => categoryParamsFromCategorias(categorias, catalogo, ancoragem.fatorMid),
+    [categorias, catalogo, ancoragem.fatorMid]
+  )
+
+  const categoryParamsRaw = useMemo(
+    () => categoryParamsFromCategorias(categorias, catalogo, 1),
+    [categorias, catalogo]
   )
 
   const filteredParams = useMemo(
@@ -209,29 +227,34 @@ export default function PortalClienteRelatorio() {
     [categoryParams, activeCatSet]
   )
 
+  const filteredParamsRaw = useMemo(
+    () => (activeCatSet.size === 0 ? categoryParamsRaw : categoryParamsRaw.filter((c) => activeCatSet.has(c.name))),
+    [categoryParamsRaw, activeCatSet]
+  )
+
   const costCategories: CostCategory[] = useMemo(
     () =>
-      filteredParams.map((c, i) => ({
+      filteredParamsRaw.map((c, i) => ({
         rank: String(i + 1).padStart(2, '0'),
         name: c.name,
-        min: formatMoedaCompact(c.min, false),
-        max: formatMoedaCompact(c.max, false),
+        min: formatMoedaCompact(c.min * ancoragem.fatorMin, false),
+        max: formatMoedaCompact(c.max * ancoragem.fatorMax, false),
       })),
-    [filteredParams]
+    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
   )
 
   const costTotals: CostTotals = useMemo(
     () => ({
       min: formatMoedaCompact(
-        filteredParams.reduce((acc, c) => acc + c.min, 0),
+        filteredParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin, 0),
         false
       ),
       max: formatMoedaCompact(
-        filteredParams.reduce((acc, c) => acc + c.max, 0),
+        filteredParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax, 0),
         false
       ),
     }),
-    [filteredParams]
+    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
   )
 
   // Base pro provisionamento: soma do ponto médio (min+max)/2 de cada categoria real —
@@ -286,7 +309,8 @@ export default function PortalClienteRelatorio() {
     const horizonYears = projeto.horizonte_anos ?? 10
     const dataBaseAno = projeto.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
+    const ipcaBounds = sequenciaByBounds(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
+    const ipcaPorAno = ipcaBounds?.mid ?? null
 
     const res = computeDesembolsoMatrix({
       categorias,
@@ -295,7 +319,12 @@ export default function PortalClienteRelatorio() {
       contingenciaPct: projeto.contingencia_pct ?? 0,
       ipcaPorAno,
       modo: modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
-      fatorAncoragem: ancoragem.fator,
+      fatorAncoragem: ancoragem.fatorMid,
+      // Bandas min/max IPCA (ADR-013, D15).
+      ipcaMinPorAno: ipcaBounds?.min ?? null,
+      ipcaMaxPorAno: ipcaBounds?.max ?? null,
+      fatorAncoragemMin: ancoragem.fatorMin,
+      fatorAncoragemMax: ancoragem.fatorMax,
     })
 
     if (res.totalGeral === 0) return null
@@ -303,13 +332,21 @@ export default function PortalClienteRelatorio() {
     const years: DisbursementYear[] = res.totaisPorAno.map((total, i) => ({
       label: `Ano ${String(i + 1).padStart(2, '0')}`,
       value: formatMoedaCompact(total, false),
+      valueMin: res.totaisPorAnoMin ? formatMoedaCompact(res.totaisPorAnoMin[i], false) : undefined,
+      valueMax: res.totaisPorAnoMax ? formatMoedaCompact(res.totaisPorAnoMax[i], false) : undefined,
     }))
     const cats: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
       values: res.matrix[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null)),
+      valuesMin: res.matrixMin
+        ? res.matrixMin[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
+        : undefined,
+      valuesMax: res.matrixMax
+        ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
+        : undefined,
     }))
     return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
-  }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fator])
+  }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fatorMid, ancoragem.fatorMin, ancoragem.fatorMax])
 
   // Matriz item × ano — computada sob demanda quando o cliente troca a visão
   // pra "Detalhado". Cada célula já reflete o modo escolhido (base / provisão /
@@ -328,14 +365,14 @@ export default function PortalClienteRelatorio() {
       contingenciaPct: projeto.contingencia_pct ?? 0,
       ipcaPorAno,
       modo,
-      fatorAncoragem: ancoragem.fator,
+      fatorAncoragem: ancoragem.fatorMid,
     })
     if (res.totalGeral === 0) return null
     const yearsLabels = Array.from({ length: horizonYears }, (_, i) => ({
       label: `Ano ${String(i + 1).padStart(2, '0')}`,
     }))
     return { ...res, years: yearsLabels }
-  }, [viewDesembolso, modoDesembolso, projeto, categorias, catalogo, parametrosAnuais, ancoragem.fator])
+  }, [viewDesembolso, modoDesembolso, projeto, categorias, catalogo, parametrosAnuais, ancoragem.fatorMid])
 
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
@@ -554,7 +591,12 @@ export default function PortalClienteRelatorio() {
 
           {/* Custo por categoria + Métricas de risco */}
           <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
-            <CostByCategoryTable categories={costCategories} totals={costTotals} groupByPhase={false} />
+            <CostByCategoryTable
+              categories={costCategories}
+              totals={costTotals}
+              groupByPhase={false}
+              ancoragem={ancoragem}
+            />
             <RiskMetricsCard
               metrics={riskMetrics}
               cvLabel={cvLabel}

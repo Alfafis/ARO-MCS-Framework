@@ -1,6 +1,6 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { ChevronUp, ChevronDown, Trash2, Check, X } from 'lucide-react'
+import { ChevronUp, ChevronDown, Trash2, Check, X, AlertTriangle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useT } from '@/i18n/useLang'
@@ -61,6 +61,9 @@ interface Props {
   // — quando presente, renderiza o card "Estatísticas Aro Simulação" no fim do body.
   // Ausente = card não aparece (usado só na tela de projeto, não no template).
   simParam?: CategoryParam
+  // Número de iterações da última simulação salva do projeto (via useSimulation).
+  // Passado direto pro card, que reroda a engine por categoria com o mesmo N.
+  simIterations?: number
 }
 
 const PREENCHE_OPTIONS: Category['preenche'][] = ['Consultor', 'Cliente', 'Ambos']
@@ -94,6 +97,7 @@ export default function CategoryBlock({
   onSaveDesembolso,
   horizonYears,
   simParam,
+  simIterations,
 }: Props) {
   const camposOpEnabled = !!(onAddCampoOp && onRemoveCampoOp && onUpdateCampoOp && onSaveCampoOp)
   const camposOpProjetoEnabled = !!(
@@ -105,6 +109,20 @@ export default function CategoryBlock({
   const camposOp = category.camposOperacionaisTemplate ?? []
   const camposOpProjeto = category.camposOperacionais ?? []
   const horizon = horizonYears ?? 10
+
+  // Soma min/max dos itens da categoria — usada pra detectar quando a moda
+  // (custoProvavel) está fora do range e será clampada por `categoryParamsFromCategorias`
+  // (aroSimulacao.ts:38). O aviso é mostrado no CustoProvavelRow e no
+  // CategoryAroSimStatsCard pra deixar o clamp explícito (silencioso antes).
+  const { totalMin: catMin, totalMax: catMax } = useMemo(() => {
+    let min = 0
+    let max = 0
+    for (const item of category.items) {
+      min += parseMoedaBR(item.min)
+      max += parseMoedaBR(item.max)
+    }
+    return { totalMin: min, totalMax: max }
+  }, [category.items])
 
   // Grafo de fórmula (Subsistema 3) — avalia template e projeto em paralelo;
   // cada modo só existe num contexto por vez (camposOpEnabled xor
@@ -291,6 +309,9 @@ export default function CategoryBlock({
                 label={t.custoProvavelLabel}
                 placeholder={t.custoProvavelPh}
                 hint={t.custoProvavelHint}
+                catMin={catMin}
+                catMax={catMax}
+                outOfRangeLabel={t.custoProvavelOutOfRange}
               />
             )}
 
@@ -404,7 +425,13 @@ export default function CategoryBlock({
               </div>
             )}
 
-            {simParam && <CategoryAroSimStatsCard param={simParam} />}
+            {simParam && (
+              <CategoryAroSimStatsCard
+                param={simParam}
+                iterations={simIterations}
+                custoProvavelRaw={category.custoProvavel}
+              />
+            )}
           </div>
         </div>
       )}
@@ -917,9 +944,24 @@ interface CustoProvavelRowProps {
   label: string
   placeholder: string
   hint: string
+  // Soma dos min/max dos itens da categoria — usada pra detectar quando a
+  // moda cadastrada está fora do range [catMin, catMax] e será clampada por
+  // `categoryParamsFromCategorias` na Aro Simulação (só afeta a Triangular).
+  catMin: number
+  catMax: number
+  outOfRangeLabel: (moda: string, catMin: string, catMax: string, clamped: string) => string
 }
 
-function CustoProvavelRow({ value, onSave, label, placeholder, hint }: CustoProvavelRowProps) {
+function CustoProvavelRow({
+  value,
+  onSave,
+  label,
+  placeholder,
+  hint,
+  catMin,
+  catMax,
+  outOfRangeLabel,
+}: CustoProvavelRowProps) {
   const inputId = useId()
   const [texto, setTexto] = useState(value === null ? '' : formatMoedaBR(value))
 
@@ -939,21 +981,47 @@ function CustoProvavelRow({ value, onSave, label, placeholder, hint }: CustoProv
     onSave(parsed)
   }
 
+  // Moda está fora do range dos itens quando o consultor cadastrou um valor
+  // que não faz sentido dado o min/max somado dos itens (típico: copiou moda
+  // hardcoded do template NX Gold — 8.150.000 — pra uma categoria com um item
+  // só de 650k–950k). O motor faz `Math.max(min, Math.min(max, rawMode))`
+  // silenciosamente → Triangular fica degenerada com pico no extremo.
+  const outOfRange = value !== null && value > 0 && catMax > 0 && (value < catMin || value > catMax)
+  const clampedValue = outOfRange ? Math.max(catMin, Math.min(catMax, value!)) : value
+
   return (
-    <div className="flex items-center gap-2 py-2 mb-2 border-b border-c-line">
-      <label htmlFor={inputId} className="text-[0.75rem] font-semibold uppercase tracking-wide text-c-text-2">
-        {label}
-      </label>
-      <input
-        id={inputId}
-        className="row-input mono max-w-[180px]"
-        value={texto}
-        inputMode="decimal"
-        placeholder={placeholder}
-        onChange={(e) => setTexto(maskMoedaBR(e.target.value))}
-        onBlur={commit}
-      />
-      <span className="text-[0.7rem] text-c-text-2/70 truncate">{hint}</span>
+    <div className="flex flex-col gap-1 py-2 mb-2 border-b border-c-line">
+      <div className="flex items-center gap-2 flex-wrap">
+        <label htmlFor={inputId} className="text-[0.75rem] font-semibold uppercase tracking-wide text-c-text-2">
+          {label}
+        </label>
+        <input
+          id={inputId}
+          className={`row-input mono max-w-[180px] ${outOfRange ? 'border-amber-500 focus:border-amber-600' : ''}`}
+          value={texto}
+          inputMode="decimal"
+          placeholder={placeholder}
+          onChange={(e) => setTexto(maskMoedaBR(e.target.value))}
+          onBlur={commit}
+        />
+        <span className="text-[0.7rem] text-c-text-2/70 truncate">{hint}</span>
+      </div>
+      {outOfRange && (
+        <div
+          className="flex items-start gap-1.5 mt-1 px-2 py-1.5 bg-amber-50 border border-amber-300 rounded text-[0.72rem] text-amber-800 leading-snug"
+          role="alert"
+        >
+          <AlertTriangle size={13} className="shrink-0 mt-[1px]" aria-hidden="true" />
+          <span>
+            {outOfRangeLabel(
+              formatMoedaBR(value!),
+              formatMoedaBR(catMin),
+              formatMoedaBR(catMax),
+              formatMoedaBR(clampedValue!)
+            )}
+          </span>
+        </div>
+      )}
     </div>
   )
 }

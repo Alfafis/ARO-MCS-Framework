@@ -1,8 +1,9 @@
 import { useMemo } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import { aroSimForOneCategory, MIN_ITERATIONS, type CategoryParam } from '@/lib/aroSimulacao'
-import { formatMoedaCompact } from '@/lib/financeiro'
+import { formatMoedaBR, formatMoedaCompact } from '@/lib/financeiro'
 
 // Painel Aro Simulação POR CATEGORIA. Replica as 3 seções da aba de categoria da
 // planilha NX Gold (`1.Estudos` linhas 20-57): Normal (F21-F31), Triangular
@@ -21,31 +22,75 @@ import { formatMoedaCompact } from '@/lib/financeiro'
 // `param` já vem escalado pela ancoragem base_template → data_base_projeto
 // (fator aplicado em categoryParamsFromCategorias) — este card mostra as
 // métricas no mesmo espaço de valores do dashboard.
+//
+// `iterations` vem da última simulação salva do projeto (via useSimulation).
+// Fallback = MIN_ITERATIONS (10.000) quando ainda não houve rodada.
+//
+// `custoProvavelRaw` (nullable) é a moda que o consultor cadastrou, ANTES do
+// clamp de `categoryParamsFromCategorias`. Serve pra detectar o caso "moda
+// fora do range" — típico com template NX Gold copiado (moda hardcoded 8,15M
+// pra um projeto com itens muito menores). Quando fora do range, banner
+// amber deixa o clamp explícito (só afeta Triangular; Normal/Uniforme
+// ignoram a moda por design).
 interface Props {
   param: CategoryParam
+  iterations?: number
+  custoProvavelRaw?: number | null
 }
 
 const CONFIDENCE = 95
 
-export default function CategoryAroSimStatsCard({ param }: Props) {
+export default function CategoryAroSimStatsCard({
+  param,
+  iterations = MIN_ITERATIONS,
+  custoProvavelRaw = null,
+}: Props) {
   const t = useT(categoriasT)
 
   const sims = useMemo(() => {
     if (param.min <= 0 && param.max <= 0) return null
     return {
-      normal: aroSimForOneCategory('Uniforme', MIN_ITERATIONS, param, CONFIDENCE),
-      triangular: aroSimForOneCategory('Triangular', MIN_ITERATIONS, param, CONFIDENCE),
-      uniforme: aroSimForOneCategory('Uniforme', MIN_ITERATIONS, param, CONFIDENCE),
+      normal: aroSimForOneCategory('Uniforme', iterations, param, CONFIDENCE),
+      triangular: aroSimForOneCategory('Triangular', iterations, param, CONFIDENCE),
+      uniforme: aroSimForOneCategory('Uniforme', iterations, param, CONFIDENCE),
     }
-  }, [param])
+  }, [param, iterations])
 
   if (!sims) return null
+
+  // Moda fora do range → Triangular degenerada (mode clampado num extremo).
+  // Aviso card-level pra ser a primeira coisa que o leitor vê antes das métricas.
+  const modaOutOfRange =
+    custoProvavelRaw !== null &&
+    custoProvavelRaw > 0 &&
+    param.max > 0 &&
+    (custoProvavelRaw < param.min || custoProvavelRaw > param.max)
+  const modaClamped = modaOutOfRange ? Math.max(param.min, Math.min(param.max, custoProvavelRaw!)) : null
 
   return (
     <div className="mt-4 pt-3 border-t border-c-line flex flex-col gap-4">
       <div className="text-[0.75rem] font-semibold tracking-wide uppercase text-c-text-2">
         {t.simStatsTitle}
       </div>
+      {modaOutOfRange && (
+        <div
+          className="flex items-start gap-2 px-3 py-2 bg-amber-50 border border-amber-300 rounded-md text-[0.75rem] text-amber-800 leading-snug"
+          role="alert"
+        >
+          <AlertTriangle size={14} className="shrink-0 mt-[2px]" aria-hidden="true" />
+          <div className="flex flex-col gap-0.5">
+            <span className="font-semibold">{t.simModaClampedTitle}</span>
+            <span>
+              {t.simModaClampedBody(
+                formatMoedaBR(custoProvavelRaw!),
+                formatMoedaBR(param.min),
+                formatMoedaBR(param.max),
+                formatMoedaBR(modaClamped!)
+              )}
+            </span>
+          </div>
+        </div>
+      )}
       <DistBlock label={t.simDistNormal(sims.normal.iterationsRun.toLocaleString('pt-BR'))} sim={sims.normal} tLabels={t} />
       <DistBlock label={t.simDistTriangular(sims.triangular.iterationsRun.toLocaleString('pt-BR'))} sim={sims.triangular} tLabels={t} />
       <DistBlock label={t.simDistUniforme(sims.uniforme.iterationsRun.toLocaleString('pt-BR'))} sim={sims.uniforme} tLabels={t} />

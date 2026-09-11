@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { FolderOpen, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -6,7 +6,8 @@ import { useT } from '@/i18n/useLang'
 import { categoriasT } from '@/i18n/categorias'
 import CategoryBlock from '@/components/categorias/CategoryBlock'
 import { useProjeto } from '@/context/useProjeto'
-import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
+import { useSimulation } from '@/context/useSimulation'
+import { categoryParamsFromCategorias, parseIterationsNumber } from '@/lib/aroSimulacao'
 import type { Projeto } from '@/types/clientes'
 
 export default function Categorias() {
@@ -47,6 +48,19 @@ export default function Categorias() {
     for (const p of categoryParams) map.set(p.name, p)
     return map
   }, [categoryParams])
+
+  // Reusa o N de iterações da última simulação salva do projeto pro card de
+  // estatísticas por categoria (antes era 10.000 fixo, ADR-011 revertida em
+  // 2026-09-11 — consistência UX vence fidelidade estrita à planilha).
+  // Fallback pra 10k quando ainda não houve rodada.
+  const { getSimState, loadSimState } = useSimulation()
+  useEffect(() => {
+    loadSimState(projeto.id)
+  }, [projeto.id, loadSimState])
+  const simIterations = useMemo(() => {
+    const raw = getSimState(projeto.id).result?.iterations
+    return raw ? parseIterationsNumber(raw) : undefined
+  }, [getSimState, projeto.id])
 
   const TIPOS_COM_EXEMPLO = tiposProjeto.filter((tp) => tiposComTemplate.includes(tp.id))
 
@@ -112,6 +126,7 @@ export default function Categorias() {
                   nome={nome}
                   index={idx}
                   simParam={simParamPorNome.get(nome)}
+                  simIterations={simIterations}
                   onRemove={() =>
                     removeCategoria(projeto.id, cat.id).catch(() => showToast('Não foi possível remover a categoria.'))
                   }

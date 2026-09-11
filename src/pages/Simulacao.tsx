@@ -78,12 +78,25 @@ export default function Simulacao() {
   // de IPCA. Ver src/lib/ancoragem.ts.
   const ancoragem = useMemo(() => {
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
-    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    if (dataBaseAno == null)
+      return {
+        fator: 1,
+        fatorMin: 1,
+        fatorMid: 1,
+        fatorMax: 1,
+        faltantes: [],
+        anoInicio: ANO_BASE_TEMPLATE,
+        anoFim: ANO_BASE_TEMPLATE,
+      }
     return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
   }, [projeto.dataBase, parametrosAnuais])
+  // Aro Simulação continua usando ancoragem.fatorMid (midpoint) — decisão
+  // deliberada (ADR-013, opção I): a banda min/max de IPCA entra só nas
+  // visões financeiras/desembolso, MC de custo não propaga IPCA como
+  // distribuição. `fator` é preservado como alias de `fatorMid` por retrocompat.
   const categoryParams = useMemo(
-    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
-    [projeto.categorias, catalogo, ancoragem.fator]
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fatorMid),
+    [projeto.categorias, catalogo, ancoragem.fatorMid]
   )
   const categoryNames = useMemo(() => categoryParams.map((c) => c.name), [categoryParams])
 
@@ -105,7 +118,7 @@ export default function Simulacao() {
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
       modo,
-      fatorAncoragem: ancoragem.fator,
+      fatorAncoragem: ancoragem.fatorMid,
     })
     if (res.totalGeral === 0) return null
     return {
@@ -119,7 +132,7 @@ export default function Simulacao() {
     projeto.dataBase,
     catalogo,
     parametrosAnuais,
-    ancoragem.fator,
+    ancoragem.fatorMid,
   ])
 
   useEffect(() => {

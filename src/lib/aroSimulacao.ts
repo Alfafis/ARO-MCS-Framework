@@ -238,10 +238,11 @@ export interface MCResult {
 }
 
 // Thin wrapper para rodar a Aro Simulação de UMA categoria só — usado pelo card de
-// estatísticas Aro Simulação no CategoryBlock. Passa `fixedIterations=true` (ADR-011)
-// para replicar o comportamento da planilha NX Gold, que roda exatamente 10.000
-// iterações sem convergência dinâmica. `/simulacao` continua usando RB-03
-// (convergência dinâmica em blocos) via `runAroSimulacao` sem esse flag.
+// estatísticas Aro Simulação no CategoryBlock. Passa `fixedIterations=true` para
+// rodar exatamente `iterations` (clamped em [MIN, MAX] pela engine) sem convergência
+// dinâmica — o N vem da última simulação salva do projeto, para o card refletir a
+// mesma escolha do usuário em `/simulacao`. `/simulacao` (o motor agregado) continua
+// usando RB-03 (convergência dinâmica em blocos) via `runAroSimulacao` sem esse flag.
 export function aroSimForOneCategory(
   dist: Distribution,
   iterations: number,

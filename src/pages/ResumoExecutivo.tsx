@@ -29,7 +29,7 @@ import { custoTotalRemediacao } from '@/types/remediacao'
 import type { CostCategory, CostTotals, RiskMetric } from '@/types/relatorio'
 import type { SimResult } from '@/types/simulacao'
 import type { RevisaoRow } from '@/types'
-import { sequenciaMidpoints } from '@/types/parametrosGlobais'
+import { sequenciaMidpoints, sequenciaByBounds } from '@/types/parametrosGlobais'
 
 // mesmo formato já usado em ParametroRow (ParametrosGlobais.tsx): "14" → "14,00"
 const pct = (v: number) => (v * 100).toFixed(2).replace('.', ',')
@@ -129,38 +129,62 @@ export default function ResumoExecutivo() {
   // `parametros_anuais` — nesse caso `faltantes` lista os anos e a UI mostra aviso.
   const ancoragem = useMemo(() => {
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
-    if (dataBaseAno == null) return { fator: 1, faltantes: [], anoInicio: ANO_BASE_TEMPLATE, anoFim: ANO_BASE_TEMPLATE }
+    if (dataBaseAno == null)
+      return {
+        fator: 1,
+        fatorMin: 1,
+        fatorMid: 1,
+        fatorMax: 1,
+        faltantes: [],
+        anoInicio: ANO_BASE_TEMPLATE,
+        anoFim: ANO_BASE_TEMPLATE,
+      }
     return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
   }, [projeto.dataBase, parametrosAnuais])
 
+  // categoryParams usa fator MID (midpoint IPCA) — mantém baseTotal e os
+  // métodos monetários alinhados com o comportamento histórico. As bandas
+  // min/max do IPCA entram só na apresentação (CostByCategoryTable) via os
+  // fatores fatorMin/fatorMax (ADR-013, D15). Fatoração dupla evita rodar a
+  // engine 3× e mantém a Aro Simulação intocada (opção I do alinhamento).
   const categoryParams = useMemo(
-    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fator),
-    [projeto.categorias, catalogo, ancoragem.fator]
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo, ancoragem.fatorMid),
+    [projeto.categorias, catalogo, ancoragem.fatorMid]
+  )
+
+  // Valores CRUS por categoria (fator=1) — servem pra aplicar fatorMin/fatorMax
+  // uniformemente na formação das colunas min/max do CostByCategoryTable.
+  const categoryParamsRaw = useMemo(
+    () => categoryParamsFromCategorias(projeto.categorias, catalogo, 1),
+    [projeto.categorias, catalogo]
   )
 
   const costCategories: CostCategory[] = useMemo(
     () =>
-      categoryParams.map((c, i) => ({
+      categoryParamsRaw.map((c, i) => ({
         rank: String(i + 1).padStart(2, '0'),
         name: c.name,
-        min: formatMoedaCompact(c.min, false),
-        max: formatMoedaCompact(c.max, false),
+        // MIN usa fator_min (cenário otimista IPCA baixo) e MAX usa fator_max
+        // (cenário pessimista IPCA alto) — replica linhas 20-21 da planilha
+        // NX Gold (`0. Síntese Por Setor`).
+        min: formatMoedaCompact(c.min * ancoragem.fatorMin, false),
+        max: formatMoedaCompact(c.max * ancoragem.fatorMax, false),
       })),
-    [categoryParams]
+    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
   )
 
   const costTotals: CostTotals = useMemo(
     () => ({
       min: formatMoedaCompact(
-        categoryParams.reduce((acc, c) => acc + c.min, 0),
+        categoryParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin, 0),
         false
       ),
       max: formatMoedaCompact(
-        categoryParams.reduce((acc, c) => acc + c.max, 0),
+        categoryParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax, 0),
         false
       ),
     }),
-    [categoryParams]
+    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
   )
 
   // Base pro provisionamento: soma do ponto médio de cada categoria real —
@@ -213,7 +237,8 @@ export default function ResumoExecutivo() {
     if (projeto.categorias.length === 0) return null
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    const ipcaBounds = sequenciaByBounds(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    const ipcaPorAno = ipcaBounds?.mid ?? null
 
     const res = computeDesembolsoMatrix({
       categorias: projeto.categorias,
@@ -222,7 +247,12 @@ export default function ResumoExecutivo() {
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
       modo: modoDesembolso === 'ipca' && ipcaPorAno === null ? 'provisao' : modoDesembolso,
-      fatorAncoragem: ancoragem.fator,
+      fatorAncoragem: ancoragem.fatorMid,
+      // Bandas min/max IPCA (ADR-013, D15) — só quando modo IPCA e ancoragem completa.
+      ipcaMinPorAno: ipcaBounds?.min ?? null,
+      ipcaMaxPorAno: ipcaBounds?.max ?? null,
+      fatorAncoragemMin: ancoragem.fatorMin,
+      fatorAncoragemMax: ancoragem.fatorMax,
     })
 
     if (res.totalGeral === 0) return null
@@ -230,10 +260,18 @@ export default function ResumoExecutivo() {
     const years: DisbursementYear[] = res.totaisPorAno.map((total, i) => ({
       label: `Ano ${String(i + 1).padStart(2, '0')}`,
       value: formatMoedaCompact(total, false),
+      valueMin: res.totaisPorAnoMin ? formatMoedaCompact(res.totaisPorAnoMin[i], false) : undefined,
+      valueMax: res.totaisPorAnoMax ? formatMoedaCompact(res.totaisPorAnoMax[i], false) : undefined,
     }))
     const categories: DisbursementCategory[] = res.categorias.map((name, ci) => ({
       name,
       values: res.matrix[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null)),
+      valuesMin: res.matrixMin
+        ? res.matrixMin[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
+        : undefined,
+      valuesMax: res.matrixMax
+        ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
+        : undefined,
     }))
     return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
   }, [
@@ -244,7 +282,9 @@ export default function ResumoExecutivo() {
     catalogo,
     parametrosAnuais,
     modoDesembolso,
-    ancoragem.fator,
+    ancoragem.fatorMid,
+    ancoragem.fatorMin,
+    ancoragem.fatorMax,
   ])
 
   // Matriz detalhada item × ano — mesma origem de dados, apenas outra
@@ -263,7 +303,7 @@ export default function ResumoExecutivo() {
       contingenciaPct: projeto.contingenciaPct,
       ipcaPorAno,
       modo,
-      fatorAncoragem: ancoragem.fator,
+      fatorAncoragem: ancoragem.fatorMid,
     })
     if (res.totalGeral === 0) return null
     const yearsLabels = Array.from({ length: projeto.horizonteAnos }, (_, i) => ({
@@ -330,7 +370,12 @@ export default function ResumoExecutivo() {
 
       <div className="px-4 sm:px-8 pb-6 sm:pb-8 flex flex-col gap-4">
         <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
-          <CostByCategoryTable categories={costCategories} totals={costTotals} groupByPhase={false} />
+          <CostByCategoryTable
+            categories={costCategories}
+            totals={costTotals}
+            groupByPhase={false}
+            ancoragem={ancoragem}
+          />
           <RiskMetricsCard
             metrics={riskMetrics}
             cvLabel={cvLabel}

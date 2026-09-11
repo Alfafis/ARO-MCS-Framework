@@ -45,6 +45,7 @@ export const resumoT: Record<
     fanDesc: (cv: string) => string
     // CostByCategoryTable
     costTableTitle: (count: number) => string
+    costTableAncoragemFooter: (fator: string, anoInicio: number, anoFim: number) => string
     colHash: string
     colCategory: string
     colMin: string
@@ -116,6 +117,8 @@ export const resumoT: Record<
     fanDesc: (cv) =>
       `Faixa estimada a partir do coeficiente de variação da Aro Simulação (${cv}%) aplicado ao desembolso acumulado por ano — não é um cálculo de percentil (P10/P90) rodado independentemente para cada ano.`,
     costTableTitle: (count) => `Custo por categoria — ${count} setores`,
+    costTableAncoragemFooter: (fator, anoInicio, anoFim) =>
+      `Valores ancorados na data-base do projeto (${anoFim}) via IPCA acumulado desde ${anoInicio} (×${fator}). Valores crus dos itens em base ${anoInicio} aparecem em Categorias.`,
     colHash: '#',
     colCategory: 'Categoria',
     colMin: 'Min',
@@ -181,6 +184,8 @@ export const resumoT: Record<
     fanDesc: (cv) =>
       `Range estimated from the Aro Simulação coefficient of variation (${cv}%) applied to cumulative disbursement by year — not an independent percentile (P10/P90) calculation per year.`,
     costTableTitle: (count) => `Cost by category — ${count} sectors`,
+    costTableAncoragemFooter: (fator, anoInicio, anoFim) =>
+      `Values anchored to the project base date (${anoFim}) via cumulative CPI since ${anoInicio} (×${fator}). Raw item values at base ${anoInicio} are shown in Categories.`,
     colHash: '#',
     colCategory: 'Category',
     colMin: 'Min',
@@ -247,6 +252,8 @@ export const resumoT: Record<
     fanDesc: (cv) =>
       `Rango estimado a partir del coeficiente de variación de la Aro Simulação (${cv}%) aplicado al desembolso acumulado por año — no es un cálculo de percentil (P10/P90) ejecutado independientemente para cada año.`,
     costTableTitle: (count) => `Costo por categoría — ${count} sectores`,
+    costTableAncoragemFooter: (fator, anoInicio, anoFim) =>
+      `Valores anclados a la fecha base del proyecto (${anoFim}) mediante IPC acumulado desde ${anoInicio} (×${fator}). Los valores brutos de los ítems en base ${anoInicio} aparecen en Categorías.`,
     colHash: '#',
     colCategory: 'Categoría',
     colMin: 'Mín',

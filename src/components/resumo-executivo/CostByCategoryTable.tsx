@@ -2,6 +2,8 @@ import { Fragment } from 'react'
 import { BarChart2 } from 'lucide-react'
 import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
+import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
+import type { FatorAncoragem } from '@/lib/ancoragem'
 import type { CostCategory, CostTotals, PhaseCategory } from '@/types/relatorio'
 
 interface Props {
@@ -9,12 +11,23 @@ interface Props {
   totals: CostTotals
   className?: string
   groupByPhase?: boolean
+  // Fator de ancoragem já aplicado nos min/max recebidos. Quando presente e > 1,
+  // renderiza chip no cabeçalho e legenda no rodapé — deixa explícito que os
+  // valores estão em base data-base do projeto (não crus). Ver ADR-010.
+  ancoragem?: FatorAncoragem
 }
 
 const PHASE_ORDER: PhaseCategory[] = ['pre', 'closure', 'post']
 
-export default function CostByCategoryTable({ categories, totals, className = '', groupByPhase = true }: Props) {
+export default function CostByCategoryTable({
+  categories,
+  totals,
+  className = '',
+  groupByPhase = true,
+  ancoragem,
+}: Props) {
   const t = useT(resumoT)
+  const showAncoragem = ancoragem && ancoragem.fator > 1 && ancoragem.faltantes.length === 0
 
   const PHASE_LABELS: Record<PhaseCategory, { name: string; desc: string; years: string }> = {
     pre: { name: t.phasePreLabel, desc: t.phasePreDesc, years: t.phasePreYears },
@@ -35,9 +48,22 @@ export default function CostByCategoryTable({ categories, totals, className = ''
 
   return (
     <div className={`card ${className}`.trimEnd()}>
-      <div className="flex items-center gap-1.5 mb-4">
-        <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
-        <span className="font-semibold text-[0.875rem] text-c-text">{t.costTableTitle(categories.length)}</span>
+      <div className="flex items-center gap-2 mb-4 flex-wrap">
+        <div className="flex items-center gap-1.5">
+          <BarChart2 size={14} color="var(--accent)" aria-hidden="true" />
+          <span className="font-semibold text-[0.875rem] text-c-text">{t.costTableTitle(categories.length)}</span>
+        </div>
+        {ancoragem && (
+          <AncoragemBadge
+            ancoragem={ancoragem}
+            labels={{
+              incompleteLabel: t.ancoragemIncompleteLabel,
+              incompleteTitle: t.ancoragemIncompleteTitle,
+              label: t.ancoragemLabel,
+              title: t.ancoragemTitle,
+            }}
+          />
+        )}
       </div>
 
       <table className="w-full border-collapse">
@@ -111,6 +137,15 @@ export default function CostByCategoryTable({ categories, totals, className = ''
           </tr>
         </tbody>
       </table>
+      {showAncoragem && (
+        <p className="mt-3 text-[0.7rem] leading-snug text-c-text-2">
+          {t.costTableAncoragemFooter(
+            ancoragem!.fator.toFixed(4),
+            ancoragem!.anoInicio,
+            ancoragem!.anoFim + 1
+          )}
+        </p>
+      )}
     </div>
   )
 }
