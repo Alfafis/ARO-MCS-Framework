@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
-import { Copy, Check, Sprout, ChevronRight } from 'lucide-react'
+import { Copy, Check, Sprout, ChevronRight, Download, Loader2 } from 'lucide-react'
+import html2canvas from 'html2canvas-pro'
+import jsPDF from 'jspdf'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import type { Projeto } from '@/types/clientes'
@@ -11,6 +13,8 @@ import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
+import RelatorioPdfLayout from '@/components/relatorio/RelatorioPdfLayout'
+import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
@@ -77,7 +81,8 @@ export default function ResumoExecutivo() {
   const tRem = useT(remediacaoT)
   const navigate = useNavigate()
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
-  const { catalogo, parametrosAnuais, remediacaoByProjeto, fetchRemediacao } = useProjeto()
+  const { catalogo, parametrosAnuais, remediacaoByProjeto, fetchRemediacao, clientes } = useProjeto()
+  const { config } = usePlataformaConfig()
 
   // Se o módulo Remediação está habilitado, carrega o resumo pra mostrar o
   // card compacto (link "ver detalhes" pra rota dedicada). Escopo alternativo:
@@ -95,6 +100,8 @@ export default function ResumoExecutivo() {
   const showRemediacaoCard = projeto.remediacaoHabilitada && remediacaoCategorias && remediacaoCategorias.length > 0
 
   const [linkCopied, setLinkCopied] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
+  const pdfRef = useRef<HTMLDivElement>(null)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
   const [loading, setLoading] = useState(true)
@@ -333,6 +340,55 @@ export default function ResumoExecutivo() {
     setTimeout(() => setLinkCopied(false), 2500)
   }
 
+  const clienteNome = clientes.find((c) => c.id === projeto.clienteId)?.nome ?? ''
+
+  // Nome do arquivo — sanitiza slashes/caracteres proibidos no Windows/macOS.
+  const pdfFilename = `Relatório - ${projeto.projeto}${projeto.rev ? ` - ${projeto.rev}` : ''}.pdf`.replace(
+    /[/\\:*?"<>|]/g,
+    '-'
+  )
+
+  async function handleExportPdf() {
+    if (!pdfRef.current || isExporting) return
+    setIsExporting(true)
+    try {
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      })
+      const imgData = canvas.toDataURL('image/jpeg', 0.98)
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+      const margin = 10
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth - margin * 2
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const usableHeight = pageHeight - margin * 2
+
+      // Repete a imagem inteira em cada página, deslocada verticalmente pra
+      // mostrar a fatia certa. Padrão consagrado com jsPDF + html2canvas —
+      // conteúdo fica renderizado como bitmap único, então precisa desse
+      // truque de posição negativa pras páginas subsequentes.
+      let heightLeft = imgHeight
+      let position = margin
+      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
+      heightLeft -= usableHeight
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft)
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
+        heightLeft -= usableHeight
+      }
+      pdf.save(pdfFilename)
+    } catch (err) {
+      console.error('[ExportPdf] falha ao gerar PDF:', err)
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4 p-4 sm:p-8">
@@ -360,7 +416,17 @@ export default function ResumoExecutivo() {
                 </>
               )}
             </Button>
-            <Button variant="ghost">{t.exportPdf}</Button>
+            <Button variant="ghost" onClick={handleExportPdf} disabled={isExporting}>
+              {isExporting ? (
+                <>
+                  <Loader2 size={13} className="animate-spin" /> {tRel.pdfGenerating}
+                </>
+              ) : (
+                <>
+                  <Download size={13} /> {t.exportPdf}
+                </>
+              )}
+            </Button>
             <Button variant="primary" onClick={() => navigate(`/projetos/${projeto.id}/simulacao`)}>
               {t.runSimulation}
             </Button>
@@ -476,6 +542,45 @@ export default function ResumoExecutivo() {
             className={monetaryMethods.length > 0 ? 'lg:col-span-5' : 'lg:col-span-12'}
             revisions={revisionItems}
             emptyLabel={t.revEmpty}
+          />
+        </div>
+      </div>
+
+      {/* Camada offscreen — html2canvas precisa das dimensões reais do nó,
+          então usamos `fixed` (fora do fluxo, não infla o scroll do workspace)
+          + left negativo (fora da viewport). Marcado aria-hidden. */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          left: '-99999px',
+          top: 0,
+          width: '1040px',
+          pointerEvents: 'none',
+          zIndex: -1000,
+        }}
+      >
+        <div ref={pdfRef}>
+          <RelatorioPdfLayout
+            projectName={projeto.projeto}
+            revLabel={projeto.rev || null}
+            clienteNome={clienteNome}
+            simResult={simResult}
+            costCategories={costCategories}
+            costTotals={costTotals}
+            riskMetrics={riskMetrics}
+            cvLabel={cvLabel}
+            icLoLabel={icLoLabel}
+            icHiLabel={icHiLabel}
+            confLevel={confLevel}
+            contingenciaPct={contingenciaPct}
+            baseWithProvision={baseWithProvision}
+            baseTotal={baseTotal}
+            ancoragem={ancoragem}
+            disbursement={disbursement ? { years: disbursement.years, categories: disbursement.categories } : null}
+            monetaryMethods={monetaryMethods}
+            horizonteAnos={projeto.horizonteAnos}
+            logoUrl={config.logoCompletoUrl}
           />
         </div>
       </div>
