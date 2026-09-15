@@ -20,12 +20,13 @@ import {
   runAroSimulacao,
   categoryParamsFromCategorias,
   parseIterationsNumber,
+  classifyCV,
   type CategoryParam,
 } from '@/lib/aroSimulacao'
 import { computeDesembolsoMatrix } from '@/lib/desembolsoAno'
 import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
 import { sequenciaMidpoints } from '@/types/parametrosGlobais'
-import type { Distribution, HistoryRun, SimResult, UncertaintyLevel } from '@/types/simulacao'
+import type { Distribution, HistoryRun, SimResult } from '@/types/simulacao'
 
 function computeResult(
   dist: Distribution,
@@ -39,7 +40,7 @@ function computeResult(
   const fmt = (v: number) => `R$ ${toM(v).toFixed(1).replace('.', ',')}M`
   const rng = (v: number) => toM(v).toFixed(1).replace('.', ',')
   const rangeNum = sim.cv * 100
-  const uncertainty: UncertaintyLevel = rangeNum < 3 ? 'baixo' : rangeNum < 5 ? 'moderado' : 'alto'
+  const uncertainty = classifyCV(sim.cv)
   return {
     mean: fmt(sim.mean),
     stddev: `R$ ${toM(sim.stddev).toFixed(1).replace('.', ',')}M`,

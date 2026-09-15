@@ -1,4 +1,4 @@
-import type { Distribution } from '@/types/simulacao'
+import type { Distribution, UncertaintyLevel } from '@/types/simulacao'
 import type { Category, CategoriaCatalogo } from '@/types/categorias'
 import { parseMoedaBR } from '@/lib/financeiro'
 
@@ -463,23 +463,37 @@ export interface CalibrationInput {
   cvar95: number
 }
 
+// Fonte única das thresholds de CV (coeficiente de variação) — usada tanto
+// pela `calibrarProvisao` (recomendação de método) quanto pelo card
+// `RiskMetricsCard` via `Simulacao.tsx`. Padrão da literatura de análise de
+// risco: <10% baixo, 10–20% moderado, >20% alto. Antes existiam duas réguas
+// divergentes (3/5 no card, 10/20 na calibração) — o mesmo projeto podia sair
+// "Alto" num card e "Baixo" no adjacente.
+export function classifyCV(cv: number): UncertaintyLevel {
+  if (cv < 0.1) return 'baixo'
+  if (cv <= 0.2) return 'moderado'
+  return 'alto'
+}
+
+const NIVEL_RISCO_POR_UNCERTAINTY: Record<UncertaintyLevel, NivelRisco> = {
+  baixo: 'Baixo',
+  moderado: 'Médio',
+  alto: 'Alto',
+}
+
 export function calibrarProvisao(result: CalibrationInput): CalibrationResult {
   const { cv, p50, p90, p95, cvar95 } = result
+  const nivelRisco = NIVEL_RISCO_POR_UNCERTAINTY[classifyCV(cv)]
 
-  let nivelRisco: NivelRisco
   let provisaoBase: number
   let margemSeguranca: number
-
-  if (cv < 0.1) {
-    nivelRisco = 'Baixo'
+  if (nivelRisco === 'Baixo') {
     provisaoBase = p50
     margemSeguranca = 0.1
-  } else if (cv <= 0.2) {
-    nivelRisco = 'Médio'
+  } else if (nivelRisco === 'Médio') {
     provisaoBase = p90
     margemSeguranca = 0.15
   } else {
-    nivelRisco = 'Alto'
     provisaoBase = Math.max(p95, cvar95)
     margemSeguranca = 0.2
   }
