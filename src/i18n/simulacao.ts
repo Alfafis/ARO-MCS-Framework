@@ -19,6 +19,7 @@ export const simulacaoT: Record<
     lastResult: string
     statMean: string
     statStddev: string
+    statP10P90: string
     statVar95: string
     statCvar95: string
     uncertainty_low: string
@@ -89,6 +90,7 @@ export const simulacaoT: Record<
     lastResult: 'Resultado da última rodada',
     statMean: 'Média',
     statStddev: 'Desvio-padrão',
+    statP10P90: 'Otimista–Pessimista',
     statVar95: 'VaR 95%',
     statCvar95: 'CVaR 95%',
     uncertainty_low: 'Incerteza baixa',
@@ -158,6 +160,7 @@ export const simulacaoT: Record<
     lastResult: 'Last run result',
     statMean: 'Mean',
     statStddev: 'Std. deviation',
+    statP10P90: 'Optimistic–Pessimistic',
     statVar95: 'VaR 95%',
     statCvar95: 'CVaR 95%',
     uncertainty_low: 'Low uncertainty',
@@ -227,6 +230,7 @@ export const simulacaoT: Record<
     lastResult: 'Resultado de la última ejecución',
     statMean: 'Media',
     statStddev: 'Desviación estándar',
+    statP10P90: 'Optimista–Pesimista',
     statVar95: 'VaR 95%',
     statCvar95: 'CVaR 95%',
     uncertainty_low: 'Incertidumbre baja',
