@@ -15,6 +15,9 @@ export const resumoT: Record<
     method4: (anoInicio: number | null) => string
     // AnnualDisbursementCard (componente ainda sem consumidor ligado — mantido pra não quebrar o arquivo)
     disbursementTitle: string
+    // Legenda das duas linhas por célula quando o modo IPCA mostra bandas
+    // min/max acumuladas (visível só nesse cenário).
+    disbursementBandLegend: string
     yearPrefix: string
     // Toggle Agregado / Detalhado (view do card de desembolso ano-a-ano)
     viewLabel: string
@@ -89,6 +92,7 @@ export const resumoT: Record<
     method4: (ano) =>
       ano !== null ? `Escalonamento — IPCA variável ${ano}-${ano + 9}` : 'Escalonamento — IPCA variável', // +9 = HORIZON_YEARS-1 (lib/financeiro.ts)
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
+    disbursementBandLegend: '↑ cenário otimista (IPCA mín) · ↓ cenário pessimista (IPCA máx)',
     yearPrefix: 'ANO',
     viewLabel: 'Visão:',
     viewAggregated: 'Agregado por categoria',
@@ -156,6 +160,7 @@ export const resumoT: Record<
     method3: (pct) => `Constant inflation — ${pct}%/yr`,
     method4: (ano) => (ano !== null ? `Escalation — variable IPCA ${ano}-${ano + 9}` : 'Escalation — variable IPCA'),
     disbursementTitle: 'Projected disbursement by year — Grand Total',
+    disbursementBandLegend: '↑ optimistic scenario (CPI min) · ↓ pessimistic scenario (CPI max)',
     yearPrefix: 'YEAR',
     viewLabel: 'View:',
     viewAggregated: 'Aggregated by category',
@@ -224,6 +229,7 @@ export const resumoT: Record<
     method4: (ano) =>
       ano !== null ? `Escalonamiento — IPCA variable ${ano}-${ano + 9}` : 'Escalonamiento — IPCA variable',
     disbursementTitle: 'Desembolso proyectado por año — Total General',
+    disbursementBandLegend: '↑ escenario optimista (IPCA mín) · ↓ escenario pesimista (IPCA máx)',
     yearPrefix: 'AÑO',
     viewLabel: 'Vista:',
     viewAggregated: 'Agregado por categoría',

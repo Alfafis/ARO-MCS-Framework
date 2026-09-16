@@ -846,6 +846,7 @@ export type Database = {
       }
       projetos: {
         Row: {
+          ano_referencia: number
           atualizado_em: string
           cliente_id: string
           contingencia_pct: number
@@ -862,6 +863,7 @@ export type Database = {
           tipo_projeto_id: string
         }
         Insert: {
+          ano_referencia?: number
           atualizado_em?: string
           cliente_id: string
           contingencia_pct?: number
@@ -878,6 +880,7 @@ export type Database = {
           tipo_projeto_id: string
         }
         Update: {
+          ano_referencia?: number
           atualizado_em?: string
           cliente_id?: string
           contingencia_pct?: number
@@ -1094,6 +1097,7 @@ export type Database = {
       arquivar_projeto: { Args: { p_id: string }; Returns: undefined }
       atualizar_config_financeira: {
         Args: {
+          p_ano_referencia: number
           p_contingencia_pct: number
           p_data_base: string
           p_horizonte_anos: number
@@ -1102,6 +1106,7 @@ export type Database = {
           p_projeto_id: string
         }
         Returns: {
+          ano_referencia: number
           atualizado_em: string
           cliente_id: string
           contingencia_pct: number
@@ -1294,6 +1299,7 @@ export type Database = {
           p_tipo_projeto_id: string
         }
         Returns: {
+          ano_referencia: number
           atualizado_em: string
           cliente_id: string
           contingencia_pct: number

@@ -174,6 +174,7 @@ function mapRowToProjeto(row: ProjetoRowComCategorias): Projeto {
     tipoProjetoId: row.tipo_projeto_id,
     moeda: row.moeda,
     dataBase: row.data_base,
+    anoReferencia: row.ano_referencia,
     horizonteAnos: row.horizonte_anos,
     metodoAtualizacao: row.metodo_atualizacao,
     contingenciaPct: row.contingencia_pct,
@@ -463,6 +464,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
       p_horizonte_anos: form.horizonteAnos,
       p_metodo_atualizacao: form.metodoAtualizacao,
       p_contingencia_pct: form.contingenciaPct,
+      p_ano_referencia: form.anoReferencia,
     })
     if (error || !data) throw error ?? new Error('Falha ao atualizar configuração financeira')
     setProjetos((prev) =>
@@ -472,6 +474,7 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
               ...p,
               moeda: data.moeda,
               dataBase: data.data_base,
+              anoReferencia: data.ano_referencia,
               horizonteAnos: data.horizonte_anos,
               metodoAtualizacao: data.metodo_atualizacao,
               contingenciaPct: data.contingencia_pct,

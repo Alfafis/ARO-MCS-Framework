@@ -8,21 +8,30 @@ interface Props {
   categories?: DisbursementCategory[]
 }
 
-const COL_TEMPLATE = '150px repeat(10, 1fr)'
-
 export default function AnnualDisbursementCard({ years, categories }: Props) {
   const t = useT(resumoT)
+  // Grid dinâmico pelo horizonte real do projeto (1–20 anos). Fixar em 10
+  // colunas quebra o auto-placement quando `horizonteAnos < 10`: sobra
+  // espaço vazio no fim de cada linha e as células da próxima linha
+  // avançam pras colunas erradas.
+  const gridTemplateColumns = `150px repeat(${years.length}, 1fr)`
+  // Banda min/max aparece só no modo IPCA acumulado — checar qualquer célula
+  // da primeira categoria basta (todas seguem o mesmo modo).
+  const showBandLegend = categories?.[0]?.valuesMin != null && categories?.[0]?.valuesMax != null
 
   return (
     <div className="card">
-      <div className="flex items-center gap-1.5 mb-4">
+      <div className="flex items-center gap-1.5 mb-4 flex-wrap">
         <Calendar size={14} color="var(--accent)" aria-hidden="true" />
         <span className="font-semibold text-[0.875rem] text-c-text">{t.disbursementTitle}</span>
+        {showBandLegend && (
+          <span className="ml-auto text-[11px] text-c-text-2">{t.disbursementBandLegend}</span>
+        )}
       </div>
 
       {categories ? (
         <div className="overflow-x-auto">
-          <div className="grid min-w-[740px]" style={{ gridTemplateColumns: COL_TEMPLATE }}>
+          <div className="grid min-w-[740px]" style={{ gridTemplateColumns }}>
             {/* Header */}
             <div />
             {years.map((y) => (

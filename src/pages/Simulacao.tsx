@@ -24,7 +24,7 @@ import {
   type CategoryParam,
 } from '@/lib/aroSimulacao'
 import { computeDesembolsoMatrix } from '@/lib/desembolsoAno'
-import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { computeFatorAncoragem } from '@/lib/ancoragem'
 import { sequenciaMidpoints } from '@/types/parametrosGlobais'
 import type { Distribution, HistoryRun, SimResult } from '@/types/simulacao'
 
@@ -74,9 +74,10 @@ export default function Simulacao() {
   const { projeto } = useOutletContext<{ projeto: Projeto }>()
   const { getSimState, loadSimState, setSimulation, previewResult } = useSimulation()
   const { catalogo, parametrosAnuais } = useProjeto()
-  // Ancoragem base_template → data_base do projeto para a Aro Simulação. Sem isso os
-  // resultados (média, P80, IC 95%) saem em base 2022, subestimando ~N anos
-  // de IPCA. Ver src/lib/ancoragem.ts.
+  // Ancoragem ano_referencia_projeto → data_base do projeto para a Aro Simulação.
+  // Se o consultor cadastrou os valores hoje (ano_referencia = data_base), fator = 1
+  // e a simulação roda em cima dos valores crus. Se os valores estão em ano anterior,
+  // aplica IPCA acumulada até a data-base. Ver src/lib/ancoragem.ts.
   const ancoragem = useMemo(() => {
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     if (dataBaseAno == null)
@@ -86,11 +87,11 @@ export default function Simulacao() {
         fatorMid: 1,
         fatorMax: 1,
         faltantes: [],
-        anoInicio: ANO_BASE_TEMPLATE,
-        anoFim: ANO_BASE_TEMPLATE,
+        anoInicio: projeto.anoReferencia,
+        anoFim: projeto.anoReferencia,
       }
-    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
-  }, [projeto.dataBase, parametrosAnuais])
+    return computeFatorAncoragem(projeto.anoReferencia, dataBaseAno, parametrosAnuais)
+  }, [projeto.dataBase, projeto.anoReferencia, parametrosAnuais])
   // Aro Simulação continua usando ancoragem.fatorMid (midpoint) — decisão
   // deliberada (ADR-013, opção I): a banda min/max de IPCA entra só nas
   // visões financeiras/desembolso, MC de custo não propaga IPCA como

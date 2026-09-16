@@ -4,7 +4,7 @@ import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
-import { formatMoedaCompact } from '@/lib/financeiro'
+import { formatMoedaCompact, scaleSimStringValue } from '@/lib/financeiro'
 import { useT } from '@/i18n/useLang'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -30,8 +30,13 @@ export interface RelatorioPdfLayoutProps {
   icHiLabel: string
   confLevel: number
   contingenciaPct: number
-  baseWithProvision: number
+  // `baseWithProvisionOrModo` = disbursement.totalGeral quando o modo do
+  // toggle está em provisão/IPCA, ou baseWithProvision no fallback. É o valor
+  // que vai no KPI "Provisão base" — mantém consistência com o resto do
+  // relatório (Custo médio, métricas de risco já re-escaladas via modoMultiplier).
+  baseWithProvisionOrModo: number
   baseTotal: number
+  modoMultiplier: number
   ancoragem: FatorAncoragem
   disbursement: {
     years: DisbursementYear[]
@@ -58,8 +63,9 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
     icHiLabel,
     confLevel,
     contingenciaPct,
-    baseWithProvision,
+    baseWithProvisionOrModo,
     baseTotal,
+    modoMultiplier,
     ancoragem,
     disbursement,
     monetaryMethods,
@@ -71,19 +77,19 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
     {
       icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
       label: t.kpiAvgCost,
-      value: simResult?.mean ?? '—',
+      value: simResult ? scaleSimStringValue(simResult.mean, modoMultiplier) : '—',
       sub: simResult ? t.kpiAvgCostSubSim(simResult.status) : t.simPendingSub,
     },
     {
       icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
       label: t.kpiMinMaxRange,
-      value: simResult?.p10p90 ?? '—',
-      sub: simResult ? t.kpiMinMaxSubIC(confLevel, simResult.ic95) : t.simPendingSub,
+      value: simResult ? scaleSimStringValue(simResult.p10p90, modoMultiplier) : '—',
+      sub: simResult ? t.kpiMinMaxSubIC(confLevel, scaleSimStringValue(simResult.ic95, modoMultiplier)) : t.simPendingSub,
     },
     {
       icon: <Plus size={14} strokeWidth={2} className="text-accent-700" />,
       label: t.kpiBaseProvision,
-      value: baseTotal > 0 ? formatMoedaCompact(baseWithProvision) : '—',
+      value: baseTotal > 0 ? formatMoedaCompact(baseWithProvisionOrModo) : '—',
       sub: t.kpiBaseSub(contingenciaPct),
     },
   ]
@@ -167,7 +173,7 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
         {monetaryMethods.length > 0 && (
           <MonetaryMethodsCard
             methods={monetaryMethods}
-            baseLabel={formatMoedaCompact(baseWithProvision)}
+            baseLabel={formatMoedaCompact(baseWithProvisionOrModo)}
             horizonYears={horizonteAnos}
           />
         )}

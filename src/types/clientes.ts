@@ -24,6 +24,12 @@ export interface Projeto {
   tipoProjetoId: string
   moeda: string
   dataBase: string
+  // Ano em que os valores dos itens de custo do projeto estão expressos —
+  // default = ano corrente na criação. Se o consultor cadastrou os valores
+  // em ano anterior à data-base, sobrescreve na aba Configurações pra a
+  // ancoragem IPCA calcular corretamente. Quando `anoReferencia == dataBase`
+  // (ou > dataBase), o fator de ancoragem sai 1 e a badge some.
+  anoReferencia: number
   horizonteAnos: number
   metodoAtualizacao: string
   contingenciaPct: number

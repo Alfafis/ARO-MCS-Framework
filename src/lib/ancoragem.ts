@@ -1,13 +1,9 @@
 import type { ParametroAnual } from '@/types/parametrosGlobais'
 
-// Ano-base do template NX Gold. A Tabela 1 do `_Dados_Planilha.md` está em
-// base 2022 — `custo_provavel` das 8 categorias (F18 da planilha) e os
-// `custo_min/max` dos 62 itens template todos referenciam este ano.
-//
-// Se um dia surgir um template com base diferente (ex: Petz-Reciclagem em
-// base 2025), virar coluna `ano_base` em `tipos_projeto` ou coluna similar
-// em `categorias_template`. Por enquanto, constante.
-export const ANO_BASE_TEMPLATE = 2022
+// Ancoragem vive em `projeto.anoReferencia` — coluna em `projetos`
+// (migration 20260915180000). Cada projeto tem seu próprio ano-base: default
+// = ano corrente na criação; consultor sobrescreve na aba Configurações
+// quando os valores dos itens foram cadastrados em outro ano.
 
 export interface FatorAncoragem {
   // Multiplicador base_template → data_base_projeto usando IPCA midpoint por

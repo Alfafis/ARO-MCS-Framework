@@ -13,14 +13,14 @@ import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembol
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
 import { Sprout } from 'lucide-react'
 import { remediacaoT } from '@/i18n/remediacao'
-import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { computeFatorAncoragem } from '@/lib/ancoragem'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { supabase } from '@/integrations/supabase/client'
 import { mapItemCustoRow } from '@/lib/categoriaMappers'
 import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
-import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
+import { computeMonetaryValues, formatMoedaCompact, scaleSimStringValue, type MetodoAtualizacao } from '@/lib/financeiro'
 import { useT } from '@/i18n/useLang'
 import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -189,9 +189,10 @@ export default function PortalClienteRelatorio() {
 
   const parametrosAnuais = useMemo(() => (bundle?.parametrosAnuais ?? []).map(mapParametroAnualRow), [bundle])
 
-  // Fator de ancoragem base_template (2022) → data_base do projeto — mesmo
-  // pattern do ResumoExecutivo, ver src/lib/ancoragem.ts. Sem essa multiplicação
-  // os valores exibidos ao cliente ficam em base 2022, subestimando N anos de IPCA.
+  // Fator de ancoragem ano_referencia_projeto → data_base do projeto — mesmo
+  // pattern do ResumoExecutivo, ver src/lib/ancoragem.ts. Quando o consultor
+  // digitou os valores no próprio ano da data-base, fator = 1 e a badge some.
+  const anoReferencia = projeto?.ano_referencia ?? new Date().getFullYear()
   const ancoragem = useMemo(() => {
     const dataBaseAno =
       projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
@@ -202,11 +203,11 @@ export default function PortalClienteRelatorio() {
         fatorMid: 1,
         fatorMax: 1,
         faltantes: [],
-        anoInicio: ANO_BASE_TEMPLATE,
-        anoFim: ANO_BASE_TEMPLATE,
+        anoInicio: anoReferencia,
+        anoFim: anoReferencia,
       }
-    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
-  }, [projeto?.data_base, parametrosAnuais])
+    return computeFatorAncoragem(anoReferencia, dataBaseAno, parametrosAnuais)
+  }, [projeto?.data_base, anoReferencia, parametrosAnuais])
 
   // categoryParams usa fator MID — mantém baseTotal e métodos monetários
   // alinhados ao histórico. As bandas min/max do IPCA entram só na
@@ -232,31 +233,6 @@ export default function PortalClienteRelatorio() {
     [categoryParamsRaw, activeCatSet]
   )
 
-  const costCategories: CostCategory[] = useMemo(
-    () =>
-      filteredParamsRaw.map((c, i) => ({
-        rank: String(i + 1).padStart(2, '0'),
-        name: c.name,
-        min: formatMoedaCompact(c.min * ancoragem.fatorMin, false),
-        max: formatMoedaCompact(c.max * ancoragem.fatorMax, false),
-      })),
-    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
-  )
-
-  const costTotals: CostTotals = useMemo(
-    () => ({
-      min: formatMoedaCompact(
-        filteredParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin, 0),
-        false
-      ),
-      max: formatMoedaCompact(
-        filteredParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax, 0),
-        false
-      ),
-    }),
-    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
-  )
-
   // Base pro provisionamento: soma do ponto médio (min+max)/2 de cada categoria real —
   // mesma convenção usada em ProjetoContext.estimateTotal. "Valor atualizado" por
   // categoria (juros/inflação aplicados individualmente) é gap de modelagem, não existe
@@ -264,39 +240,6 @@ export default function PortalClienteRelatorio() {
   const baseTotal = useMemo(() => filteredParams.reduce((acc, c) => acc + c.mode, 0), [filteredParams])
   const contingenciaPct = projeto?.contingencia_pct ?? 0
   const baseWithProvision = baseTotal * (1 + contingenciaPct / 100)
-
-  const monetaryMethods = useMemo(() => {
-    if (baseTotal === 0) return []
-    const horizonYears = projeto?.horizonte_anos ?? 10
-    const dataBaseAno =
-      projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
-    const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, horizonYears)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
-    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, { selicPorAno, inflacaoPorAno, horizonYears }).map(
-      ({ metodo, valor }) => ({
-        label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
-        value: fmt(valor),
-      })
-    )
-  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto?.data_base, projeto?.horizonte_anos, tBase])
-
-  const riskMetrics: RiskMetric[] = simResult
-    ? [
-        { label: t.riskMean, value: simResult.mean },
-        { label: t.riskStddev, value: simResult.stddev },
-        { label: t.riskP80, value: simResult.p80 },
-        { label: t.riskExceedProb, value: simResult.exceedProb },
-      ]
-    : []
-
-  const cvPercent = simResult ? (simResult.cv * 100).toFixed(2) : null
-  const cvLabel = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
-  const confLevel = simResult?.confidenceLevel ?? 95
-  const [icLo, icHi] = simResult ? simResult.ic95.replace('M', '').split('–') : ['—', '—']
-  const icLoLabel = simResult ? t.icLabel(confLevel, icLo) : '—'
-  const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
 
   // Curva de desembolso ano-a-ano (`_Plan_Curva_Desembolso.md` — Etapa 4).
   // Portal público reaproveita o mesmo helper e componente do ResumoExecutivo,
@@ -345,8 +288,80 @@ export default function PortalClienteRelatorio() {
         ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
         : undefined,
     }))
-    return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null }
+    return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null, totalGeral: res.totalGeral }
   }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fatorMid, ancoragem.fatorMin, ancoragem.fatorMax])
+
+  // Multiplicador do modo atual pra propagar em todos os cards agregados
+  // (Custo por categoria, Métricas de risco, KPIs, Métodos monetários). O
+  // `disbursement.totalGeral` já reflete o modo escolhido — usar como fonte
+  // única do total do projeto na visão atual. Ver comentário equivalente em
+  // ResumoExecutivo.tsx.
+  const modoMultiplier = useMemo(() => {
+    if (baseTotal === 0 || !disbursement) return 1
+    return disbursement.totalGeral / baseTotal
+  }, [baseTotal, disbursement])
+
+  const costCategories: CostCategory[] = useMemo(
+    () =>
+      filteredParamsRaw.map((c, i) => ({
+        rank: String(i + 1).padStart(2, '0'),
+        name: c.name,
+        min: formatMoedaCompact(c.min * ancoragem.fatorMin * modoMultiplier, false),
+        max: formatMoedaCompact(c.max * ancoragem.fatorMax * modoMultiplier, false),
+      })),
+    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax, modoMultiplier]
+  )
+
+  const costTotals: CostTotals = useMemo(
+    () => ({
+      min: formatMoedaCompact(
+        filteredParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin * modoMultiplier, 0),
+        false
+      ),
+      max: formatMoedaCompact(
+        filteredParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax * modoMultiplier, 0),
+        false
+      ),
+    }),
+    [filteredParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax, modoMultiplier]
+  )
+
+  const monetaryMethods = useMemo(() => {
+    if (baseTotal === 0) return []
+    const horizonYears = projeto?.horizonte_anos ?? 10
+    const dataBaseAno =
+      projeto?.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, horizonYears)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
+    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
+    // PV do método = baseTotal × multiplier atual (base/provisão/IPCA). Ver
+    // comentário equivalente em ResumoExecutivo.tsx.
+    const pv = baseTotal * modoMultiplier
+    return computeMonetaryValues(pv, { selicPorAno, inflacaoPorAno, horizonYears }).map(
+      ({ metodo, valor }) => ({
+        label: labelPorMetodo(metodo, tBase, selicPorAno, inflacaoPorAno, dataBaseAno),
+        value: fmt(valor),
+      })
+    )
+  }, [baseTotal, modoMultiplier, parametrosAnuais, projeto?.data_base, projeto?.horizonte_anos, tBase])
+
+  const riskMetrics: RiskMetric[] = simResult
+    ? [
+        { label: t.riskMean, value: scaleSimStringValue(simResult.mean, modoMultiplier) },
+        { label: t.riskStddev, value: scaleSimStringValue(simResult.stddev, modoMultiplier) },
+        { label: t.riskP80, value: scaleSimStringValue(simResult.p80, modoMultiplier) },
+        { label: t.riskExceedProb, value: simResult.exceedProb },
+      ]
+    : []
+
+  const cvPercent = simResult ? (simResult.cv * 100).toFixed(2) : null
+  const cvLabel = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
+  const confLevel = simResult?.confidenceLevel ?? 95
+  const ic95Scaled = simResult ? scaleSimStringValue(simResult.ic95, modoMultiplier) : ''
+  const [icLo, icHi] = ic95Scaled ? ic95Scaled.replace('M', '').split('–') : ['—', '—']
+  const icLoLabel = simResult ? t.icLabel(confLevel, icLo) : '—'
+  const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
 
   // Matriz item × ano — computada sob demanda quando o cliente troca a visão
   // pra "Detalhado". Cada célula já reflete o modo escolhido (base / provisão /
@@ -554,25 +569,29 @@ export default function PortalClienteRelatorio() {
             </p>
           </div>
 
-          {/* KPI cards */}
+          {/* KPI cards — todos os valores respeitam o modo do toggle
+              (base/provisão/IPCA) via `modoMultiplier`. "Provisão base" usa
+              o total do desembolso quando disponível (fonte única do total
+              projeto na visão atual) — cai pra baseWithProvision se ainda
+              não há desembolso computado. */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               {
                 icon: <DollarSign size={14} strokeWidth={2} className="text-accent-700" />,
                 label: t.kpiAvgCost,
-                value: simResult?.mean ?? '—',
+                value: simResult ? scaleSimStringValue(simResult.mean, modoMultiplier) : '—',
                 sub: simResult ? t.kpiAvgCostSubSim(simResult.status) : t.simPendingSub,
               },
               {
                 icon: <ArrowLeftRight size={14} strokeWidth={2} className="text-accent-700" />,
                 label: t.kpiMinMaxRange,
-                value: simResult?.p10p90 ?? '—',
-                sub: simResult ? t.kpiMinMaxSubIC(confLevel, simResult.ic95) : t.simPendingSub,
+                value: simResult ? scaleSimStringValue(simResult.p10p90, modoMultiplier) : '—',
+                sub: simResult ? t.kpiMinMaxSubIC(confLevel, ic95Scaled) : t.simPendingSub,
               },
               {
                 icon: <Plus size={14} strokeWidth={2} className="text-accent-700" />,
                 label: t.kpiBaseProvision,
-                value: baseTotal > 0 ? formatMoedaCompact(baseWithProvision) : '—',
+                value: baseTotal > 0 ? formatMoedaCompact(disbursement?.totalGeral ?? baseWithProvision) : '—',
                 sub: t.kpiBaseSub(contingenciaPct),
               },
             ].map((kpi) => (
@@ -662,7 +681,7 @@ export default function PortalClienteRelatorio() {
           {monetaryMethods.length > 0 && (
             <MonetaryMethodsCard
               methods={monetaryMethods}
-              baseLabel={formatMoedaCompact(baseWithProvision)}
+              baseLabel={formatMoedaCompact(disbursement?.totalGeral ?? baseWithProvision)}
               horizonYears={projeto?.horizonte_anos ?? 10}
             />
           )}

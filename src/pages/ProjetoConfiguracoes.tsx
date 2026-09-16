@@ -34,6 +34,7 @@ export default function ProjetoConfiguracoes() {
             initial={{
               moeda: projeto.moeda,
               dataBase: projeto.dataBase,
+              anoReferencia: projeto.anoReferencia,
               horizonteAnos: projeto.horizonteAnos,
               metodoAtualizacao: projeto.metodoAtualizacao,
               contingenciaPct: projeto.contingenciaPct,

@@ -55,6 +55,7 @@ export default function ProjetoConfigInicial() {
           initial={{
             moeda: projeto.moeda,
             dataBase: projeto.dataBase,
+            anoReferencia: projeto.anoReferencia,
             horizonteAnos: projeto.horizonteAnos,
             metodoAtualizacao: projeto.metodoAtualizacao,
             contingenciaPct: projeto.contingenciaPct,

@@ -31,6 +31,7 @@ export interface NovoProjetoForm {
 export interface ConfigFinanceiraForm {
   moeda: string
   dataBase: string
+  anoReferencia: number
   horizonteAnos: number
   metodoAtualizacao: string
   contingenciaPct: number

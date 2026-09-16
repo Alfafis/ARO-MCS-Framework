@@ -110,6 +110,24 @@ export function formatMoedaCompact(n: number, withPrefix: boolean = true): strin
   return `${sign}${prefix}${abs.toFixed(0)}`
 }
 
+// Re-escala uma string de valor formatada (padrão do runAroSimulacao/computeResult:
+// "R$ 12,3M", "12,3–15,7M", ou compactos "R$ 1,2 M") multiplicando cada número
+// decimal encontrado pelo `factor`. Usado pelo toggle Modo do ResumoExecutivo/
+// Portal do Cliente pra propagar provisão/IPCA nas métricas de risco e KPIs
+// (que vêm do simResult persistido em formato string). Preserva o texto ao
+// redor (prefixo "R$", sufixo "M", separador "–").
+//
+// Não confundir com valores percentuais tipo "3,45%" — probabilidade não
+// escala com modo financeiro. Cabe ao caller decidir o que passar aqui.
+export function scaleSimStringValue(fmt: string, factor: number): string {
+  if (factor === 1 || !Number.isFinite(factor)) return fmt
+  return fmt.replace(/(\d+),(\d+)/g, (_, whole: string, dec: string) => {
+    const num = parseFloat(`${whole}.${dec}`)
+    const scaled = num * factor
+    return scaled.toFixed(dec.length).replace('.', ',')
+  })
+}
+
 // Inverso de parseMoedaBR — só pra re-exibir valor NUMERIC do banco no campo
 // de texto livre. 0 vira '' (item novo/em branco), não "R$ 0,00".
 export function formatMoedaBR(n: number): string {

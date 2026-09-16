@@ -16,14 +16,14 @@ import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/Desembolso
 import RelatorioPdfLayout from '@/components/relatorio/RelatorioPdfLayout'
 import { usePlataformaConfig } from '@/context/PlataformaConfigContext'
 import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
-import { computeFatorAncoragem, ANO_BASE_TEMPLATE } from '@/lib/ancoragem'
+import { computeFatorAncoragem } from '@/lib/ancoragem'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
 import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useProjeto } from '@/context/useProjeto'
 import { supabase } from '@/integrations/supabase/client'
 import { categoryParamsFromCategorias } from '@/lib/aroSimulacao'
-import { computeMonetaryValues, formatMoedaCompact, type MetodoAtualizacao } from '@/lib/financeiro'
+import { computeMonetaryValues, formatMoedaCompact, scaleSimStringValue, type MetodoAtualizacao } from '@/lib/financeiro'
 import { formatDateTime } from '@/lib/utils'
 import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
@@ -130,10 +130,11 @@ export default function ResumoExecutivo() {
     Promise.allSettled([fetchSim, fetchRev]).then(() => setLoading(false))
   }, [projeto.id])
 
-  // Fator de ancoragem base_template (2022) → data_base do projeto, via IPCA
+  // Fator de ancoragem ano_referencia_projeto → data_base do projeto, via IPCA
   // acumulado composto (`_Dados_Formulas_Planilha.md` §Etapa 3). fator=1 se
-  // data_base ausente/anterior ao template ou se algum ano faltar em
-  // `parametros_anuais` — nesse caso `faltantes` lista os anos e a UI mostra aviso.
+  // data_base ausente/anterior ao ano_referencia (não desanuda pra trás) ou se
+  // algum ano faltar em `parametros_anuais` — nesse caso `faltantes` lista os
+  // anos e a UI mostra aviso.
   const ancoragem = useMemo(() => {
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     if (dataBaseAno == null)
@@ -143,11 +144,11 @@ export default function ResumoExecutivo() {
         fatorMid: 1,
         fatorMax: 1,
         faltantes: [],
-        anoInicio: ANO_BASE_TEMPLATE,
-        anoFim: ANO_BASE_TEMPLATE,
+        anoInicio: projeto.anoReferencia,
+        anoFim: projeto.anoReferencia,
       }
-    return computeFatorAncoragem(ANO_BASE_TEMPLATE, dataBaseAno, parametrosAnuais)
-  }, [projeto.dataBase, parametrosAnuais])
+    return computeFatorAncoragem(projeto.anoReferencia, dataBaseAno, parametrosAnuais)
+  }, [projeto.dataBase, projeto.anoReferencia, parametrosAnuais])
 
   // categoryParams usa fator MID (midpoint IPCA) — mantém baseTotal e os
   // métodos monetários alinhados com o comportamento histórico. As bandas
@@ -166,71 +167,11 @@ export default function ResumoExecutivo() {
     [projeto.categorias, catalogo]
   )
 
-  const costCategories: CostCategory[] = useMemo(
-    () =>
-      categoryParamsRaw.map((c, i) => ({
-        rank: String(i + 1).padStart(2, '0'),
-        name: c.name,
-        // MIN usa fator_min (cenário otimista IPCA baixo) e MAX usa fator_max
-        // (cenário pessimista IPCA alto) — replica linhas 20-21 da planilha
-        // NX Gold (`0. Síntese Por Setor`).
-        min: formatMoedaCompact(c.min * ancoragem.fatorMin, false),
-        max: formatMoedaCompact(c.max * ancoragem.fatorMax, false),
-      })),
-    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
-  )
-
-  const costTotals: CostTotals = useMemo(
-    () => ({
-      min: formatMoedaCompact(
-        categoryParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin, 0),
-        false
-      ),
-      max: formatMoedaCompact(
-        categoryParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax, 0),
-        false
-      ),
-    }),
-    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax]
-  )
-
   // Base pro provisionamento: soma do ponto médio de cada categoria real —
   // mesma convenção de ProjetoContext.estimateTotal / PortalClienteRelatorio.
   const baseTotal = useMemo(() => categoryParams.reduce((acc, c) => acc + c.mode, 0), [categoryParams])
   const contingenciaPct = projeto.contingenciaPct
   const baseWithProvision = baseTotal * (1 + contingenciaPct / 100)
-
-  const monetaryMethods = useMemo(() => {
-    if (baseTotal === 0) return []
-    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
-    const anoBase = dataBaseAno ?? new Date().getFullYear()
-    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, projeto.horizonteAnos)
-    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
-    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
-    return computeMonetaryValues(baseWithProvision, {
-      selicPorAno,
-      inflacaoPorAno,
-      horizonYears: projeto.horizonteAnos,
-    }).map(({ metodo, valor }) => ({
-      label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),
-      value: fmt(valor),
-    }))
-  }, [baseTotal, baseWithProvision, parametrosAnuais, projeto.dataBase, projeto.horizonteAnos, t])
-
-  const riskMetrics: RiskMetric[] = simResult
-    ? [
-        { label: tRel.riskMean, value: simResult.mean },
-        { label: tRel.riskStddev, value: simResult.stddev },
-        { label: tRel.riskP80, value: simResult.p80 },
-        { label: tRel.riskExceedProb, value: simResult.exceedProb },
-      ]
-    : []
-
-  const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
-  const confLevel = simResult?.confidenceLevel ?? 95
-  const [icLo, icHi] = simResult ? simResult.ic95.replace('M', '').split('–') : ['—', '—']
-  const icLoLabel = simResult ? tRel.icLabel(confLevel, icLo) : '—'
-  const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
 
   const revisionItems = useMemo(() => revisoes.map((r) => revisaoToTimelineItem(r, t)), [revisoes, t])
 
@@ -280,7 +221,7 @@ export default function ResumoExecutivo() {
         ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
         : undefined,
     }))
-    return { years, categories, ipcaDisponivel: ipcaPorAno !== null }
+    return { years, categories, ipcaDisponivel: ipcaPorAno !== null, totalGeral: res.totalGeral }
   }, [
     projeto.categorias,
     projeto.horizonteAnos,
@@ -293,6 +234,86 @@ export default function ResumoExecutivo() {
     ancoragem.fatorMin,
     ancoragem.fatorMax,
   ])
+
+  // Multiplicador do modo atual pra propagar em todos os cards agregados
+  // (Custo por categoria, Métricas de risco, Métodos monetários, KPIs). O
+  // `disbursement.totalGeral` já reflete o modo escolhido (base/provisão/IPCA)
+  // — é a fonte única do total do projeto na visão atual. `baseTotal` é o
+  // denominador consistente (soma dos modes com ancoragem, sem provisão).
+  const modoMultiplier = useMemo(() => {
+    if (baseTotal === 0 || !disbursement) return 1
+    return disbursement.totalGeral / baseTotal
+  }, [baseTotal, disbursement])
+
+  const costCategories: CostCategory[] = useMemo(
+    () =>
+      categoryParamsRaw.map((c, i) => ({
+        rank: String(i + 1).padStart(2, '0'),
+        name: c.name,
+        // MIN usa fator_min (cenário otimista IPCA baixo) e MAX usa fator_max
+        // (cenário pessimista IPCA alto). `modoMultiplier` aplica em cima a
+        // camada de provisão/IPCA do toggle "Modo" — bate com o total
+        // mostrado no card de desembolso.
+        min: formatMoedaCompact(c.min * ancoragem.fatorMin * modoMultiplier, false),
+        max: formatMoedaCompact(c.max * ancoragem.fatorMax * modoMultiplier, false),
+      })),
+    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax, modoMultiplier]
+  )
+
+  const costTotals: CostTotals = useMemo(
+    () => ({
+      min: formatMoedaCompact(
+        categoryParamsRaw.reduce((acc, c) => acc + c.min * ancoragem.fatorMin * modoMultiplier, 0),
+        false
+      ),
+      max: formatMoedaCompact(
+        categoryParamsRaw.reduce((acc, c) => acc + c.max * ancoragem.fatorMax * modoMultiplier, 0),
+        false
+      ),
+    }),
+    [categoryParamsRaw, ancoragem.fatorMin, ancoragem.fatorMax, modoMultiplier]
+  )
+
+  const monetaryMethods = useMemo(() => {
+    if (baseTotal === 0) return []
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const selicPorAno = sequenciaMidpoints(parametrosAnuais, 'selic', anoBase, projeto.horizonteAnos)
+    const inflacaoPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    const fmt = (v: number) => `R$ ${Math.round(v).toLocaleString('pt-BR')}`
+    // PV do método monetário = baseTotal × multiplier atual. No modo `base`,
+    // sai sem provisão; em `provisao`, com; em `ipca`, com provisão + IPCA
+    // acumulado (mesma total do desembolso).
+    const pv = baseTotal * modoMultiplier
+    return computeMonetaryValues(pv, {
+      selicPorAno,
+      inflacaoPorAno,
+      horizonYears: projeto.horizonteAnos,
+    }).map(({ metodo, valor }) => ({
+      label: labelPorMetodo(metodo, t, selicPorAno, inflacaoPorAno, dataBaseAno),
+      value: fmt(valor),
+    }))
+  }, [baseTotal, modoMultiplier, parametrosAnuais, projeto.dataBase, projeto.horizonteAnos, t])
+
+  // Métricas de risco re-escalam pelo modo atual — probabilidade de excedência
+  // não escala (é ratio, invariante a modo). Mean/stddev/P80/IC95 são valores
+  // monetários formatados; usamos `scaleSimStringValue` pra multiplicar cada
+  // decimal encontrado na string preservando o formato.
+  const riskMetrics: RiskMetric[] = simResult
+    ? [
+        { label: tRel.riskMean, value: scaleSimStringValue(simResult.mean, modoMultiplier) },
+        { label: tRel.riskStddev, value: scaleSimStringValue(simResult.stddev, modoMultiplier) },
+        { label: tRel.riskP80, value: scaleSimStringValue(simResult.p80, modoMultiplier) },
+        { label: tRel.riskExceedProb, value: simResult.exceedProb },
+      ]
+    : []
+
+  const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
+  const confLevel = simResult?.confidenceLevel ?? 95
+  const ic95Scaled = simResult ? scaleSimStringValue(simResult.ic95, modoMultiplier) : ''
+  const [icLo, icHi] = ic95Scaled ? ic95Scaled.replace('M', '').split('–') : ['—', '—']
+  const icLoLabel = simResult ? tRel.icLabel(confLevel, icLo) : '—'
+  const icHiLabel = simResult ? `R$ ${icHi} M` : '—'
 
   // Matriz detalhada item × ano — mesma origem de dados, apenas outra
   // granularidade. Rende só quando `viewDesembolso === 'detalhado'` para não
@@ -534,7 +555,7 @@ export default function ResumoExecutivo() {
             <MonetaryMethodsCard
               className="lg:col-span-7"
               methods={monetaryMethods}
-              baseLabel={formatMoedaCompact(baseWithProvision)}
+              baseLabel={formatMoedaCompact(disbursement?.totalGeral ?? baseWithProvision)}
               horizonYears={projeto.horizonteAnos}
             />
           )}
@@ -574,8 +595,9 @@ export default function ResumoExecutivo() {
             icHiLabel={icHiLabel}
             confLevel={confLevel}
             contingenciaPct={contingenciaPct}
-            baseWithProvision={baseWithProvision}
+            baseWithProvisionOrModo={disbursement?.totalGeral ?? baseWithProvision}
             baseTotal={baseTotal}
+            modoMultiplier={modoMultiplier}
             ancoragem={ancoragem}
             disbursement={disbursement ? { years: disbursement.years, categories: disbursement.categories } : null}
             monetaryMethods={monetaryMethods}

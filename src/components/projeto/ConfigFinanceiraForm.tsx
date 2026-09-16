@@ -48,6 +48,7 @@ export default function ConfigFinanceiraForm({
 
   const [moeda, setMoeda] = useState(initial.moeda)
   const [dataBase, setDataBase] = useState(initial.dataBase)
+  const [anoReferencia, setAnoReferencia] = useState(String(initial.anoReferencia))
   const [horizonteAnos, setHorizonteAnos] = useState(String(initial.horizonteAnos))
   const [metodoAtualizacao, setMetodoAtualizacao] = useState(initial.metodoAtualizacao)
   const [contingenciaPct, setContingenciaPct] = useState(String(initial.contingenciaPct))
@@ -69,15 +70,18 @@ export default function ConfigFinanceiraForm({
   async function handleSalvar() {
     const horizonte = Number(horizonteAnos)
     const contingencia = Number(contingenciaPct.replace(',', '.'))
+    const anoRef = Number(anoReferencia)
     if (!Number.isFinite(horizonte) || horizonte < 1 || horizonte > 20) return onValorInvalido()
     if (!Number.isFinite(contingencia) || contingencia < 0 || contingencia > 100) return onValorInvalido()
     if (!/^\d{4}$/.test(dataBase)) return onValorInvalido()
+    if (!/^\d{4}$/.test(anoReferencia) || anoRef < 2000 || anoRef > 2100) return onValorInvalido()
 
     setSalvando(true)
     try {
       await onSalvar({
         moeda,
         dataBase,
+        anoReferencia: anoRef,
         horizonteAnos: horizonte,
         metodoAtualizacao,
         contingenciaPct: contingencia,
@@ -111,6 +115,19 @@ export default function ConfigFinanceiraForm({
           value={dataBase}
           onChange={(e) => setDataBase(e.target.value.replace(/\D/g, ''))}
         />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="cf-ano-referencia">{t.labelAnoReferencia}</Label>
+        <Input
+          id="cf-ano-referencia"
+          variant={variant}
+          inputMode="numeric"
+          maxLength={4}
+          value={anoReferencia}
+          onChange={(e) => setAnoReferencia(e.target.value.replace(/\D/g, ''))}
+        />
+        <p className="text-[11.5px] text-c-text-2">{t.helpAnoReferencia}</p>
       </div>
 
       <div className="flex flex-col gap-1.5">
