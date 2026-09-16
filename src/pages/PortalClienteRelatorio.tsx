@@ -1,7 +1,9 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Download, Copy, Check, KeyRound, Sun, Moon } from 'lucide-react'
+import { Download, Copy, Check, KeyRound, Sun, Moon, Loader2 } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
+import html2canvas from 'html2canvas-pro'
+import jsPDF from 'jspdf'
 import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
@@ -9,6 +11,7 @@ import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCa
 import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
+import RelatorioPdfLayout from '@/components/relatorio/RelatorioPdfLayout'
 import { computeDesembolsoMatrix, computeDesembolsoItemMatrix, type ModoDesembolso } from '@/lib/desembolsoAno'
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
 import { Sprout } from 'lucide-react'
@@ -392,9 +395,10 @@ export default function PortalClienteRelatorio() {
   const [codeInput, setCodeInput] = useState('')
   const [codeError, setCodeError] = useState(false)
   const [codeLockedMsg, setCodeLockedMsg] = useState<string | null>(null)
-  const [toast, setToast] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [codeModalOpen, setCodeModalOpen] = useState(false)
+  const pdfRef = useRef<HTMLDivElement>(null)
 
   async function handleGerarLink() {
     const url = `${window.location.origin}/relatorio/${projetoId}`
@@ -423,12 +427,46 @@ export default function PortalClienteRelatorio() {
     setCodeError(true)
   }
 
-  function handleDownload() {
-    setToast(true)
-    setTimeout(() => {
-      setToast(false)
-      window.print()
-    }, 900)
+  const pdfFilename = `Relatório - ${projeto?.nome ?? 'projeto'}${projeto?.rev ? ` - ${projeto.rev}` : ''}.pdf`.replace(
+    /[/\\:*?"<>|]/g,
+    '-'
+  )
+
+  async function handleExportPdf() {
+    if (!pdfRef.current || isExporting) return
+    setIsExporting(true)
+    try {
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      })
+      const imgData = canvas.toDataURL('image/jpeg', 0.98)
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
+      const margin = 10
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth - margin * 2
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const usableHeight = pageHeight - margin * 2
+
+      let heightLeft = imgHeight
+      let position = margin
+      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
+      heightLeft -= usableHeight
+      while (heightLeft > 0) {
+        position = margin - (imgHeight - heightLeft)
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
+        heightLeft -= usableHeight
+      }
+      pdf.save(pdfFilename)
+    } catch (err) {
+      console.error('[ExportPdf] falha ao gerar PDF:', err)
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   if (status === 'not-found') {
@@ -496,10 +534,16 @@ export default function PortalClienteRelatorio() {
 
   return (
     <div className="min-h-screen print:bg-white">
-      {/* ── Header fixo ── */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-c-card border-b border-c-line flex items-center justify-between px-4 sm:px-8 py-[14px] sm:py-[22px]">
+      {/* ── Header sticky ──
+          `sticky` em vez de `fixed` — ocupa espaço no fluxo, então a altura
+          se ajusta automaticamente quando o wrap dos botões cria 2 ou 3 linhas,
+          sem precisar de `pt-` calculado no conteúdo. Wrap explícito: em telas
+          estreitas a área de ações (`w-full sm:w-auto`) quebra pra uma segunda
+          linha alinhada à direita, evitando overflow horizontal quando os 4-5
+          botões + langselector + toggle não cabem na mesma linha do logo. */}
+      <header className="sticky top-0 z-50 bg-c-card border-b border-c-line flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 sm:px-8 py-3 sm:py-[22px]">
         <img src={config.logoCompletoUrl} alt="Be Planned" className="h-10 w-auto object-contain" />
-        <div className="flex items-center gap-3 print:hidden">
+        <div className="flex flex-wrap items-center justify-end gap-2 print:hidden w-full sm:w-auto">
           <span className="hidden sm:inline-flex items-center px-3 py-1 rounded-full bg-c-surface-2-hover text-c-text-2 text-[12px] font-medium">
             {cliente.nome} — {t.portalPill}
           </span>
@@ -527,11 +571,21 @@ export default function PortalClienteRelatorio() {
             )}
           </button>
           <button
-            onClick={handleDownload}
-            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer"
+            onClick={handleExportPdf}
+            disabled={isExporting}
+            className="inline-flex items-center gap-1.5 px-4 py-[9px] rounded-full bg-c-card border border-c-line shadow-[var(--shadow-1)] text-[13px] font-semibold text-c-text hover:bg-c-surface-2-hover transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <Download size={13} strokeWidth={2} />
-            {t.downloadPdfBtn}
+            {isExporting ? (
+              <>
+                <Loader2 size={13} strokeWidth={2} className="animate-spin" />
+                {t.pdfGenerating}
+              </>
+            ) : (
+              <>
+                <Download size={13} strokeWidth={2} />
+                {t.downloadPdfBtn}
+              </>
+            )}
           </button>
           <LangSelector ariaLabel={t.selectLang} />
           <button
@@ -550,9 +604,12 @@ export default function PortalClienteRelatorio() {
         </div>
       </header>
 
-      {/* ── Relatório ── */}
-      <div className="pt-[56px] sm:pt-[76px]">
-        <div className="max-w-[1040px] mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col gap-5">
+      {/* ── Relatório ──
+          Sem `pt-` no wrapper (header agora é sticky e reserva seu próprio
+          espaço no fluxo). `px-2` em mobile maximiza o espaço horizontal dos
+          cards (padding original `px-4` desperdiçava largura em telas pequenas). */}
+      <div>
+        <div className="max-w-[1040px] mx-auto px-2 sm:px-6 py-4 sm:py-8 flex flex-col gap-5">
           {/* Cabeçalho do relatório */}
           <div>
             <div className="flex items-center gap-3 mb-1.5">
@@ -608,8 +665,11 @@ export default function PortalClienteRelatorio() {
             ))}
           </div>
 
-          {/* Custo por categoria + Métricas de risco */}
-          <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 items-start">
+          {/* Custo por categoria + Métricas de risco.
+              `items-start` só no breakpoint md+ — em mobile queremos os cards
+              esticando (align-items: stretch, o default) pra ocuparem toda a
+              largura da coluna. */}
+          <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 md:items-start">
             <CostByCategoryTable
               categories={costCategories}
               totals={costTotals}
@@ -703,17 +763,54 @@ export default function PortalClienteRelatorio() {
         />
       )}
 
-      {/* Toast PDF */}
-      {toast && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] inline-flex items-center px-5 py-3 rounded-full bg-[#14151a] text-white text-[13px] font-semibold shadow-[0_16px_40px_-12px_rgba(20,21,26,.5)]">
-          {t.pdfGenerating}
-        </div>
-      )}
-
       <div className="flex justify-center pb-8">
         <Link to="/privacidade" className="text-[12px] text-c-text-2 hover:text-accent transition-colors">
           Política de Privacidade
         </Link>
+      </div>
+
+      {/* Camada offscreen — html2canvas precisa das dimensões reais do nó,
+          então usamos `fixed` (fora do fluxo, não infla o scroll do relatório)
+          + left negativo (fora da viewport). Marcado aria-hidden.
+          Consome as MESMAS props/derivações já calculadas acima — mesmo padrão
+          do ResumoExecutivo.tsx (commit 5ba5a3c). */}
+      <div
+        aria-hidden
+        style={{
+          position: 'fixed',
+          left: '-99999px',
+          top: 0,
+          width: '1040px',
+          pointerEvents: 'none',
+          zIndex: -1000,
+        }}
+      >
+        <div ref={pdfRef}>
+          <RelatorioPdfLayout
+            projectName={projeto.nome}
+            revLabel={projeto.rev || null}
+            clienteNome={cliente.nome}
+            simResult={simResult}
+            costCategories={costCategories}
+            costTotals={costTotals}
+            riskMetrics={riskMetrics}
+            cvLabel={cvLabel}
+            icLoLabel={icLoLabel}
+            icHiLabel={icHiLabel}
+            confLevel={confLevel}
+            contingenciaPct={contingenciaPct}
+            baseWithProvisionOrModo={disbursement?.totalGeral ?? baseWithProvision}
+            baseTotal={baseTotal}
+            modoMultiplier={modoMultiplier}
+            ancoragem={ancoragem}
+            disbursement={
+              disbursement ? { years: disbursement.years, categories: disbursement.categories } : null
+            }
+            monetaryMethods={monetaryMethods}
+            horizonteAnos={projeto.horizonte_anos ?? 10}
+            logoUrl={config.logoCompletoUrl}
+          />
+        </div>
       </div>
     </div>
   )
