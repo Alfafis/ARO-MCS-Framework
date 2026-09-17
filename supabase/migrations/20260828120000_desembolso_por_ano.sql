@@ -7,7 +7,7 @@
 -- público `obter_relatorio_publico`.
 --
 -- Contexto:
--- A planilha NX Gold distribui o custo de cada item em anos discretos com
+-- A planilha de referência distribui o custo de cada item em anos discretos com
 -- regras hardcoded por categoria (literais, splits assimétricos, frações).
 -- Ver `_Dados_Formulas_Planilha.md` — Etapa 5. Não há fórmula uniforme, então
 -- não dá pra derivar do range `ano_inicio`/`ano_fim` sozinho.

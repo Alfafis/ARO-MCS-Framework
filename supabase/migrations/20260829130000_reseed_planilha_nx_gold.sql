@@ -1,5 +1,5 @@
 -- ============================================================================
--- Reseed do template NX Gold (fechamento-mina) para paridade com a planilha
+-- Reseed do template de referência (fechamento-mina) para paridade com a planilha
 --
 -- Contexto: o seed 20260825120000_seed_planilha_nx_gold populou os itens com
 -- valores reais do SINAPI/Brandt Meio Ambiente, mas a SUM(custo_min/max) por

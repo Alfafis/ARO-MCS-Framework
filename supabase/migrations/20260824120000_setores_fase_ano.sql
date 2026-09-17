@@ -2,7 +2,7 @@
 -- 20260824120000_setores_fase_ano.sql
 -- ============================================================================
 -- Estrutura os campos `aplicabilidade` e `ano_previsto` (hoje `text` livre) em
--- dados tipados, com base na planilha NX Gold — Provisionamento Financeiro.
+-- dados tipados, com base na planilha de referência — Provisionamento Financeiro.
 -- Referências:
 --   - Aba "0. Síntese Por Setor"    → mapa Categoria → Setor(es) da mina
 --   - Aba "9. Síntese Por Atividade" → mapa Item → Fase + distribuição por ano
@@ -32,7 +32,7 @@ create table if not exists public.setores (
   criado_em  timestamptz not null default now()
 );
 
--- Seed inicial extraído da planilha NX Gold — Provisionamento Financeiro.
+-- Seed inicial extraído da planilha de referência — Provisionamento Financeiro.
 -- IDs seguem a numeração da coluna "Setores de Análise Metodológica *¹" da
 -- aba "0. Síntese Por Setor" (síntese oficial). Labels descritivos vieram do
 -- cruzamento com as colunas laterais da aba "6. Áreas de Apoio" — quando

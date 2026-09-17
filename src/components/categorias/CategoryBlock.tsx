@@ -19,7 +19,7 @@ import type { CategoryParam } from '@/lib/aroSimulacao'
 import CategoryAroSimStatsCard from '@/components/categorias/CategoryAroSimStatsCard'
 import { avaliarCamposOperacionais, avaliarQuantidadeItem, type CampoAvaliado } from '@/lib/camposOperacionaisFormula'
 
-// Enum canônico de unidades — valores retirados da planilha NX Gold
+// Enum canônico de unidades — valores retirados da planilha de referência
 // (aba 1..8 de categorias). Ordem por frequência de uso na planilha.
 const UNIDADES: string[] = ['vb', 'verba', 'ha', 'm', 'm²', 'm³', 't', 't/m³', 'km']
 
@@ -983,7 +983,7 @@ function CustoProvavelRow({
 
   // Moda está fora do range dos itens quando o consultor cadastrou um valor
   // que não faz sentido dado o min/max somado dos itens (típico: copiou moda
-  // hardcoded do template NX Gold — 8.150.000 — pra uma categoria com um item
+  // hardcoded do template de referência — 8.150.000 — pra uma categoria com um item
   // só de 650k–950k). O motor faz `Math.max(min, Math.min(max, rawMode))`
   // silenciosamente → Triangular fica degenerada com pico no extremo.
   const outOfRange = value !== null && value > 0 && catMax > 0 && (value < catMin || value > catMax)

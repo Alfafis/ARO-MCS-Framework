@@ -1,5 +1,5 @@
 // Fase do planejamento de fechamento de mina. Deriva da coluna "Fase do
-// planejamento" da aba "9. Síntese Por Atividade" da planilha NX Gold.
+// planejamento" da aba "9. Síntese Por Atividade" da planilha de referência.
 // "Provisionamento (20%)" da planilha NÃO é uma fase — é contingência
 // aplicada em cima do total, tratada separadamente em `projetos.contingencia_pct`.
 export type Fase = 'pre-fechamento' | 'fechamento' | 'pos-fechamento'

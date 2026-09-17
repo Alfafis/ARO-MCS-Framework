@@ -11,7 +11,7 @@ export interface FatorAncoragem {
   // é o mesmo que fatorMid.
   fator: number
   // Cenário determinístico "otimista" (IPCA min por ano acumulado) — replica
-  // linha 20 de `0. Síntese Por Setor` da planilha NX Gold (ADR-013, D15).
+  // linha 20 de `0. Síntese Por Setor` da planilha de referência (ADR-013, D15).
   // 1 quando não há ancoragem.
   fatorMin: number
   // Alias explícito de `fator` — mesmo valor, nome mais claro quando co-existe
@@ -36,7 +36,7 @@ export interface FatorAncoragem {
 // Ancoragem = ∏(1 + ipca_i) do ano_base_template até ano_base_projeto - 1.
 // Retorna 3 versões — min/mid/max — cada uma usando o percentil correspondente
 // do IPCA anual (min = valorMin/100, mid = (min+max)/2/100, max = valorMax/100).
-// Replica as linhas 18-21 de `0. Síntese Por Setor` da planilha NX Gold que
+// Replica as linhas 18-21 de `0. Síntese Por Setor` da planilha de referência que
 // calcula valor esperado com IPCA min E IPCA max separadamente (ADR-013, D15).
 //
 // Ex: template base 2022, projeto data-base 2026:

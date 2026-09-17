@@ -6,7 +6,7 @@ Arquivo: `ARO-MCS Cliente (Preenchimento).dc.html`. Fluxo standalone (sem sideba
 
 ## Layout
 
-Header simples (`.topbar`, sem sidebar): logo ARO-MCS + tag "NX Gold — Portal do cliente". Conteúdo centralizado, `max-width:760px`.
+Header simples (`.topbar`, sem sidebar): logo ARO-MCS + tag "{nome do cliente} — Portal do cliente". Conteúdo centralizado, `max-width:760px`.
 
 ## Componentes
 

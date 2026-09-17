@@ -6,7 +6,7 @@ import { aroSimForOneCategory, MIN_ITERATIONS, type CategoryParam } from '@/lib/
 import { formatMoedaBR, formatMoedaCompact } from '@/lib/financeiro'
 
 // Painel Aro Simulação POR CATEGORIA. Replica as 3 seções da aba de categoria da
-// planilha NX Gold (`1.Estudos` linhas 20-57): Normal (F21-F31), Triangular
+// planilha de referência (`1.Estudos` linhas 20-57): Normal (F21-F31), Triangular
 // (F34-F44) e Uniforme (F47-F57). Cada bloco é uma rodada independente da
 // engine — na planilha, coluna B (Normal), D (Triangular) e E (Uniforme) usam
 // sementes independentes, então as médias variam levemente entre rodadas.
@@ -28,7 +28,7 @@ import { formatMoedaBR, formatMoedaCompact } from '@/lib/financeiro'
 //
 // `custoProvavelRaw` (nullable) é a moda que o consultor cadastrou, ANTES do
 // clamp de `categoryParamsFromCategorias`. Serve pra detectar o caso "moda
-// fora do range" — típico com template NX Gold copiado (moda hardcoded 8,15M
+// fora do range" — típico com template de referência copiado (moda hardcoded 8,15M
 // pra um projeto com itens muito menores). Quando fora do range, banner
 // amber deixa o clamp explícito (só afeta Triangular; Normal/Uniforme
 // ignoram a moda por design).

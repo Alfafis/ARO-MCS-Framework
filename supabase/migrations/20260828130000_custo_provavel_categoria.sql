@@ -5,7 +5,7 @@
 -- `categorias_projeto` e `categorias_template`.
 --
 -- Contexto:
--- A planilha NX Gold registra a moda por categoria (`1.Estudos!F18 =
+-- A planilha de referência registra a moda por categoria (`1.Estudos!F18 =
 -- 8.150.000` = valor agregado hardcoded, digitado pelo consultor), não por
 -- item. Hoje `categoryParamsFromCategorias` derivava mode como `(min+max)/2`,
 -- que dá um valor diferente e enviesa a Triangular do MC pro meio simétrico

@@ -1,7 +1,7 @@
 -- ============================================================================
 -- 20260825120000_seed_planilha_nx_gold.sql
 -- ============================================================================
--- Seed em massa extraído da planilha NX Gold — Provisionamento Financeiro
+-- Seed em massa extraído da planilha de referência — Provisionamento Financeiro
 -- (Khaled 1). Três blocos independentes:
 --
 -- 1. IPCA anual (aba "0. Síntese Por Setor", linhas 13-14)
@@ -9,7 +9,7 @@
 --
 -- 2. Campos operacionais template (nova tabela `campos_operacionais_template`,
 --    paralela à `campos_operacionais` já existente para projetos reais)
---    → labels + unidades por categoria, valores tipo "referência NX Gold"
+--    → labels + unidades por categoria, valores tipo "valores de referência"
 --
 -- 3. Template detalhado do tipo 'fechamento-mina'
 --    → substitui os 8 items genéricos do template atual (do seed
@@ -39,7 +39,7 @@ update public.parametros_anuais set valor_min = 0.031,  valor_max = 0.035,  font
 -- Estrutura paralela à `campos_operacionais` (que fica por-projeto). Cada
 -- categoria do template tem 1..N campos que o cliente vai preencher no portal
 -- (perímetro, área, volume, tonelagem, etc.). Valores default aqui são
--- valores de REFERÊNCIA da NX Gold — o cliente pode substituir pelos números
+-- valores de REFERÊNCIA do template — o cliente pode substituir pelos números
 -- reais dele durante o preenchimento.
 -- ----------------------------------------------------------------------------
 create table if not exists public.campos_operacionais_template (

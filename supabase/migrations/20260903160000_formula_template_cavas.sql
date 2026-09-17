@@ -1,7 +1,7 @@
 -- ============================================================================
 -- 20260903160000_formula_template_cavas.sql
 -- ============================================================================
--- Popula fórmulas reais do template NX Gold (fechamento-mina) pra categoria
+-- Popula fórmulas reais do template de referência (fechamento-mina) pra categoria
 -- Cavas — única com verificação ponta a ponta contra a aba "2. Cavas" da
 -- planilha de referência (Perímetro em km na planilha, formula precisa
 -- converter pra metro: 7,89 km × 1000 = 7890 m, batendo com Volume=315.600

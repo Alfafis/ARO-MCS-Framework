@@ -158,7 +158,7 @@ export default function CodigoAcessoModal({ reportId, clienteId, clientName, pro
                     setManualInput(e.target.value)
                     setManualError('')
                   }}
-                  placeholder="Ex: NXGOLD-2024"
+                  placeholder="Ex: ABC-2024"
                   autoComplete="off"
                   autoCapitalize="characters"
                   className={[

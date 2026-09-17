@@ -27,7 +27,7 @@ run('folha simples parseia número BR', () => {
 })
 
 // 2. Cadeia de 2 níveis — Volume = Perímetro × Largura × Altura, replica o
-//    caso real da planilha NX Gold (aba "2. Cavas")
+//    caso real da planilha de referência (aba "2. Cavas")
 run('cadeia de 2 níveis (Volume derivado de 3 folhas)', () => {
   const campos: CampoOperacionalInput[] = [
     { label: 'Perímetro', valor: '7890', formula: null },

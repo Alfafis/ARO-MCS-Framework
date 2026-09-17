@@ -96,7 +96,7 @@ export function sequenciaMidpoints(
 // Mesma semântica de `sequenciaMidpoints`, mas retorna as 3 sequências (min,
 // mid, max) numa única varredura. Usada onde precisamos propagar a banda de
 // incerteza do IPCA/Selic como cenários determinísticos paralelos — replica
-// as linhas 18-21 de `0. Síntese Por Setor` da planilha NX Gold, que calcula
+// as linhas 18-21 de `0. Síntese Por Setor` da planilha de referência, que calcula
 // valor esperado ano-a-ano com IPCA min E IPCA max separadamente
 // (ver `_Dados_Formulas_Planilha.md` §Etapa 3, ADR-013, D15).
 //

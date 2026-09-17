@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Seed do `custo_provavel` (moda "pela experiência") por categoria do
 -- template `fechamento-mina`, extraído das células F18/H50/H45/H70/H26/H26/H21/H38
--- das abas 1..8 da planilha NX Gold.
+-- das abas 1..8 da planilha de referência.
 --
 -- Valores são a moda hardcoded pelo consultor original da planilha ("Provavelmente
 -- (Pela experiência)"), NÃO derivados de (min+max)/2. Ver `_Dados_Formulas_Planilha.md`.

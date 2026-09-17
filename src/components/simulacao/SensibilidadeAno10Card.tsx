@@ -6,7 +6,7 @@ import { formatMoedaCompact } from '@/lib/financeiro'
 import { aroSimSensibilidadeAno10 } from '@/lib/aroSimulacao'
 
 // Card de sensibilidade final do Ano 10 — replica a aba `Simulation` da
-// planilha NX Gold (`_Dados_Formulas_Planilha.md` §Etapa 6). O consumidor
+// planilha de referência (`_Dados_Formulas_Planilha.md` §Etapa 6). O consumidor
 // passa o valor base do Ano 10 (já corrigido por IPCA acumulado ou provisão)
 // e o modo em que foi calculado; o card roda 10k iterações no useMemo e
 // mostra estatísticas + histograma de 12 bins.

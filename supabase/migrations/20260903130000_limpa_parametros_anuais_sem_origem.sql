@@ -4,7 +4,7 @@
 -- Achado ao investigar a pendência "valores de teste em parametros_anuais":
 -- não era só teste. IPCA anos 2026-2035 (ano-calendário) vinha do seed
 -- 20260825120000_seed_planilha_nx_gold.sql — dado REAL da planilha de UM
--- cliente (NX Gold), sem rótulo, servindo como default silencioso de
+-- cliente (cliente de referência), sem rótulo, servindo como default silencioso de
 -- inflação pra TODO projeto de TODO cliente da plataforma desde 25/08. Selic
 -- 2026-2035 era um flat "14/14" sem origem em migration nenhuma (grep vazio
 -- em supabase/migrations/*.sql) — digitado direto na UI em algum teste.

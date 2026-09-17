@@ -3,7 +3,7 @@ import { parseMoedaBR } from '@/lib/financeiro'
 
 // Calcula a matriz de desembolso por categoria × ano do projeto. Cada linha da
 // planilha vira uma DisbursementCategoryRow com `values[ano-1]`. Estratégia
-// item-a-item, seguindo a planilha NX Gold (ver `_Dados_Formulas_Planilha.md`):
+// item-a-item, seguindo a planilha de referência (ver `_Dados_Formulas_Planilha.md`):
 //
 // - Se o item tem `desembolsoPorAno` (detalhado pelo consultor), usa direto —
 //   fiel à planilha (splits assimétricos como "1/4 + 3/4" só saem daí).
@@ -28,7 +28,7 @@ export interface DesembolsoMatrixResult {
   totalGeral: number
   // Bandas min/max — só presentes quando `ipcaMinPorAno`/`ipcaMaxPorAno` +
   // `fatorAncoragemMin`/`fatorAncoragemMax` são fornecidos (modo 'ipca').
-  // Replicam linhas 20-21 de `0. Síntese Por Setor` da planilha NX Gold — ver
+  // Replicam linhas 20-21 de `0. Síntese Por Setor` da planilha de referência — ver
   // ADR-013 e D15 em `_Divergencias_Planilha.md`.
   matrixMin?: number[][]
   matrixMax?: number[][]
@@ -53,7 +53,7 @@ interface ComputeArgs {
   fatorAncoragem?: number
   // Bandas de IPCA min/max ano-a-ano e fatores de ancoragem min/max — quando
   // fornecidos + modo === 'ipca', a função também emite matrixMin/matrixMax
-  // (cenários determinísticos otimista e pessimista). Fiel à planilha NX Gold
+  // (cenários determinísticos otimista e pessimista). Fiel à planilha de referência
   // que calcula os dois cenários paralelos (ADR-013, D15).
   ipcaMinPorAno?: number[] | null
   ipcaMaxPorAno?: number[] | null

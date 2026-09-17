@@ -14,8 +14,8 @@
 --
 -- Backfill: qualquer linha com valor_min OU valor_max não-null é preservada,
 -- mapeando `ano_antigo → 2025 + ano_antigo` (Ano 1 = 2026). Isso cobre o seed
--- NX Gold (IPCA 1..10 = 2026..2035), IPCA ano 11 = 2036, e Selic 1..10 =
--- 2026..2035, assumindo que o projeto NX Gold começa em 2026.
+-- cliente de referência (IPCA 1..10 = 2026..2035), IPCA ano 11 = 2036, e Selic 1..10 =
+-- 2026..2035, assumindo que o projeto de referência começa em 2026.
 --
 -- Range escolhido:
 --   2000..2200 na constraint (folgado). O UI vai mostrar `currentYear..+50`

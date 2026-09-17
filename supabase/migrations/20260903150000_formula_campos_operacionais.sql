@@ -4,7 +4,7 @@
 -- Subsistema 3 (spec 2026-09-03-timing-formula-campos-operacionais-design.md).
 --
 -- Hoje campos operacionais derivados (ex.: Volume = Perímetro × Largura ×
--- Altura, na planilha NX Gold) são gravados como número ESTÁTICO — editar
+-- Altura, na planilha de referência) são gravados como número ESTÁTICO — editar
 -- Perímetro não recalcula Volume. `itens_custo`/`itens_template` guardam só o
 -- total já multiplicado (custo_min/custo_max), sem custo_unitário nem a
 -- fórmula de quantidade.

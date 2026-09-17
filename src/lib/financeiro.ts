@@ -28,7 +28,7 @@ export function computeMonetaryValues(filteredBase: number, params: ParametrosCa
   if (params.inflacaoPorAno !== null) {
     resultados.push({ metodo: 'inflacao', valor: compostoSequencial(filteredBase, params.inflacaoPorAno) })
     // Escalonamento usava uma tabela de IPCA congelada de 2022 (planilha de UM
-    // cliente, NX Gold), comparada lado a lado no relatório de TODO cliente —
+    // cliente específico), comparada lado a lado no relatório de TODO cliente —
     // mesma classe do bug já corrigido em parametros_anuais (IPCA de um
     // cliente virando default silencioso pra plataforma inteira). Como o
     // rótulo já é "IPCA variável" (sem nunca ter dito "referência de 2022"),

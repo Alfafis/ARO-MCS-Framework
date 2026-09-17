@@ -234,7 +234,7 @@ grant execute on function public.carregar_template_exemplo(uuid, text) to authen
 
 -- ----------------------------------------------------------------------------
 -- Seed: migra FECHAMENTO_MINA de categoria-templates.ts pro banco, valores
--- NX Gold inclusos (decisão explícita do usuário — ver spec).
+-- cliente de referência inclusos (decisão explícita do usuário — ver spec).
 -- ----------------------------------------------------------------------------
 
 do $$

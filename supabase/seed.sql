@@ -11,13 +11,13 @@
 -- indistinguíveis de cliente real na tela `/clientes`. Limpo do remoto na
 -- mesma sessão — ver `_ADRs.md` do vault (projeto ARO-MCS-Framework).
 --
--- NX Gold é o único cliente com dado financeiro real (planilha de
--- referência); segue seedado aqui só como conveniência de ambiente local
--- vazio — nasce sem projeto, igual em produção.
+-- Todos os cinco são clientes fictícios de demonstração — seedados aqui só
+-- como conveniência de ambiente local vazio, nascem sem projeto (igual em
+-- produção). Nomes ilustrativos, não referenciam clientes reais.
 -- ============================================================================
 
 insert into public.clientes (nome) values
-  ('NX Gold'), ('Ferro Linhares'), ('Cobre Brasil'), ('Minérios do Sul'), ('Aço Zafira')
+  ('Cliente Alfa'), ('Ferro Linhares'), ('Cobre Brasil'), ('Minérios do Sul'), ('Aço Zafira')
 on conflict (lower(nome)) do nothing;
 
 insert into public.projetos (cliente_id, tipo_projeto_id, nome, status, rev, data_base)

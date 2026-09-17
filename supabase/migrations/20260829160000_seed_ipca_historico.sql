@@ -4,7 +4,7 @@
 -- Contexto: `parametros_anuais` foi populada em 2026-08-25 (seed
 -- 20260825120000) e 2026-08-27 (calendarização absoluta) cobrindo o range
 -- 2026-2076 — porque só o horizonte do projeto olhava pra frente. Para a
--- ancoragem base_template (2022, NX Gold) → data_base_projeto (2023-2026+)
+-- ancoragem base_template (2022, cliente de referência) → data_base_projeto (2023-2026+)
 -- via IPCA acumulado composto, precisamos também dos anos 2022-2025.
 --
 -- Fontes:

@@ -105,7 +105,7 @@ export default function Simulacao() {
   const categoryNames = useMemo(() => categoryParams.map((c) => c.name), [categoryParams])
 
   // Base do Ano 10 pra sensibilidade final da Aro Simulação (aba `Simulation` da planilha
-  // NX Gold — `_Dados_Formulas_Planilha.md` §Etapa 6). Usa modo `ipca` como
+  // cliente de referência — `_Dados_Formulas_Planilha.md` §Etapa 6). Usa modo `ipca` como
   // fidelidade à planilha; se IPCA anual não estiver configurado, cai pra
   // `provisao` como no `AnnualDisbursementCard`. Sensibilidade não faz
   // sentido em modo `base` (a taxa de escalação já é IPCA + custo real).

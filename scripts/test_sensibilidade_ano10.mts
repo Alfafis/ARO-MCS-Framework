@@ -1,7 +1,7 @@
 // Teste standalone de `aroSimSensibilidadeAno10` — rodar com:
 //   npx tsx --tsconfig tsconfig.app.json scripts/test_sensibilidade_ano10.mts
 // Valida a estatística contra o esperado analítico da distribuição uniforme
-// discreta usada na aba `Simulation` da planilha NX Gold
+// discreta usada na aba `Simulation` da planilha de referência
 // (`_Dados_Formulas_Planilha.md` §Etapa 6).
 //
 // Distribuição: cada iteração multiplica `base` por (1 + T/100), onde
@@ -15,7 +15,7 @@
 import assert from 'node:assert/strict'
 import { aroSimSensibilidadeAno10 } from '../src/lib/aroSimulacao.ts'
 
-const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do NX Gold
+const BASE = 40_000_000 // ~R$40M — ordem de magnitude do Ano 10 do cliente de referência
 
 // === TESTE 1 — Estatísticas da simulação, 10k iterações com base padrão 1..10% ===
 {

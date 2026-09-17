@@ -11,7 +11,7 @@ export interface CategoryParam {
 
 // Deriva os parâmetros da simulação a partir dos itens cadastrados em Categorias.
 // mode vem de `categoria.custoProvavel` (moda "pela experiência" — F18 da planilha
-// NX Gold, ver `_Dados_Formulas_Planilha.md`). Fallback pra ponto médio (min+max)/2
+// cliente de referência, ver `_Dados_Formulas_Planilha.md`). Fallback pra ponto médio (min+max)/2
 // quando null. Se o valor informado estiver fora de [min, max], clamp — a
 // Triangular exige min ≤ mode ≤ max, e o consultor pode ter editado items depois
 // de definir a moda.
@@ -276,7 +276,7 @@ export function runAroSimulacao(
   //
   // ADR-011: quando `fixedIterations=true`, ignora convergência dinâmica e
   // roda exatamente `iterations` iterações (clamped em [MIN, MAX]). Usado
-  // pelo card de estatísticas por categoria pra replicar a planilha NX Gold
+  // pelo card de estatísticas por categoria pra replicar a planilha de referência
   // (10.000 iterações fixas). `/simulacao` continua com RB-03.
   const minIterations = Math.max(MIN_ITERATIONS, Math.min(MAX_ITERATIONS, iterations))
   const targetIterations = fixedIterations ? minIterations : MAX_ITERATIONS

@@ -38,7 +38,7 @@ export const simulacaoT: Record<
     noResultYet: string
     months: string[]
     distLabels: Record<'Triangular' | 'Normal' | 'Uniforme', string>
-    // Sensibilidade final da Aro Simulação, Ano 10 (aba `Simulation` da planilha NX Gold)
+    // Sensibilidade final da Aro Simulação, Ano 10 (aba `Simulation` da planilha de referência)
     sensAno10Title: (iter: string) => string
     sensAno10Base: string
     sensAno10RangeInfo: (min: number, max: number) => string

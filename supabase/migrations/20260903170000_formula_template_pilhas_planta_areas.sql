@@ -3,7 +3,7 @@
 -- ============================================================================
 -- Estende o motor de fórmula (20260903150000/160000) pra Pilhas de Estéril,
 -- Planta Industrial e Áreas de Apoio — reavaliação item a item contra a aba
--- fonte da planilha NX Gold mostrou que "categoria inteira ambígua" (decisão
+-- fonte da planilha de referência mostrou que "categoria inteira ambígua" (decisão
 -- original do ADR de 2026-09-03) era grosseiro demais: a ambiguidade é POR
 -- ITEM, não por categoria. Barragem continua de fora (nenhum item resolve —
 -- ver ADR).
