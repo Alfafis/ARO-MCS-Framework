@@ -68,8 +68,16 @@ export const simulacaoT: Record<
     scenarioEstresse: string
     // Engine 6 — Direcionadores de Risco (correlação de Pearson)
     riskDriversTitle: string
-    riskDriversHint: string
+    // Hint dinâmico — 4 variantes conforme o número de categorias com "alto
+    // impacto" (|correlação| >= 0.5) na simulação atual.
+    riskDriversHintSingle: (name: string) => string
+    riskDriversHintMulti: (names: string) => string
+    riskDriversHintMany: (top3: string) => string
+    riskDriversHintDistributed: string
     riskDriversEmpty: string
+    impactHigh: string
+    impactMedium: string
+    impactLow: string
   }
 > = {
   'pt-BR': {
@@ -138,9 +146,18 @@ export const simulacaoT: Record<
     scenarioPessimista: 'Pessimista',
     scenarioEstresse: 'Estresse',
     riskDriversTitle: 'Direcionadores de risco',
-    riskDriversHint:
-      'Correlação de Pearson entre cada categoria e o custo total simulado — maior |r| = maior impacto na variância do resultado.',
-    riskDriversEmpty: 'Precisa de 2+ categorias ativas na simulação pra calcular correlação.',
+    riskDriversHintSingle: (name) =>
+      `${name} é a categoria que mais influencia a variação do custo total nessa simulação. Refinar a estimativa dessa primeiro reduz mais a incerteza do resultado.`,
+    riskDriversHintMulti: (names) =>
+      `${names} são as categorias que mais influenciam a variação do custo total nessa simulação. Refinar a estimativa dessas primeiro reduz mais a incerteza do resultado.`,
+    riskDriversHintMany: (top3) =>
+      `${top3} (entre outras) são as categorias que mais influenciam a variação do custo total. Refinar a estimativa dessas primeiro reduz mais a incerteza do resultado.`,
+    riskDriversHintDistributed:
+      'Nenhuma categoria domina o risco — a incerteza do custo total está distribuída de forma equilibrada entre as categorias.',
+    riskDriversEmpty: 'Precisa de 2+ categorias ativas na simulação pra calcular o impacto.',
+    impactHigh: 'Alto impacto',
+    impactMedium: 'Médio impacto',
+    impactLow: 'Baixo impacto',
   },
   en: {
     headerTitle: 'Aro Simulação',
@@ -208,9 +225,18 @@ export const simulacaoT: Record<
     scenarioPessimista: 'Pessimistic',
     scenarioEstresse: 'Stress',
     riskDriversTitle: 'Risk drivers',
-    riskDriversHint:
-      'Pearson correlation between each category and the simulated total cost — higher |r| = higher impact on result variance.',
-    riskDriversEmpty: 'Needs 2+ active categories in the simulation to compute correlation.',
+    riskDriversHintSingle: (name) =>
+      `${name} is the category driving most of the variation in the total cost in this simulation. Refining its estimate first reduces overall uncertainty the most.`,
+    riskDriversHintMulti: (names) =>
+      `${names} are the categories driving most of the variation in the total cost in this simulation. Refining these estimates first reduces overall uncertainty the most.`,
+    riskDriversHintMany: (top3) =>
+      `${top3} (among others) are the categories driving most of the variation in the total cost. Refining these estimates first reduces overall uncertainty the most.`,
+    riskDriversHintDistributed:
+      'No single category dominates the risk — the uncertainty in the total cost is distributed evenly across categories.',
+    riskDriversEmpty: 'Needs 2+ active categories in the simulation to compute the impact.',
+    impactHigh: 'High impact',
+    impactMedium: 'Medium impact',
+    impactLow: 'Low impact',
   },
   es: {
     headerTitle: 'Aro Simulação',
@@ -278,8 +304,17 @@ export const simulacaoT: Record<
     scenarioPessimista: 'Pesimista',
     scenarioEstresse: 'Estrés',
     riskDriversTitle: 'Direccionadores de riesgo',
-    riskDriversHint:
-      'Correlación de Pearson entre cada categoría y el costo total simulado — mayor |r| = mayor impacto en la varianza del resultado.',
-    riskDriversEmpty: 'Necesita 2+ categorías activas en la simulación para calcular correlación.',
+    riskDriversHintSingle: (name) =>
+      `${name} es la categoría que más influye en la variación del costo total en esta simulación. Refinar su estimación primero reduce más la incertidumbre del resultado.`,
+    riskDriversHintMulti: (names) =>
+      `${names} son las categorías que más influyen en la variación del costo total en esta simulación. Refinar estas estimaciones primero reduce más la incertidumbre del resultado.`,
+    riskDriversHintMany: (top3) =>
+      `${top3} (entre otras) son las categorías que más influyen en la variación del costo total. Refinar estas estimaciones primero reduce más la incertidumbre del resultado.`,
+    riskDriversHintDistributed:
+      'Ninguna categoría domina el riesgo — la incertidumbre del costo total está distribuida de manera equilibrada entre las categorías.',
+    riskDriversEmpty: 'Necesita 2+ categorías activas en la simulación para calcular el impacto.',
+    impactHigh: 'Alto impacto',
+    impactMedium: 'Medio impacto',
+    impactLow: 'Bajo impacto',
   },
 }
