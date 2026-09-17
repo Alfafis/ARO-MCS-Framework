@@ -10,6 +10,11 @@ import RevisionTimeline, { type RevisionTimelineItem } from '@/components/dashbo
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
+import CostCompositionCard, { type CostCompositionItem } from '@/components/resumo-executivo/CostCompositionCard'
+import DisbursementLineCard from '@/components/resumo-executivo/DisbursementLineCard'
+import HistogramCard from '@/components/simulacao/HistogramCard'
+import RiskDriversCard from '@/components/simulacao/RiskDriversCard'
+import ScenariosCard from '@/components/simulacao/ScenariosCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
@@ -221,7 +226,14 @@ export default function ResumoExecutivo() {
         ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
         : undefined,
     }))
-    return { years, categories, ipcaDisponivel: ipcaPorAno !== null, totalGeral: res.totalGeral }
+    return {
+      years,
+      categories,
+      ipcaDisponivel: ipcaPorAno !== null,
+      totalGeral: res.totalGeral,
+      // Números crus por ano — alimentam o DisbursementLineCard.
+      totaisPorAno: res.totaisPorAno,
+    }
   }, [
     projeto.categorias,
     projeto.horizonteAnos,
@@ -362,6 +374,21 @@ export default function ResumoExecutivo() {
     }
     return rows
   }, [simResult, contingenciaPct, ipcaMultiplier, tRel])
+
+  // Composição — % de cada categoria no custo total (mesma matemática do
+  // Portal do Cliente, usa categoryParams com ancoragem fatorMid + escala
+  // pelo modoMultiplier pra bater com os outros cards).
+  const compositionItems: CostCompositionItem[] = useMemo(() => {
+    if (baseTotal === 0) return []
+    return categoryParams.map((c) => {
+      const scaled = c.mode * modoMultiplier
+      return {
+        name: c.name,
+        value: formatMoedaCompact(scaled, false),
+        percent: (c.mode / baseTotal) * 100,
+      }
+    })
+  }, [categoryParams, baseTotal, modoMultiplier])
 
   const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
   const confLevel = simResult?.confidenceLevel ?? 95
@@ -528,6 +555,25 @@ export default function ResumoExecutivo() {
           />
         </div>
 
+        {/* Fase 1 do enriquecimento do relatório (item #8 do backlog cliente):
+            mesmos cards espelhados no Portal do Cliente e no PDF. Composição +
+            Direcionadores lado a lado, Histograma abaixo em largura total. */}
+        <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 md:items-start">
+          <CostCompositionCard items={compositionItems} />
+          {simResult && <RiskDriversCard result={simResult} />}
+        </div>
+
+        {simResult && <HistogramCard result={simResult} iterations={simResult.iterations} multiplier={modoMultiplier} />}
+
+        {simResult && <ScenariosCard result={simResult} multiplier={modoMultiplier} />}
+
+        {disbursement && disbursement.totaisPorAno.length > 0 && (
+          <DisbursementLineCard
+            totalsPorAno={disbursement.totaisPorAno}
+            yearLabels={disbursement.years.map((y) => y.label)}
+          />
+        )}
+
         {disbursement && (
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-3 flex-wrap">
@@ -646,6 +692,7 @@ export default function ResumoExecutivo() {
             costTotals={costTotals}
             riskMetrics={riskMetrics}
             riskScenarios={riskScenarios}
+            compositionItems={compositionItems}
             cvLabel={cvLabel}
             icLoLabel={icLoLabel}
             icHiLabel={icHiLabel}
@@ -655,7 +702,15 @@ export default function ResumoExecutivo() {
             baseTotal={baseTotal}
             modoMultiplier={modoMultiplier}
             ancoragem={ancoragem}
-            disbursement={disbursement ? { years: disbursement.years, categories: disbursement.categories } : null}
+            disbursement={
+              disbursement
+                ? {
+                    years: disbursement.years,
+                    categories: disbursement.categories,
+                    totaisPorAno: disbursement.totaisPorAno,
+                  }
+                : null
+            }
             monetaryMethods={monetaryMethods}
             horizonteAnos={projeto.horizonteAnos}
             logoUrl={config.logoCompletoUrl}

@@ -72,6 +72,14 @@ export const resumoT: Record<
     riskModerate: string
     riskHigh: string
     contingencyLabel: string
+    // CostCompositionCard (novo — barras horizontais % por categoria)
+    compositionTitle: string
+    compositionHint: string
+    compositionEmpty: string
+    // DisbursementLineCard (novo — curva ano-a-ano em cima da tabela)
+    disbursementLineTitle: string
+    disbursementLineTotal: string
+    disbursementLineHint: (anoPico: string, valorPico: string) => string
     // RevisionTimeline
     revTimeline: string
     revCurrent: string
@@ -143,6 +151,13 @@ export const resumoT: Record<
     riskModerate: 'Moderado',
     riskHigh: 'Alto',
     contingencyLabel: 'Contingência aplicada',
+    compositionTitle: 'Composição do custo total',
+    compositionHint: 'Quanto cada categoria representa do custo total do projeto.',
+    compositionEmpty: 'Sem categorias com custo estimado — cadastre itens em cada categoria para ver a composição.',
+    disbursementLineTitle: 'Curva de desembolso ano a ano',
+    disbursementLineTotal: 'Total',
+    disbursementLineHint: (anoPico, valorPico) =>
+      `O gasto se concentra em ${anoPico} (${valorPico}) — visualização rápida de picos e vales do desembolso projetado.`,
     revTimeline: 'Timeline de revisões',
     revCurrent: 'Vigente',
     revDraftDesc: 'Revisão em elaboração, ainda não publicada.',
@@ -211,6 +226,13 @@ export const resumoT: Record<
     riskModerate: 'Moderate',
     riskHigh: 'High',
     contingencyLabel: 'Applied contingency',
+    compositionTitle: 'Total cost composition',
+    compositionHint: 'How much each category represents in the project total cost.',
+    compositionEmpty: 'No categories with estimated cost — add items in each category to see the composition.',
+    disbursementLineTitle: 'Year-by-year disbursement curve',
+    disbursementLineTotal: 'Total',
+    disbursementLineHint: (anoPico, valorPico) =>
+      `Spending is concentrated in ${anoPico} (${valorPico}) — quick view of projected disbursement peaks and valleys.`,
     revTimeline: 'Revision timeline',
     revCurrent: 'Current',
     revDraftDesc: 'Revision in progress, not yet published.',
@@ -280,6 +302,13 @@ export const resumoT: Record<
     riskModerate: 'Moderado',
     riskHigh: 'Alto',
     contingencyLabel: 'Contingencia aplicada',
+    compositionTitle: 'Composición del costo total',
+    compositionHint: 'Cuánto representa cada categoría del costo total del proyecto.',
+    compositionEmpty: 'Sin categorías con costo estimado — agregue ítems en cada categoría para ver la composición.',
+    disbursementLineTitle: 'Curva de desembolso año a año',
+    disbursementLineTotal: 'Total',
+    disbursementLineHint: (anoPico, valorPico) =>
+      `El gasto se concentra en ${anoPico} (${valorPico}) — vista rápida de picos y valles del desembolso proyectado.`,
     revTimeline: 'Línea de tiempo de revisiones',
     revCurrent: 'Vigente',
     revDraftDesc: 'Revisión en elaboración, aún no publicada.',

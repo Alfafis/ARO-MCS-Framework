@@ -9,6 +9,11 @@ import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
+import CostCompositionCard, { type CostCompositionItem } from '@/components/resumo-executivo/CostCompositionCard'
+import DisbursementLineCard from '@/components/resumo-executivo/DisbursementLineCard'
+import HistogramCard from '@/components/simulacao/HistogramCard'
+import RiskDriversCard from '@/components/simulacao/RiskDriversCard'
+import ScenariosCard from '@/components/simulacao/ScenariosCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import RelatorioPdfLayout from '@/components/relatorio/RelatorioPdfLayout'
@@ -291,7 +296,15 @@ export default function PortalClienteRelatorio() {
         ? res.matrixMax[ci].map((v) => (v > 0 ? formatMoedaCompact(v, false) : null))
         : undefined,
     }))
-    return { years, categories: cats, ipcaDisponivel: ipcaPorAno !== null, totalGeral: res.totalGeral }
+    return {
+      years,
+      categories: cats,
+      ipcaDisponivel: ipcaPorAno !== null,
+      totalGeral: res.totalGeral,
+      // Números crus por ano — alimentam o DisbursementLineCard sem
+      // reparsear as strings formatadas.
+      totaisPorAno: res.totaisPorAno,
+    }
   }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fatorMid, ancoragem.fatorMin, ancoragem.fatorMax])
 
   // Multiplicador do modo atual pra propagar em todos os cards agregados
@@ -402,6 +415,21 @@ export default function PortalClienteRelatorio() {
     }
     return rows
   }, [simResult, contingenciaPct, ipcaMultiplier, t])
+
+  // Composição — % que cada categoria representa do custo total (base do
+  // ponto médio, já com ancoragem). Usa `filteredParams` (categorias ativas
+  // na simulação) e escala pelo modo atual pra bater com os outros cards.
+  const compositionItems: CostCompositionItem[] = useMemo(() => {
+    if (baseTotal === 0) return []
+    return filteredParams.map((c) => {
+      const scaled = c.mode * modoMultiplier
+      return {
+        name: c.name,
+        value: formatMoedaCompact(scaled, false),
+        percent: (c.mode / baseTotal) * 100,
+      }
+    })
+  }, [filteredParams, baseTotal, modoMultiplier])
 
   const cvPercent = simResult ? (simResult.cv * 100).toFixed(2) : null
   const cvLabel = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
@@ -731,6 +759,25 @@ export default function PortalClienteRelatorio() {
             />
           </div>
 
+          {/* Fase 1 do enriquecimento do Portal (item #8 do backlog cliente):
+              Composição em barras à esquerda, Direcionadores de risco à direita.
+              Histograma vem em seguida em largura total (só se simulação rodada). */}
+          <div className="flex flex-col md:grid md:grid-cols-[1.3fr_1fr] gap-4 md:items-start">
+            <CostCompositionCard items={compositionItems} />
+            {simResult && <RiskDriversCard result={simResult} />}
+          </div>
+
+          {simResult && <HistogramCard result={simResult} iterations={simResult.iterations} multiplier={modoMultiplier} />}
+
+          {simResult && <ScenariosCard result={simResult} multiplier={modoMultiplier} />}
+
+          {disbursement && disbursement.totaisPorAno.length > 0 && (
+            <DisbursementLineCard
+              totalsPorAno={disbursement.totaisPorAno}
+              yearLabels={disbursement.years.map((y) => y.label)}
+            />
+          )}
+
           {disbursement && (
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-3 flex-wrap">
@@ -840,6 +887,7 @@ export default function PortalClienteRelatorio() {
             costTotals={costTotals}
             riskMetrics={riskMetrics}
             riskScenarios={riskScenarios}
+            compositionItems={compositionItems}
             cvLabel={cvLabel}
             icLoLabel={icLoLabel}
             icHiLabel={icHiLabel}
@@ -850,7 +898,13 @@ export default function PortalClienteRelatorio() {
             modoMultiplier={modoMultiplier}
             ancoragem={ancoragem}
             disbursement={
-              disbursement ? { years: disbursement.years, categories: disbursement.categories } : null
+              disbursement
+                ? {
+                    years: disbursement.years,
+                    categories: disbursement.categories,
+                    totaisPorAno: disbursement.totaisPorAno,
+                  }
+                : null
             }
             monetaryMethods={monetaryMethods}
             horizonteAnos={projeto.horizonte_anos ?? 10}

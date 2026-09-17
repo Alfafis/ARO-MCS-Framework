@@ -1,6 +1,11 @@
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
+import CostCompositionCard, { type CostCompositionItem } from '@/components/resumo-executivo/CostCompositionCard'
+import DisbursementLineCard from '@/components/resumo-executivo/DisbursementLineCard'
+import HistogramCard from '@/components/simulacao/HistogramCard'
+import RiskDriversCard from '@/components/simulacao/RiskDriversCard'
+import ScenariosCard from '@/components/simulacao/ScenariosCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
@@ -26,6 +31,11 @@ export interface RelatorioPdfLayoutProps {
   costTotals: CostTotals
   riskMetrics: RiskMetric[]
   riskScenarios?: RiskScenario[]
+  /** Fase 1 do enriquecimento do relatório — 3 cards novos (Composição,
+   *  Direcionadores de risco, Histograma). Composição é opcional: se não vier,
+   *  o PDF não renderiza esse bloco. Direcionadores e Histograma vêm do
+   *  `simResult` (renderizam quando a simulação já foi rodada). */
+  compositionItems?: CostCompositionItem[]
   cvLabel: string
   icLoLabel: string
   icHiLabel: string
@@ -42,6 +52,9 @@ export interface RelatorioPdfLayoutProps {
   disbursement: {
     years: DisbursementYear[]
     categories: DisbursementCategory[]
+    /** Números crus por ano — alimentam o DisbursementLineCard sem
+     *  reparsear as strings do `years[i].value`. Opcional pra retrocompat. */
+    totaisPorAno?: number[]
   } | null
   monetaryMethods: Array<{ label: string; value: string }>
   horizonteAnos: number
@@ -60,6 +73,7 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
     costTotals,
     riskMetrics,
     riskScenarios,
+    compositionItems,
     cvLabel,
     icLoLabel,
     icHiLabel,
@@ -154,6 +168,26 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
             scenarios={riskScenarios}
           />
         </div>
+
+        {/* Fase 1 do enriquecimento do relatório — mesmos cards espelhados
+            no Portal do Cliente e no Resumo Executivo. */}
+        {compositionItems && compositionItems.length > 0 && (
+          <div className="grid grid-cols-[1.3fr_1fr] gap-4 items-start">
+            <CostCompositionCard items={compositionItems} />
+            {simResult && <RiskDriversCard result={simResult} />}
+          </div>
+        )}
+
+        {simResult && <HistogramCard result={simResult} iterations={simResult.iterations} multiplier={modoMultiplier} />}
+
+        {simResult && <ScenariosCard result={simResult} multiplier={modoMultiplier} />}
+
+        {disbursement && disbursement.totaisPorAno && disbursement.totaisPorAno.length > 0 && (
+          <DisbursementLineCard
+            totalsPorAno={disbursement.totaisPorAno}
+            yearLabels={disbursement.years.map((y) => y.label)}
+          />
+        )}
 
         {disbursement && (
           <div className="flex flex-col gap-2">

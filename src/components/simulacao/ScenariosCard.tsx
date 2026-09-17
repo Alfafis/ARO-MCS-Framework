@@ -6,9 +6,13 @@ import type { SimResult } from '@/types/simulacao'
 
 interface Props {
   result: SimResult | null
+  /** Multiplicador do modo atual (base/provisão/IPCA) — usado no Portal e
+   *  Resumo pra manter os cenários alinhados com os outros cards. Default 1
+   *  (tela de Simulação, sem toggle Modo). */
+  multiplier?: number
 }
 
-export default function ScenariosCard({ result }: Props) {
+export default function ScenariosCard({ result, multiplier = 1 }: Props) {
   const t = useT(simulacaoT)
 
   // `scenarios` pode faltar em SimResult persistido antes desta feature
@@ -17,10 +21,10 @@ export default function ScenariosCard({ result }: Props) {
 
   const { otimista, moderado, pessimista, estresse } = result.scenarios
   const ROWS = [
-    { label: t.scenarioOtimista, value: otimista },
-    { label: t.scenarioModerado, value: moderado },
-    { label: t.scenarioPessimista, value: pessimista },
-    { label: t.scenarioEstresse, value: estresse },
+    { label: t.scenarioOtimista, value: otimista * multiplier },
+    { label: t.scenarioModerado, value: moderado * multiplier },
+    { label: t.scenarioPessimista, value: pessimista * multiplier },
+    { label: t.scenarioEstresse, value: estresse * multiplier },
   ]
 
   return (

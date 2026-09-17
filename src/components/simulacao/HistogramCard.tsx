@@ -1,14 +1,19 @@
 import { Activity } from 'lucide-react'
 import { useT } from '@/i18n/useLang'
 import { simulacaoT } from '@/i18n/simulacao'
+import { scaleSimStringValue } from '@/lib/financeiro'
 import type { SimResult, UncertaintyLevel } from '@/types/simulacao'
 
 interface Props {
   result: SimResult | null
   iterations: string
+  /** Multiplicador do modo atual (base/provisão/IPCA) — usado no Portal do
+   *  Cliente e Resumo Executivo pra manter os rótulos min/média/max alinhados
+   *  com os outros cards. Default 1 (tela de Simulação, sem toggle Modo). */
+  multiplier?: number
 }
 
-export default function HistogramCard({ result, iterations }: Props) {
+export default function HistogramCard({ result, iterations, multiplier = 1 }: Props) {
   const t = useT(simulacaoT)
 
   const UNCERTAINTY_TEXT: Record<UncertaintyLevel, string> = {
@@ -40,9 +45,9 @@ export default function HistogramCard({ result, iterations }: Props) {
           </div>
 
           <div className="hist-labels">
-            <span>{result.min}</span>
-            <span>{result.mean}</span>
-            <span>{result.max}</span>
+            <span>{scaleSimStringValue(result.min, multiplier)}</span>
+            <span>{scaleSimStringValue(result.mean, multiplier)}</span>
+            <span>{scaleSimStringValue(result.max, multiplier)}</span>
           </div>
 
           <p className="mt-3.5 text-[0.8125rem] text-c-text-2 leading-relaxed">
