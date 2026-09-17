@@ -31,9 +31,16 @@ export const relatorioClienteT: Record<
     // Risk metrics labels
     riskMean: string
     riskStddev: string
+    riskP10: string
     riskP80: string
+    riskP90: string
     riskExceedProb: string
     icLabel: (confLevel: number, value: string) => string
+    // Cenários (derivados da média base)
+    scenariosTitle: string
+    scenarioBase: string
+    scenarioProvisao: (contingenciaPct: number) => string
+    scenarioIpca: string
     // Access modal
     modalTitle: string
     modalCodeLabel: string
@@ -71,9 +78,15 @@ export const relatorioClienteT: Record<
     kpiBaseSub: (pct) => `Total com provisão de ${pct}%`,
     riskMean: 'Média',
     riskStddev: 'Desvio-padrão',
+    riskP10: 'P10 (otimista)',
     riskP80: 'P80 (valor a 80%)',
+    riskP90: 'P90 (pessimista)',
     riskExceedProb: 'Prob. de excedência',
     icLabel: (conf, v) => `IC ${conf}%: R$ ${v} M`,
+    scenariosTitle: 'Cenários',
+    scenarioBase: 'Sem provisão',
+    scenarioProvisao: (pct) => `Com provisão ${pct}%`,
+    scenarioIpca: 'Com IPCA acumulado',
     modalTitle: 'Acesse seu relatório',
     modalCodeLabel: 'Código de acesso',
     modalCodePlaceholder: 'Ex: NXGOLD-2024',
@@ -108,9 +121,15 @@ export const relatorioClienteT: Record<
     kpiBaseSub: (pct) => `Total with ${pct}% provision`,
     riskMean: 'Mean',
     riskStddev: 'Std. deviation',
+    riskP10: 'P10 (optimistic)',
     riskP80: 'P80 (value at 80%)',
+    riskP90: 'P90 (pessimistic)',
     riskExceedProb: 'Exceedance probability',
     icLabel: (conf, v) => `${conf}% CI: R$ ${v} M`,
+    scenariosTitle: 'Scenarios',
+    scenarioBase: 'Without provision',
+    scenarioProvisao: (pct) => `With ${pct}% provision`,
+    scenarioIpca: 'With cumulative IPCA',
     modalTitle: 'Access your report',
     modalCodeLabel: 'Access code',
     modalCodePlaceholder: 'e.g. NXGOLD-2024',
@@ -145,9 +164,15 @@ export const relatorioClienteT: Record<
     kpiBaseSub: (pct) => `Total con provisión del ${pct}%`,
     riskMean: 'Media',
     riskStddev: 'Desviación estándar',
+    riskP10: 'P10 (optimista)',
     riskP80: 'P80 (valor al 80%)',
+    riskP90: 'P90 (pesimista)',
     riskExceedProb: 'Prob. de excedencia',
     icLabel: (conf, v) => `IC ${conf}%: R$ ${v} M`,
+    scenariosTitle: 'Escenarios',
+    scenarioBase: 'Sin provisión',
+    scenarioProvisao: (pct) => `Con provisión ${pct}%`,
+    scenarioIpca: 'Con IPCA acumulado',
     modalTitle: 'Acceda a su informe',
     modalCodeLabel: 'Código de acceso',
     modalCodePlaceholder: 'Ej: NXGOLD-2024',

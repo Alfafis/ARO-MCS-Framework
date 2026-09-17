@@ -1,6 +1,6 @@
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
-import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
 import { AncoragemBadge } from '@/components/resumo-executivo/AncoragemBadge'
@@ -25,6 +25,7 @@ export interface RelatorioPdfLayoutProps {
   costCategories: CostCategory[]
   costTotals: CostTotals
   riskMetrics: RiskMetric[]
+  riskScenarios?: RiskScenario[]
   cvLabel: string
   icLoLabel: string
   icHiLabel: string
@@ -58,6 +59,7 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
     costCategories,
     costTotals,
     riskMetrics,
+    riskScenarios,
     cvLabel,
     icLoLabel,
     icHiLabel,
@@ -148,8 +150,8 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
             cvLabel={cvLabel}
             icLo={icLoLabel}
             icHi={icHiLabel}
-            contingency={`${contingenciaPct}%`}
             uncertainty={simResult?.uncertainty}
+            scenarios={riskScenarios}
           />
         </div>
 

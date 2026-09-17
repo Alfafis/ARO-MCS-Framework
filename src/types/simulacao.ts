@@ -7,6 +7,11 @@ export interface SimResult {
   mean: string
   stddev: string
   p10p90: string
+  // P10 e P90 formatados individualmente. Opcionais pra preservar retrocompat:
+  // simulações persistidas antes de 2026-09-16 não têm esses campos, e o card
+  // de Métricas de risco esconde as linhas P10/P90 quando não vieram.
+  p10?: string
+  p90?: string
   ic95: string
   min: string
   max: string

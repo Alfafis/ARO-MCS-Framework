@@ -45,6 +45,8 @@ function computeResult(
     mean: fmt(sim.mean),
     stddev: `R$ ${toM(sim.stddev).toFixed(1).replace('.', ',')}M`,
     p10p90: `${rng(sim.p10)}–${rng(sim.p90)}M`,
+    p10: fmt(sim.p10),
+    p90: fmt(sim.p90),
     ic95: `${rng(sim.icLo)}–${rng(sim.icHi)}M`,
     min: fmt(sim.minVal),
     max: fmt(sim.maxVal),

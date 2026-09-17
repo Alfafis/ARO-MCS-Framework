@@ -8,7 +8,7 @@ import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
-import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import RelatorioPdfLayout from '@/components/relatorio/RelatorioPdfLayout'
@@ -304,6 +304,29 @@ export default function PortalClienteRelatorio() {
     return disbursement.totalGeral / baseTotal
   }, [baseTotal, disbursement])
 
+  // Multiplicador IPCA acumulado — SEMPRE com modo='ipca', pra usar no bloco
+  // "Cenários" do card de Métricas de risco independente do modo do toggle.
+  // `null` esconde a linha "Com IPCA acumulado" (IPCA anual não configurado).
+  const ipcaMultiplier = useMemo(() => {
+    if (!projeto || baseTotal === 0 || categorias.length === 0) return null
+    const horizonYears = projeto.horizonte_anos ?? 10
+    const dataBaseAno = projeto.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, horizonYears)
+    if (!ipcaPorAno) return null
+    const res = computeDesembolsoMatrix({
+      categorias,
+      catalogo,
+      horizonYears,
+      contingenciaPct: projeto.contingencia_pct ?? 0,
+      ipcaPorAno,
+      modo: 'ipca',
+      fatorAncoragem: ancoragem.fatorMid,
+    })
+    if (res.totalGeral === 0) return null
+    return res.totalGeral / baseTotal
+  }, [projeto, baseTotal, categorias, catalogo, parametrosAnuais, ancoragem.fatorMid])
+
   const costCategories: CostCategory[] = useMemo(
     () =>
       filteredParamsRaw.map((c, i) => ({
@@ -349,14 +372,36 @@ export default function PortalClienteRelatorio() {
     )
   }, [baseTotal, modoMultiplier, parametrosAnuais, projeto?.data_base, projeto?.horizonte_anos, tBase])
 
+  // P10/P90 opcionais — simulações persistidas antes de 2026-09-16 não têm
+  // esses campos, e o card esconde as linhas correspondentes quando ausentes.
   const riskMetrics: RiskMetric[] = simResult
     ? [
         { label: t.riskMean, value: scaleSimStringValue(simResult.mean, modoMultiplier) },
         { label: t.riskStddev, value: scaleSimStringValue(simResult.stddev, modoMultiplier) },
+        ...(simResult.p10 ? [{ label: t.riskP10, value: scaleSimStringValue(simResult.p10, modoMultiplier) }] : []),
         { label: t.riskP80, value: scaleSimStringValue(simResult.p80, modoMultiplier) },
+        ...(simResult.p90 ? [{ label: t.riskP90, value: scaleSimStringValue(simResult.p90, modoMultiplier) }] : []),
         { label: t.riskExceedProb, value: simResult.exceedProb },
       ]
     : []
+
+  // Cenários — sempre derivados do `mean` BASE (independente do toggle Modo,
+  // que reescala as métricas acima). Contingência 0% esconde "Com provisão";
+  // IPCA acumulado só quando disponível. Card esconde o bloco se sobra <2 linhas.
+  const riskScenarios: RiskScenario[] = useMemo(() => {
+    if (!simResult) return []
+    const rows: RiskScenario[] = [{ label: t.scenarioBase, value: simResult.mean }]
+    if (contingenciaPct > 0) {
+      rows.push({
+        label: t.scenarioProvisao(contingenciaPct),
+        value: scaleSimStringValue(simResult.mean, 1 + contingenciaPct / 100),
+      })
+    }
+    if (ipcaMultiplier != null) {
+      rows.push({ label: t.scenarioIpca, value: scaleSimStringValue(simResult.mean, ipcaMultiplier) })
+    }
+    return rows
+  }, [simResult, contingenciaPct, ipcaMultiplier, t])
 
   const cvPercent = simResult ? (simResult.cv * 100).toFixed(2) : null
   const cvLabel = simResult ? `CV = ${cvPercent}%` : t.simPendingSub
@@ -681,8 +726,8 @@ export default function PortalClienteRelatorio() {
               cvLabel={cvLabel}
               icLo={icLoLabel}
               icHi={icHiLabel}
-              contingency={`${contingenciaPct}%`}
               uncertainty={simResult?.uncertainty}
+              scenarios={riskScenarios}
             />
           </div>
 
@@ -794,6 +839,7 @@ export default function PortalClienteRelatorio() {
             costCategories={costCategories}
             costTotals={costTotals}
             riskMetrics={riskMetrics}
+            riskScenarios={riskScenarios}
             cvLabel={cvLabel}
             icLoLabel={icLoLabel}
             icHiLabel={icHiLabel}

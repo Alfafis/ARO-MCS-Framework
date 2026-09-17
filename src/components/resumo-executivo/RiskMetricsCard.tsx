@@ -1,16 +1,27 @@
 import { Shield } from 'lucide-react'
 import { useT } from '@/i18n/useLang'
 import { resumoT } from '@/i18n/resumo-executivo'
+import { relatorioClienteT } from '@/i18n/relatorio-cliente'
 import type { RiskMetric } from '@/types/relatorio'
 import type { UncertaintyLevel } from '@/types/simulacao'
+
+export interface RiskScenario {
+  label: string
+  value: string
+}
 
 interface Props {
   metrics: RiskMetric[]
   cvLabel: string
   icLo: string
   icHi: string
-  contingency: string
+  /** Rodapé "Contingência aplicada" — usado quando `scenarios` não é passado. */
+  contingency?: string
   uncertainty?: UncertaintyLevel
+  /** Bloco "Cenários" (Sem provisão / Com provisão X% / Com IPCA acumulado).
+   *  Quando presente e tem 2+ linhas, substitui o rodapé de contingência —
+   *  a coluna "Com provisão X%" já indica o percentual aplicado. */
+  scenarios?: RiskScenario[]
   className?: string
 }
 
@@ -27,13 +38,17 @@ export default function RiskMetricsCard({
   icHi,
   contingency,
   uncertainty,
+  scenarios,
   className = '',
 }: Props) {
   const t = useT(resumoT)
+  const tRel = useT(relatorioClienteT)
 
   const riskLabel = uncertainty === 'moderado' ? t.riskModerate : uncertainty === 'alto' ? t.riskHigh : t.riskLow
 
   const riskColor = uncertainty ? UNCERTAINTY_COLOR[uncertainty] : 'text-success'
+
+  const hasScenarios = scenarios != null && scenarios.length >= 2
 
   return (
     <div className={`card h-full ${className}`.trimEnd()}>
@@ -70,10 +85,28 @@ export default function RiskMetricsCard({
 
       <div className="h-px bg-c-line my-3" />
 
-      <div className="flex justify-between items-baseline">
-        <span className="text-[0.75rem] text-c-text-2">{t.contingencyLabel}</span>
-        <span className="font-mono text-[0.8125rem] font-semibold text-c-text">{contingency}</span>
-      </div>
+      {hasScenarios ? (
+        <>
+          <div className="text-[0.72rem] font-semibold uppercase tracking-widest text-c-text-2 mb-2">
+            {tRel.scenariosTitle}
+          </div>
+          <div className="flex flex-col gap-2">
+            {scenarios!.map(({ label, value }) => (
+              <div key={label} className="flex justify-between items-baseline gap-2">
+                <span className="text-[0.75rem] text-c-text-2">{label}</span>
+                <span className="font-mono text-[0.8125rem] font-semibold text-c-text whitespace-nowrap">{value}</span>
+              </div>
+            ))}
+          </div>
+        </>
+      ) : (
+        contingency != null && (
+          <div className="flex justify-between items-baseline">
+            <span className="text-[0.75rem] text-c-text-2">{t.contingencyLabel}</span>
+            <span className="font-mono text-[0.8125rem] font-semibold text-c-text">{contingency}</span>
+          </div>
+        )
+      )}
     </div>
   )
 }

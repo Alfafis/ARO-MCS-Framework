@@ -9,7 +9,7 @@ import type { Projeto } from '@/types/clientes'
 import RevisionTimeline, { type RevisionTimelineItem } from '@/components/dashboard/RevisionTimeline'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
 import MonetaryMethodsCard from '@/components/resumo-executivo/MonetaryMethodsCard'
-import RiskMetricsCard from '@/components/resumo-executivo/RiskMetricsCard'
+import RiskMetricsCard, { type RiskScenario } from '@/components/resumo-executivo/RiskMetricsCard'
 import AnnualDisbursementCard from '@/components/resumo-executivo/AnnualDisbursementCard'
 import AnnualDisbursementDetailedCard from '@/components/resumo-executivo/AnnualDisbursementDetailedCard'
 import { ModoToggle, ViewToggle } from '@/components/resumo-executivo/DesembolsoControls'
@@ -245,6 +245,38 @@ export default function ResumoExecutivo() {
     return disbursement.totalGeral / baseTotal
   }, [baseTotal, disbursement])
 
+  // Multiplicador IPCA acumulado — SEMPRE calculado com modo='ipca', pra usar
+  // no bloco "Cenários" do card de Métricas de risco independente do modo
+  // selecionado no toggle. `null` quando IPCA anual não está configurado
+  // (esconde a linha "Com IPCA acumulado" no card).
+  const ipcaMultiplier = useMemo(() => {
+    if (baseTotal === 0 || projeto.categorias.length === 0) return null
+    const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
+    const anoBase = dataBaseAno ?? new Date().getFullYear()
+    const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
+    if (!ipcaPorAno) return null
+    const res = computeDesembolsoMatrix({
+      categorias: projeto.categorias,
+      catalogo,
+      horizonYears: projeto.horizonteAnos,
+      contingenciaPct: projeto.contingenciaPct,
+      ipcaPorAno,
+      modo: 'ipca',
+      fatorAncoragem: ancoragem.fatorMid,
+    })
+    if (res.totalGeral === 0) return null
+    return res.totalGeral / baseTotal
+  }, [
+    baseTotal,
+    projeto.categorias,
+    projeto.horizonteAnos,
+    projeto.contingenciaPct,
+    projeto.dataBase,
+    catalogo,
+    parametrosAnuais,
+    ancoragem.fatorMid,
+  ])
+
   const costCategories: CostCategory[] = useMemo(
     () =>
       categoryParamsRaw.map((c, i) => ({
@@ -296,17 +328,40 @@ export default function ResumoExecutivo() {
   }, [baseTotal, modoMultiplier, parametrosAnuais, projeto.dataBase, projeto.horizonteAnos, t])
 
   // Métricas de risco re-escalam pelo modo atual — probabilidade de excedência
-  // não escala (é ratio, invariante a modo). Mean/stddev/P80/IC95 são valores
+  // não escala (é ratio, invariante a modo). Mean/stddev/percentis/IC95 são valores
   // monetários formatados; usamos `scaleSimStringValue` pra multiplicar cada
   // decimal encontrado na string preservando o formato.
+  // P10/P90 só existem em simulações rodadas após 2026-09-16 — quando ausentes
+  // (simulação antiga persistida), as linhas ficam ocultas.
   const riskMetrics: RiskMetric[] = simResult
     ? [
         { label: tRel.riskMean, value: scaleSimStringValue(simResult.mean, modoMultiplier) },
         { label: tRel.riskStddev, value: scaleSimStringValue(simResult.stddev, modoMultiplier) },
+        ...(simResult.p10 ? [{ label: tRel.riskP10, value: scaleSimStringValue(simResult.p10, modoMultiplier) }] : []),
         { label: tRel.riskP80, value: scaleSimStringValue(simResult.p80, modoMultiplier) },
+        ...(simResult.p90 ? [{ label: tRel.riskP90, value: scaleSimStringValue(simResult.p90, modoMultiplier) }] : []),
         { label: tRel.riskExceedProb, value: simResult.exceedProb },
       ]
     : []
+
+  // Cenários — sempre derivados do `mean` BASE (cru, sem escalação de modo).
+  // Contingência 0% esconde "Com provisão" (redundante com "Sem provisão").
+  // IPCA acumulado só quando disponível. Se sobra só 1 linha, o card esconde
+  // o bloco inteiro (regra `hasScenarios` no RiskMetricsCard).
+  const riskScenarios: RiskScenario[] = useMemo(() => {
+    if (!simResult) return []
+    const rows: RiskScenario[] = [{ label: tRel.scenarioBase, value: simResult.mean }]
+    if (contingenciaPct > 0) {
+      rows.push({
+        label: tRel.scenarioProvisao(contingenciaPct),
+        value: scaleSimStringValue(simResult.mean, 1 + contingenciaPct / 100),
+      })
+    }
+    if (ipcaMultiplier != null) {
+      rows.push({ label: tRel.scenarioIpca, value: scaleSimStringValue(simResult.mean, ipcaMultiplier) })
+    }
+    return rows
+  }, [simResult, contingenciaPct, ipcaMultiplier, tRel])
 
   const cvLabel = simResult ? `CV = ${(simResult.cv * 100).toFixed(2)}%` : tRel.simPendingSub
   const confLevel = simResult?.confidenceLevel ?? 95
@@ -468,8 +523,8 @@ export default function ResumoExecutivo() {
             cvLabel={cvLabel}
             icLo={icLoLabel}
             icHi={icHiLabel}
-            contingency={`${contingenciaPct}%`}
             uncertainty={simResult?.uncertainty}
+            scenarios={riskScenarios}
           />
         </div>
 
@@ -590,6 +645,7 @@ export default function ResumoExecutivo() {
             costCategories={costCategories}
             costTotals={costTotals}
             riskMetrics={riskMetrics}
+            riskScenarios={riskScenarios}
             cvLabel={cvLabel}
             icLoLabel={icLoLabel}
             icHiLabel={icHiLabel}
