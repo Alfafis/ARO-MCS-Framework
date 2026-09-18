@@ -2,8 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } fro
 import { Link, useParams } from 'react-router-dom'
 import { Download, Copy, Check, KeyRound, Sun, Moon, Loader2 } from 'lucide-react'
 import { DollarSign, ArrowLeftRight, Plus } from 'lucide-react'
-import html2canvas from 'html2canvas-pro'
-import jsPDF from 'jspdf'
+import { exportNodeAsPdf } from '@/lib/pdfExport'
 import LangSelector from '@/components/layout/LangSelector'
 import CodigoAcessoModal from '@/components/clientes/CodigoAcessoModal'
 import CostByCategoryTable from '@/components/resumo-executivo/CostByCategoryTable'
@@ -509,32 +508,7 @@ export default function PortalClienteRelatorio() {
     if (!pdfRef.current || isExporting) return
     setIsExporting(true)
     try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      })
-      const imgData = canvas.toDataURL('image/jpeg', 0.98)
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-      const margin = 10
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = pageWidth - margin * 2
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      const usableHeight = pageHeight - margin * 2
-
-      let heightLeft = imgHeight
-      let position = margin
-      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
-      heightLeft -= usableHeight
-      while (heightLeft > 0) {
-        position = margin - (imgHeight - heightLeft)
-        pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
-        heightLeft -= usableHeight
-      }
-      pdf.save(pdfFilename)
+      await exportNodeAsPdf(pdfRef.current, pdfFilename)
     } catch (err) {
       console.error('[ExportPdf] falha ao gerar PDF:', err)
     } finally {

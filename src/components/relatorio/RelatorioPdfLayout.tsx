@@ -111,7 +111,7 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
   ]
 
   return (
-    <div className="bg-c-bg" style={{ width: '1040px' }}>
+    <div className="pdf-force-light bg-white" style={{ width: '1040px' }}>
       <div className="flex items-center justify-between px-8 py-6 border-b border-c-line">
         <img src={logoUrl} alt="" className="h-10 w-auto object-contain" />
         <span className="text-[11px] font-semibold text-c-text-2 tracking-widest uppercase">
@@ -119,7 +119,7 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
         </span>
       </div>
 
-      <div className="px-8 py-8 flex flex-col gap-5">
+      <div data-pdf-content-root className="px-8 py-8 flex flex-col gap-5">
         <div>
           <div className="flex items-center gap-3 mb-1.5">
             <h1 className="text-[22px] font-bold text-c-text">

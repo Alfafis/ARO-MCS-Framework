@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate, useOutletContext } from 'react-router-dom'
 import { Copy, Check, Sprout, ChevronRight, Download, Loader2 } from 'lucide-react'
-import html2canvas from 'html2canvas-pro'
-import jsPDF from 'jspdf'
+import { exportNodeAsPdf } from '@/lib/pdfExport'
 import { Button } from '@/components/ui/button'
 import PageHeader from '@/components/layout/PageHeader'
 import type { Projeto } from '@/types/clientes'
@@ -455,36 +454,7 @@ export default function ResumoExecutivo() {
     if (!pdfRef.current || isExporting) return
     setIsExporting(true)
     try {
-      const canvas = await html2canvas(pdfRef.current, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-      })
-      const imgData = canvas.toDataURL('image/jpeg', 0.98)
-      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
-      const margin = 10
-      const pageWidth = pdf.internal.pageSize.getWidth()
-      const pageHeight = pdf.internal.pageSize.getHeight()
-      const imgWidth = pageWidth - margin * 2
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      const usableHeight = pageHeight - margin * 2
-
-      // Repete a imagem inteira em cada página, deslocada verticalmente pra
-      // mostrar a fatia certa. Padrão consagrado com jsPDF + html2canvas —
-      // conteúdo fica renderizado como bitmap único, então precisa desse
-      // truque de posição negativa pras páginas subsequentes.
-      let heightLeft = imgHeight
-      let position = margin
-      pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
-      heightLeft -= usableHeight
-      while (heightLeft > 0) {
-        position = margin - (imgHeight - heightLeft)
-        pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', margin, position, imgWidth, imgHeight)
-        heightLeft -= usableHeight
-      }
-      pdf.save(pdfFilename)
+      await exportNodeAsPdf(pdfRef.current, pdfFilename)
     } catch (err) {
       console.error('[ExportPdf] falha ao gerar PDF:', err)
     } finally {
