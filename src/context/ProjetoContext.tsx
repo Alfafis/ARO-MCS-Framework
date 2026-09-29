@@ -244,13 +244,29 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
         if (error || !data) return
         setClientes(data.map((c) => ({ id: c.id, nome: c.nome, email: c.email, initials: initials(c.nome) })))
       })
+    // `ano_base` entrou na migration 20260929120000. O deploy do frontend é
+    // automático no push e não espera a migration ser aplicada — se a coluna
+    // ainda não existir, o PostgREST devolve 42703 e, sem o fallback abaixo,
+    // `tiposProjeto` ficaria VAZIO: o wizard de criação de projeto perde o
+    // select de tipo e trava. O fallback tira essa ordem de deploy do caminho
+    // crítico; some quando a migration estiver aplicada em todos os ambientes.
+    //
+    // O cast existe porque `integrations/supabase/type.ts` só conhece a coluna
+    // depois de `npm run gen:types` contra o remoto já migrado — mesmo padrão
+    // de cast na borda já usado em atualizarParametroAnual.
+    type TipoProjetoRow = { id: string; nome: string; ano_base?: number | null }
     const fetchTipos = supabase
       .from('tipos_projeto')
-      .select('id, nome')
+      .select('id, nome, ano_base')
       .order('nome')
-      .then(({ data, error }) => {
-        if (error || !data) return
-        setTiposProjeto(data)
+      .then(async ({ data, error }) => {
+        let rows = data as unknown as TipoProjetoRow[] | null
+        if (error || !rows) {
+          const retry = await supabase.from('tipos_projeto').select('id, nome').order('nome')
+          if (retry.error || !retry.data) return
+          rows = retry.data as unknown as TipoProjetoRow[]
+        }
+        setTiposProjeto(rows.map((t) => ({ id: t.id, nome: t.nome, anoBase: t.ano_base ?? null })))
       })
     const fetchProjetos = supabase
       .from('projetos')
@@ -351,16 +367,23 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   const criarTipoProjeto = useCallback(async (nome: string): Promise<TipoProjeto> => {
     const { data, error } = await supabase.rpc('criar_tipo_projeto', { p_nome: nome })
     if (error || !data) throw error ?? new Error('Falha ao criar tipo de projeto')
+    // Tipo novo nasce sem ano-base declarado: o admin ainda não tem template
+    // por trás dele, e `null` é o estado seguro (não altera ancoragem nenhuma).
+    const novo: TipoProjeto = { id: data.id, nome: data.nome, anoBase: null }
     setTiposProjeto((prev) =>
-      prev.some((t) => t.id === data.id) ? prev : [...prev, data].sort((a, b) => a.nome.localeCompare(b.nome))
+      prev.some((t) => t.id === novo.id) ? prev : [...prev, novo].sort((a, b) => a.nome.localeCompare(b.nome))
     )
-    return data
+    return novo
   }, [])
 
   const renomearTipoProjeto = useCallback(async (id: string, novoNome: string) => {
     const { data, error } = await supabase.rpc('renomear_tipo_projeto', { p_id: id, p_novo_nome: novoNome })
     if (error || !data) throw error ?? new Error('Falha ao renomear tipo de projeto')
-    setTiposProjeto((prev) => prev.map((t) => (t.id === id ? data : t)).sort((a, b) => a.nome.localeCompare(b.nome)))
+    setTiposProjeto((prev) =>
+      prev
+        .map((t) => (t.id === id ? { ...t, nome: data.nome } : t))
+        .sort((a, b) => a.nome.localeCompare(b.nome))
+    )
   }, [])
 
   const removerTipoProjeto = useCallback(async (id: string) => {
@@ -784,37 +807,55 @@ export function ProjetoProvider({ children }: { children: ReactNode }) {
   // (categorias_template/itens_template, administrável em Configurações) —
   // a RPC lê o template do servidor a partir do tipo, não recebe mais o
   // conteúdo montado pelo frontend.
-  const carregarTemplateExemplo = useCallback(async (projetoId: string, tipoProjetoId: string) => {
-    const { data, error } = await supabase.rpc('carregar_template_exemplo', {
-      p_projeto_id: projetoId,
-      p_tipo_projeto_id: tipoProjetoId,
-    })
-    if (error || !data) throw error ?? new Error('Falha ao carregar template')
+  const carregarTemplateExemplo = useCallback(
+    async (projetoId: string, tipoProjetoId: string) => {
+      const { data, error } = await supabase.rpc('carregar_template_exemplo', {
+        p_projeto_id: projetoId,
+        p_tipo_projeto_id: tipoProjetoId,
+      })
+      if (error || !data) throw error ?? new Error('Falha ao carregar template')
 
-    const criadas = data as unknown as CarregarTemplateExemploItem[]
-    setCatalogo((prev) => {
-      const next = [...prev]
-      for (const { catalogo: cat } of criadas) {
-        if (!next.some((c) => c.id === cat.id)) next.push({ id: cat.id, nome: cat.nome })
-      }
-      return next
-    })
+      const criadas = data as unknown as CarregarTemplateExemploItem[]
+      setCatalogo((prev) => {
+        const next = [...prev]
+        for (const { catalogo: cat } of criadas) {
+          if (!next.some((c) => c.id === cat.id)) next.push({ id: cat.id, nome: cat.nome })
+        }
+        return next
+      })
 
-    const categorias: Category[] = criadas.map(({ categoria, itens }) => ({
-      id: categoria.id,
-      catalogoId: categoria.catalogo_id,
-      preenche: categoria.preenche as Category['preenche'],
-      expanded: false,
-      justAdded: false,
-      items: itens.map(mapItemCustoRow),
-      camposOperacionais: [],
-      custoProvavel: categoria.custo_provavel,
-    }))
+      const categorias: Category[] = criadas.map(({ categoria, itens }) => ({
+        id: categoria.id,
+        catalogoId: categoria.catalogo_id,
+        preenche: categoria.preenche as Category['preenche'],
+        expanded: false,
+        justAdded: false,
+        items: itens.map(mapItemCustoRow),
+        camposOperacionais: [],
+        custoProvavel: categoria.custo_provavel,
+      }))
 
-    setProjetos((prev) =>
-      prev.map((p) => (p.id === projetoId ? { ...p, categorias, esperado: estimateTotal(categorias) } : p))
-    )
-  }, [])
+      // Ancoragem: os valores vêm na base do template, não na data-base do
+      // projeto. A RPC já gravou `projetos.ano_referencia = tipo.ano_base` —
+      // espelhamos aqui pra não deixar o estado local mentindo até o próximo
+      // reload. Tipo sem `anoBase` declarado não mexe em nada.
+      const anoBaseTemplate = tiposProjeto.find((t) => t.id === tipoProjetoId)?.anoBase ?? null
+
+      setProjetos((prev) =>
+        prev.map((p) =>
+          p.id === projetoId
+            ? {
+                ...p,
+                categorias,
+                esperado: estimateTotal(categorias),
+                ...(anoBaseTemplate !== null ? { anoReferencia: anoBaseTemplate } : {}),
+              }
+            : p
+        )
+      )
+    },
+    [tiposProjeto]
+  )
 
   const addCategoria = useCallback(
     async (projetoId: string) => {
