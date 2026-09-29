@@ -153,10 +153,33 @@ export default function Simulacao() {
   const [confidence, setConfidence] = useState('95')
   const [running, setRunning] = useState(false)
   const [historyOpen, setHistoryOpen] = useState(false)
-  const [activeCategories, setActiveCategories] = useState<Set<string>>(new Set(categoryNames))
+  // Guardamos as categorias DESMARCADAS, não as marcadas. `useState(inicial)`
+  // só lê o inicializador no primeiro render: com `new Set(categoryNames)`,
+  // quem abrisse a tela antes do catálogo de categorias chegar ficava com um
+  // Set montado sobre o fallback '—' de `categoryParamsFromCategorias`, e ele
+  // NUNCA se corrigia quando o catálogo chegava. Foi assim que uma simulação
+  // real gravou `active_categories: ['—']` e zerou o relatório do Portal do
+  // Cliente, que casa categoria por nome. Derivando as ativas a cada render, o
+  // estado acompanha o catálogo e a escolha do consultor sobrevive.
+  const [inactiveCategories, setInactiveCategories] = useState<Set<string>>(new Set())
+  const activeCategories = useMemo(
+    () => new Set(categoryNames.filter((nome) => !inactiveCategories.has(nome))),
+    [categoryNames, inactiveCategories]
+  )
+  const handleCategoriesChange = useCallback(
+    (proximasAtivas: Set<string>) => {
+      setInactiveCategories(new Set(categoryNames.filter((nome) => !proximasAtivas.has(nome))))
+    },
+    [categoryNames]
+  )
+
+  // Nome '—' é o fallback de catálogo ausente. Rodar assim produz um resultado
+  // cujos nomes não casam com nada, e persistir esse resultado quebra o Portal
+  // do Cliente — melhor bloquear a execução do que gravar lixo.
+  const catalogoIncompleto = useMemo(() => categoryNames.some((nome) => nome === '—'), [categoryNames])
 
   const runSimulation = useCallback(() => {
-    if (categoryParams.length === 0) return
+    if (categoryParams.length === 0 || catalogoIncompleto) return
     setRunning(true)
     setTimeout(async () => {
       const n = parseIterationsNumber(iterations)
@@ -173,7 +196,17 @@ export default function Simulacao() {
         setRunning(false)
       }
     }, 1300)
-  }, [dist, iterations, confidence, activeCategories, categoryParams, t, projeto.id, setSimulation])
+  }, [
+    dist,
+    iterations,
+    confidence,
+    activeCategories,
+    categoryParams,
+    catalogoIncompleto,
+    t,
+    projeto.id,
+    setSimulation,
+  ])
 
   const loadHistoryRun = useCallback(
     (run: HistoryRun) => {
@@ -202,13 +235,13 @@ export default function Simulacao() {
             iterations={iterations}
             confidence={confidence}
             running={running}
-            disabled={categoryParams.length === 0}
+            disabled={categoryParams.length === 0 || catalogoIncompleto}
             categoryNames={categoryNames}
             onDistChange={setDist}
             onIterationsChange={setIterations}
             onConfidenceChange={setConfidence}
             onRun={runSimulation}
-            onCategoriesChange={setActiveCategories}
+            onCategoriesChange={handleCategoriesChange}
           />
           <div className="flex flex-col gap-4">
             {categoryParams.length === 0 && (

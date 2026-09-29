@@ -230,14 +230,27 @@ export default function PortalClienteRelatorio() {
     [categorias, catalogo]
   )
 
+  // `active_categories` guarda NOMES de categoria, gravados quando a simulação
+  // rodou. Se aqueles nomes não existirem mais (categoria renomeada, ou a
+  // simulação gravada com o catálogo ainda não carregado — caso real, gravou
+  // ['—']), o filtro casa zero e o cliente recebe um relatório com "0 setores",
+  // total zero e composição vazia. Aqui, "nenhuma casou" é tratado como
+  // "mostrar todas": entregar o relatório inteiro é sempre melhor que entregar
+  // um vazio por causa de um filtro obsoleto. O filtro continua valendo quando
+  // ao menos uma categoria casa — que é o caso de uma seleção legítima.
+  const usarTodasCategorias = useMemo(
+    () => activeCatSet.size === 0 || !categoryParams.some((c) => activeCatSet.has(c.name)),
+    [activeCatSet, categoryParams]
+  )
+
   const filteredParams = useMemo(
-    () => (activeCatSet.size === 0 ? categoryParams : categoryParams.filter((c) => activeCatSet.has(c.name))),
-    [categoryParams, activeCatSet]
+    () => (usarTodasCategorias ? categoryParams : categoryParams.filter((c) => activeCatSet.has(c.name))),
+    [categoryParams, activeCatSet, usarTodasCategorias]
   )
 
   const filteredParamsRaw = useMemo(
-    () => (activeCatSet.size === 0 ? categoryParamsRaw : categoryParamsRaw.filter((c) => activeCatSet.has(c.name))),
-    [categoryParamsRaw, activeCatSet]
+    () => (usarTodasCategorias ? categoryParamsRaw : categoryParamsRaw.filter((c) => activeCatSet.has(c.name))),
+    [categoryParamsRaw, activeCatSet, usarTodasCategorias]
   )
 
   // Base pro provisionamento: soma do ponto médio (min+max)/2 de cada categoria real —
