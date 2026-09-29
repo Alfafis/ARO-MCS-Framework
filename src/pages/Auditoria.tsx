@@ -32,7 +32,26 @@ interface LogRow {
   registro_id: string | null
   usuario_id: string | null
   usuario_nome: string | null
+  // Migration 20260929190000. Opcionais por retrocompat: a RPC antiga não
+  // devolvia esses campos, e uma aba aberta antes do deploy continua funcionando.
+  usuario_email?: string | null
+  usuario_existe?: boolean | null
   criado_em: string
+}
+
+// Identificação do autor da alteração. São quatro situações distintas e a
+// tela tratava todas como "Usuário removido" — inclusive contas ativas, que é
+// a conclusão mais errada possível numa trilha de auditoria.
+function autorLabel(row: LogRow, t: (typeof auditoriaT)['pt-BR']): string {
+  if (row.usuario_nome) return row.usuario_nome
+  if (row.usuario_email) return row.usuario_email
+  // Sem `usuario_id` a escrita não veio de uma sessão do app (script, acesso
+  // direto ao banco, rotina administrativa) — não é conta removida.
+  if (!row.usuario_id) return t.usuarioSemSessao
+  // `usuario_existe === false` só chega da RPC nova; `undefined` significa aba
+  // aberta antes do deploy, e aí não dá pra afirmar que a conta sumiu.
+  if (row.usuario_existe === false) return t.usuarioDesconhecido
+  return t.usuarioSemNome
 }
 
 const selectClass =
@@ -203,7 +222,9 @@ export default function Auditoria() {
                   <span className="font-mono text-[12px] text-c-text-2 truncate" title={row.registro_id ?? ''}>
                     {row.registro_id ? row.registro_id.slice(0, 8) : '—'}
                   </span>
-                  <span className="truncate">{row.usuario_nome ?? t.usuarioDesconhecido}</span>
+                  <span className="truncate" title={row.usuario_id ?? ''}>
+                    {autorLabel(row, t)}
+                  </span>
                   <span className="text-c-text-2">{dateFmt.format(new Date(row.criado_em))}</span>
                 </div>
               ))

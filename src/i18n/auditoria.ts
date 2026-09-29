@@ -17,6 +17,8 @@ export const auditoriaT: Record<
     colUsuario: string
     colQuando: string
     usuarioDesconhecido: string
+    usuarioSemNome: string
+    usuarioSemSessao: string
     operacaoInsert: string
     operacaoUpdate: string
     operacaoDelete: string
@@ -43,6 +45,8 @@ export const auditoriaT: Record<
     colUsuario: 'Usuário',
     colQuando: 'Quando',
     usuarioDesconhecido: 'Usuário removido',
+    usuarioSemNome: 'Perfil sem nome',
+    usuarioSemSessao: 'Fora do aplicativo',
     operacaoInsert: 'Criação',
     operacaoUpdate: 'Edição',
     operacaoDelete: 'Remoção',
@@ -81,6 +85,8 @@ export const auditoriaT: Record<
     colUsuario: 'User',
     colQuando: 'When',
     usuarioDesconhecido: 'Removed user',
+    usuarioSemNome: 'Profile without a name',
+    usuarioSemSessao: 'Outside the application',
     operacaoInsert: 'Created',
     operacaoUpdate: 'Updated',
     operacaoDelete: 'Deleted',
@@ -119,6 +125,8 @@ export const auditoriaT: Record<
     colUsuario: 'Usuario',
     colQuando: 'Cuándo',
     usuarioDesconhecido: 'Usuario eliminado',
+    usuarioSemNome: 'Perfil sin nombre',
+    usuarioSemSessao: 'Fuera de la aplicación',
     operacaoInsert: 'Creación',
     operacaoUpdate: 'Edición',
     operacaoDelete: 'Eliminación',
