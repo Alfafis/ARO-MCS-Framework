@@ -1093,6 +1093,37 @@ function DesembolsoToggleAndPanel({ item, t, horizon, aberto, onToggleAberto, on
     saveAll(cleared)
   }
 
+  // Rateia a diferença entre a soma por ano e o Custo Max do item,
+  // proporcionalmente ao que já está distribuído. Só existe como ação
+  // explícita: editar o Custo Max não reescreve o desembolso sozinho — o
+  // consultor digitou aqueles números, e sobrescrever sem pedir é pior que
+  // manter o aviso (o desvio estava em 11 itens de um projeto real, um deles
+  // R$ 1,39 mi acima do teto, sem ninguém perceber).
+  function ajustarAoCustoMax() {
+    const valores = textos.map((txt) => parseMoedaBR(txt))
+    const somaAtual = valores.reduce((acc, v) => acc + v, 0)
+    // Sem nada distribuído não há proporção pra respeitar — o botão nem
+    // aparece nesse caso, isto aqui é só a guarda contra divisão por zero.
+    if (somaAtual <= 0 || custoMax <= 0) return
+
+    const fator = custoMax / somaAtual
+    const ajustados = valores.map((v) => Math.round(v * fator * 100) / 100)
+
+    // Sobra de arredondamento vai no maior ano — sem isso a soma pode ficar
+    // alguns centavos fora e o aviso continuaria aparecendo depois do ajuste.
+    const somaAjustada = ajustados.reduce((acc, v) => acc + v, 0)
+    const resto = Math.round((custoMax - somaAjustada) * 100) / 100
+    if (resto !== 0) {
+      let maiorIdx = 0
+      for (let i = 1; i < ajustados.length; i++) if (ajustados[i] > ajustados[maiorIdx]) maiorIdx = i
+      ajustados[maiorIdx] = Math.round((ajustados[maiorIdx] + resto) * 100) / 100
+    }
+
+    const next = ajustados.map((v) => (v === 0 ? '' : formatMoedaBR(v)))
+    setTextos(next)
+    saveAll(next)
+  }
+
   const custoMax = parseMoedaBR(item.max)
   const soma = textos.reduce((acc, txt) => acc + parseMoedaBR(txt), 0)
   const diff = custoMax - soma
@@ -1148,6 +1179,16 @@ function DesembolsoToggleAndPanel({ item, t, horizon, aberto, onToggleAberto, on
               <span className={`text-[0.7rem] ${Math.abs(diff) < 0.5 ? 'text-emerald-600' : 'text-amber-700'}`}>
                 {status}
               </span>
+            )}
+            {custoMax > 0 && Math.abs(diff) >= 0.5 && soma > 0 && (
+              <button
+                type="button"
+                onClick={ajustarAoCustoMax}
+                title={t.desembolsoAdjustHint}
+                className="text-[0.7rem] font-semibold text-accent hover:text-accent-700 transition-colors cursor-pointer bg-transparent border border-c-line rounded-full px-2.5 py-[3px] focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+              >
+                {t.desembolsoAdjust}
+              </button>
             )}
             <button
               type="button"

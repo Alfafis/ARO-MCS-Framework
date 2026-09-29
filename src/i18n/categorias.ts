@@ -51,6 +51,8 @@ export const categoriasT: Record<
     desembolsoLabel: (ano: number) => string
     desembolsoSum: string
     desembolsoTargetOk: string
+    desembolsoAdjust: string
+    desembolsoAdjustHint: string
     desembolsoMismatch: (diff: string) => string
     desembolsoClearAll: string
     simStatsTitle: string
@@ -116,6 +118,9 @@ export const categoriasT: Record<
     desembolsoLabel: (ano) => `Ano ${ano}`,
     desembolsoSum: 'Soma',
     desembolsoTargetOk: 'confere com Custo Max',
+    desembolsoAdjust: 'Ajustar ao Custo Max',
+    desembolsoAdjustHint:
+      'Rateia a diferença proporcionalmente entre os anos já preenchidos, até a soma bater com o Custo Max do item.',
     desembolsoMismatch: (diff) => `difere do Custo Max em ${diff}`,
     desembolsoClearAll: 'Limpar todos',
     simStatsTitle: 'Estatísticas Aro Simulação',
@@ -179,6 +184,9 @@ export const categoriasT: Record<
     desembolsoLabel: (ano) => `Year ${ano}`,
     desembolsoSum: 'Sum',
     desembolsoTargetOk: 'matches Max Cost',
+    desembolsoAdjust: 'Adjust to Max Cost',
+    desembolsoAdjustHint:
+      "Spreads the difference proportionally across the years already filled in, until the sum matches the item's Max Cost.",
     desembolsoMismatch: (diff) => `differs from Max Cost by ${diff}`,
     desembolsoClearAll: 'Clear all',
     simStatsTitle: 'Aro Simulação statistics',
@@ -242,6 +250,9 @@ export const categoriasT: Record<
     desembolsoLabel: (ano) => `Año ${ano}`,
     desembolsoSum: 'Suma',
     desembolsoTargetOk: 'coincide con Costo Máx',
+    desembolsoAdjust: 'Ajustar al Costo Máx',
+    desembolsoAdjustHint:
+      'Reparte la diferencia proporcionalmente entre los años ya completados, hasta que la suma coincida con el Costo Máx del ítem.',
     desembolsoMismatch: (diff) => `difiere del Costo Máx en ${diff}`,
     desembolsoClearAll: 'Limpiar todos',
     simStatsTitle: 'Estadísticas Aro Simulação',
