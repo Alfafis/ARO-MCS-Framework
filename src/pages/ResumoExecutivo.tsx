@@ -246,22 +246,46 @@ export default function ResumoExecutivo() {
     ancoragem.fatorMax,
   ])
 
+  // Denominador dos multiplicadores de modo: a MESMA curva de desembolso em
+  // modo `base`. Não pode ser `baseTotal` — a matriz é construída a partir de
+  // `item.max` (`desembolsoAno.ts`), enquanto `baseTotal` soma o `mode`
+  // (custo provável, ou o midpoint min/max quando não preenchido). Dividir um
+  // pelo outro embutia a razão max/mode no fator, inflando todo card agregado
+  // mesmo com o toggle em "Sem provisão". Com o base-mode no denominador, a
+  // base `max` e a ancoragem cancelam e sobra só provisão × IPCA — que é o
+  // que o toggle Modo significa.
+  //
+  // `contingenciaPct: 0` de propósito: no modo `base` o helper ignora provisão
+  // (`provFator = 1`), então passar o valor real só adicionaria uma dependência
+  // que recalcula a matriz à toa.
+  const desembolsoBaseTotal = useMemo(() => {
+    if (projeto.categorias.length === 0) return 0
+    return computeDesembolsoMatrix({
+      categorias: projeto.categorias,
+      catalogo,
+      horizonYears: projeto.horizonteAnos,
+      contingenciaPct: 0,
+      ipcaPorAno: null,
+      modo: 'base',
+      fatorAncoragem: ancoragem.fatorMid,
+    }).totalGeral
+  }, [projeto.categorias, projeto.horizonteAnos, catalogo, ancoragem.fatorMid])
+
   // Multiplicador do modo atual pra propagar em todos os cards agregados
-  // (Custo por categoria, Métricas de risco, Métodos monetários, KPIs). O
-  // `disbursement.totalGeral` já reflete o modo escolhido (base/provisão/IPCA)
-  // — é a fonte única do total do projeto na visão atual. `baseTotal` é o
-  // denominador consistente (soma dos modes com ancoragem, sem provisão).
+  // (Custo por categoria, Métricas de risco, Métodos monetários, KPIs).
+  // Razão entre o total da curva no modo escolhido e o total da mesma curva
+  // no modo base — 1 exato quando o toggle está em "Sem provisão".
   const modoMultiplier = useMemo(() => {
-    if (baseTotal === 0 || !disbursement) return 1
-    return disbursement.totalGeral / baseTotal
-  }, [baseTotal, disbursement])
+    if (desembolsoBaseTotal === 0 || !disbursement) return 1
+    return disbursement.totalGeral / desembolsoBaseTotal
+  }, [desembolsoBaseTotal, disbursement])
 
   // Multiplicador IPCA acumulado — SEMPRE calculado com modo='ipca', pra usar
   // no bloco "Cenários" do card de Métricas de risco independente do modo
   // selecionado no toggle. `null` quando IPCA anual não está configurado
   // (esconde a linha "Com IPCA acumulado" no card).
   const ipcaMultiplier = useMemo(() => {
-    if (baseTotal === 0 || projeto.categorias.length === 0) return null
+    if (desembolsoBaseTotal === 0 || projeto.categorias.length === 0) return null
     const dataBaseAno = Number.isNaN(Number(projeto.dataBase)) ? null : Number(projeto.dataBase)
     const anoBase = dataBaseAno ?? new Date().getFullYear()
     const ipcaPorAno = sequenciaMidpoints(parametrosAnuais, 'inflacao_ipca', anoBase, projeto.horizonteAnos)
@@ -276,9 +300,9 @@ export default function ResumoExecutivo() {
       fatorAncoragem: ancoragem.fatorMid,
     })
     if (res.totalGeral === 0) return null
-    return res.totalGeral / baseTotal
+    return res.totalGeral / desembolsoBaseTotal
   }, [
-    baseTotal,
+    desembolsoBaseTotal,
     projeto.categorias,
     projeto.horizonteAnos,
     projeto.contingenciaPct,

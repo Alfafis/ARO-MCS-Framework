@@ -306,21 +306,40 @@ export default function PortalClienteRelatorio() {
     }
   }, [projeto, categorias, catalogo, parametrosAnuais, modoDesembolso, ancoragem.fatorMid, ancoragem.fatorMin, ancoragem.fatorMax])
 
-  // Multiplicador do modo atual pra propagar em todos os cards agregados
-  // (Custo por categoria, Métricas de risco, KPIs, Métodos monetários). O
-  // `disbursement.totalGeral` já reflete o modo escolhido — usar como fonte
-  // única do total do projeto na visão atual. Ver comentário equivalente em
-  // ResumoExecutivo.tsx.
+  // Denominador dos multiplicadores de modo: a MESMA curva de desembolso em
+  // modo `base`. Ver comentário longo em ResumoExecutivo.tsx — resumo: a
+  // matriz de desembolso soma `item.max` e `baseTotal` soma o `mode`, então
+  // `totalGeral / baseTotal` embutia a razão max/mode no fator. Aqui havia
+  // ainda um segundo desvio: `baseTotal` usa `filteredParams` (só as
+  // categorias ativas na simulação) e a matriz usa `categorias` inteiras — o
+  // fator também carregava a razão entre os dois conjuntos. Com o base-mode
+  // da MESMA matriz no denominador, os dois desvios cancelam.
+  const desembolsoBaseTotal = useMemo(() => {
+    if (!projeto || categorias.length === 0) return 0
+    return computeDesembolsoMatrix({
+      categorias,
+      catalogo,
+      horizonYears: projeto.horizonte_anos ?? 10,
+      // Modo `base` ignora provisão (`provFator = 1`) — ver ResumoExecutivo.
+      contingenciaPct: 0,
+      ipcaPorAno: null,
+      modo: 'base',
+      fatorAncoragem: ancoragem.fatorMid,
+    }).totalGeral
+  }, [projeto, categorias, catalogo, ancoragem.fatorMid])
+
+  // Multiplicador do modo atual — razão entre o total da curva no modo
+  // escolhido e o total da mesma curva no modo base. 1 exato em "Sem provisão".
   const modoMultiplier = useMemo(() => {
-    if (baseTotal === 0 || !disbursement) return 1
-    return disbursement.totalGeral / baseTotal
-  }, [baseTotal, disbursement])
+    if (desembolsoBaseTotal === 0 || !disbursement) return 1
+    return disbursement.totalGeral / desembolsoBaseTotal
+  }, [desembolsoBaseTotal, disbursement])
 
   // Multiplicador IPCA acumulado — SEMPRE com modo='ipca', pra usar no bloco
   // "Cenários" do card de Métricas de risco independente do modo do toggle.
   // `null` esconde a linha "Com IPCA acumulado" (IPCA anual não configurado).
   const ipcaMultiplier = useMemo(() => {
-    if (!projeto || baseTotal === 0 || categorias.length === 0) return null
+    if (!projeto || desembolsoBaseTotal === 0 || categorias.length === 0) return null
     const horizonYears = projeto.horizonte_anos ?? 10
     const dataBaseAno = projeto.data_base && !Number.isNaN(Number(projeto.data_base)) ? Number(projeto.data_base) : null
     const anoBase = dataBaseAno ?? new Date().getFullYear()
@@ -336,8 +355,8 @@ export default function PortalClienteRelatorio() {
       fatorAncoragem: ancoragem.fatorMid,
     })
     if (res.totalGeral === 0) return null
-    return res.totalGeral / baseTotal
-  }, [projeto, baseTotal, categorias, catalogo, parametrosAnuais, ancoragem.fatorMid])
+    return res.totalGeral / desembolsoBaseTotal
+  }, [projeto, desembolsoBaseTotal, categorias, catalogo, parametrosAnuais, ancoragem.fatorMid])
 
   const costCategories: CostCategory[] = useMemo(
     () =>
