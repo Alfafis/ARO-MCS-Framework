@@ -105,6 +105,7 @@ export default function ResumoExecutivo() {
 
   const [linkCopied, setLinkCopied] = useState(false)
   const [isExporting, setIsExporting] = useState(false)
+  const [pdfError, setPdfError] = useState(false)
   const pdfRef = useRef<HTMLDivElement>(null)
   const [simResult, setSimResult] = useState<SimResult | null>(null)
   const [revisoes, setRevisoes] = useState<RevisaoRow[]>([])
@@ -476,11 +477,16 @@ export default function ResumoExecutivo() {
 
   async function handleExportPdf() {
     if (!pdfRef.current || isExporting) return
+    setPdfError(false)
     setIsExporting(true)
     try {
       await exportNodeAsPdf(pdfRef.current, pdfFilename)
     } catch (err) {
+      // Falha de PDF precisa aparecer na tela: o caminho mais comum (limite de
+      // canvas do browser) não quebra nada visível — o spinner some e o usuário
+      // fica achando que o download foi bloqueado.
       console.error('[ExportPdf] falha ao gerar PDF:', err)
+      setPdfError(true)
     } finally {
       setIsExporting(false)
     }
@@ -524,6 +530,11 @@ export default function ResumoExecutivo() {
                 </>
               )}
             </Button>
+            {pdfError && (
+              <span role="alert" className="text-[12px] font-medium text-error max-w-[280px]">
+                {tRel.pdfError}
+              </span>
+            )}
             <Button variant="primary" onClick={() => navigate(`/projetos/${projeto.id}/simulacao`)}>
               {t.runSimulation}
             </Button>
@@ -607,7 +618,14 @@ export default function ResumoExecutivo() {
               />
             </div>
             {viewDesembolso === 'agregado' ? (
-              <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+              <AnnualDisbursementCard
+                years={disbursement.years}
+                categories={disbursement.categories}
+                basis={{
+                  curvaTotal: formatMoedaCompact(disbursement.totalGeral),
+                  provavelTotal: formatMoedaCompact(baseTotal * modoMultiplier),
+                }}
+              />
             ) : (
               disbursementDetalhado && (
                 <AnnualDisbursementDetailedCard

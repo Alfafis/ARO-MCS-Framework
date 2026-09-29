@@ -6,9 +6,16 @@ import type { DisbursementYear, DisbursementCategory } from '@/types/relatorio'
 interface Props {
   years: DisbursementYear[]
   categories?: DisbursementCategory[]
+  // Comparação explícita das duas bases de custo do relatório. A curva é
+  // montada a partir do custo MÁXIMO de cada item (ou do desembolso por ano
+  // digitado); o custo provável vem da estimativa central da categoria. Os
+  // dois totais divergem por construção — num projeto real, 6,17%. Sem esse
+  // rodapé a diferença parece erro de cálculo (foi exatamente como um cliente
+  // leu, ver ADR de 2026-09-29).
+  basis?: { curvaTotal: string; provavelTotal: string }
 }
 
-export default function AnnualDisbursementCard({ years, categories }: Props) {
+export default function AnnualDisbursementCard({ years, categories, basis }: Props) {
   const t = useT(resumoT)
   // Grid dinâmico pelo horizonte real do projeto (1–20 anos). Fixar em 10
   // colunas quebra o auto-placement quando `horizonteAnos < 10`: sobra
@@ -109,6 +116,20 @@ export default function AnnualDisbursementCard({ years, categories }: Props) {
             ))}
           </div>
         </>
+      )}
+
+      {basis && (
+        <div className="mt-4 pt-3 border-t border-c-line flex flex-col gap-1.5">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[11.5px] text-c-text-2">{t.basisCurveLabel}</span>
+            <span className="font-mono text-[12.5px] font-bold text-c-text">{basis.curvaTotal}</span>
+          </div>
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="text-[11.5px] text-c-text-2">{t.basisProvavelLabel}</span>
+            <span className="font-mono text-[12.5px] font-semibold text-c-text-2">{basis.provavelTotal}</span>
+          </div>
+          <p className="text-[11px] leading-snug text-c-text-2 mt-1">{t.basisNote}</p>
+        </div>
       )}
     </div>
   )

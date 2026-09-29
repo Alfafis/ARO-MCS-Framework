@@ -487,6 +487,7 @@ export default function PortalClienteRelatorio() {
   const [codeError, setCodeError] = useState(false)
   const [codeLockedMsg, setCodeLockedMsg] = useState<string | null>(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [pdfError, setPdfError] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [codeModalOpen, setCodeModalOpen] = useState(false)
   const pdfRef = useRef<HTMLDivElement>(null)
@@ -525,11 +526,16 @@ export default function PortalClienteRelatorio() {
 
   async function handleExportPdf() {
     if (!pdfRef.current || isExporting) return
+    setPdfError(false)
     setIsExporting(true)
     try {
       await exportNodeAsPdf(pdfRef.current, pdfFilename)
     } catch (err) {
+      // Falha de PDF precisa aparecer na tela: o caminho mais comum (limite de
+      // canvas do browser) não quebra nada visível — o spinner some e o usuário
+      // fica achando que o download foi bloqueado.
       console.error('[ExportPdf] falha ao gerar PDF:', err)
+      setPdfError(true)
     } finally {
       setIsExporting(false)
     }
@@ -653,6 +659,11 @@ export default function PortalClienteRelatorio() {
               </>
             )}
           </button>
+          {pdfError && (
+            <span role="alert" className="text-[12px] font-medium text-error max-w-[280px]">
+              {t.pdfError}
+            </span>
+          )}
           <LangSelector ariaLabel={t.selectLang} />
           <button
             type="button"
@@ -810,7 +821,14 @@ export default function PortalClienteRelatorio() {
                 />
               </div>
               {viewDesembolso === 'agregado' ? (
-                <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+                <AnnualDisbursementCard
+                  years={disbursement.years}
+                  categories={disbursement.categories}
+                  basis={{
+                    curvaTotal: formatMoedaCompact(disbursement.totalGeral),
+                    provavelTotal: formatMoedaCompact(baseTotal * modoMultiplier),
+                  }}
+                />
               ) : (
                 disbursementDetalhado && (
                   <AnnualDisbursementDetailedCard

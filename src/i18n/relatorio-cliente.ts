@@ -50,6 +50,7 @@ export const relatorioClienteT: Record<
     modalSubmit: string
     // Toast
     pdfGenerating: string
+    pdfError: string
   }
 > = {
   'pt-BR': {
@@ -94,6 +95,7 @@ export const relatorioClienteT: Record<
     modalCodeLocked: 'Muitas tentativas incorretas. Aguarde alguns minutos antes de tentar novamente.',
     modalSubmit: 'Acessar relatório',
     pdfGenerating: 'Gerando PDF…',
+    pdfError: 'Não foi possível gerar o PDF. Tente de novo; se persistir, use um relatório com menos cards ou outro navegador.',
   },
   en: {
     portalPill: 'Client portal',
@@ -137,6 +139,7 @@ export const relatorioClienteT: Record<
     modalCodeLocked: 'Too many incorrect attempts. Wait a few minutes before trying again.',
     modalSubmit: 'Access report',
     pdfGenerating: 'Generating PDF…',
+    pdfError: 'Could not generate the PDF. Try again; if it persists, use a shorter report or another browser.',
   },
   es: {
     portalPill: 'Portal del cliente',
@@ -180,5 +183,6 @@ export const relatorioClienteT: Record<
     modalCodeLocked: 'Demasiados intentos incorrectos. Espere unos minutos antes de intentar de nuevo.',
     modalSubmit: 'Acceder al informe',
     pdfGenerating: 'Generando PDF…',
+    pdfError: 'No se pudo generar el PDF. Inténtalo de nuevo; si persiste, usa un informe más corto u otro navegador.',
   },
 }

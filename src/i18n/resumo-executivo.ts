@@ -18,6 +18,9 @@ export const resumoT: Record<
     // Legenda das duas linhas por célula quando o modo IPCA mostra bandas
     // min/max acumuladas (visível só nesse cenário).
     disbursementBandLegend: string
+    basisCurveLabel: string
+    basisProvavelLabel: string
+    basisNote: string
     yearPrefix: string
     // Toggle Agregado / Detalhado (view do card de desembolso ano-a-ano)
     viewLabel: string
@@ -101,6 +104,10 @@ export const resumoT: Record<
       ano !== null ? `Escalonamento — IPCA variável ${ano}-${ano + 9}` : 'Escalonamento — IPCA variável', // +9 = HORIZON_YEARS-1 (lib/financeiro.ts)
     disbursementTitle: 'Desembolso projetado por ano — Total Geral',
     disbursementBandLegend: '↑ cenário otimista (IPCA mín) · ↓ cenário pessimista (IPCA máx)',
+    basisCurveLabel: 'Curva de desembolso (teto por item)',
+    basisProvavelLabel: 'Custo provável (estimativa central)',
+    basisNote:
+      'A curva usa o custo máximo de cada item — ou o desembolso por ano digitado, quando existe. O custo provável usa a estimativa central de cada categoria. São bases diferentes: os dois totais não se somam nem se substituem.',
     yearPrefix: 'ANO',
     viewLabel: 'Visão:',
     viewAggregated: 'Agregado por categoria',
@@ -176,6 +183,10 @@ export const resumoT: Record<
     method4: (ano) => (ano !== null ? `Escalation — variable IPCA ${ano}-${ano + 9}` : 'Escalation — variable IPCA'),
     disbursementTitle: 'Projected disbursement by year — Grand Total',
     disbursementBandLegend: '↑ optimistic scenario (CPI min) · ↓ pessimistic scenario (CPI max)',
+    basisCurveLabel: 'Disbursement curve (per-item ceiling)',
+    basisProvavelLabel: 'Most likely cost (central estimate)',
+    basisNote:
+      'The curve uses each item\'s maximum cost — or the per-year disbursement entered, when present. The most likely cost uses each category\'s central estimate. Different bases: the two totals neither add up nor replace each other.',
     yearPrefix: 'YEAR',
     viewLabel: 'View:',
     viewAggregated: 'Aggregated by category',
@@ -252,6 +263,10 @@ export const resumoT: Record<
       ano !== null ? `Escalonamiento — IPCA variable ${ano}-${ano + 9}` : 'Escalonamiento — IPCA variable',
     disbursementTitle: 'Desembolso proyectado por año — Total General',
     disbursementBandLegend: '↑ escenario optimista (IPCA mín) · ↓ escenario pesimista (IPCA máx)',
+    basisCurveLabel: 'Curva de desembolso (techo por ítem)',
+    basisProvavelLabel: 'Costo probable (estimación central)',
+    basisNote:
+      'La curva usa el costo máximo de cada ítem — o el desembolso por año ingresado, cuando existe. El costo probable usa la estimación central de cada categoría. Son bases distintas: los dos totales no se suman ni se sustituyen.',
     yearPrefix: 'AÑO',
     viewLabel: 'Vista:',
     viewAggregated: 'Agregado por categoría',

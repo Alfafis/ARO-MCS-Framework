@@ -22,12 +22,29 @@ export async function exportNodeAsPdf(node: HTMLElement, filename: string) {
   }
   cutPointsCss.push(nodeRect.height)
 
+  // Teto de área do canvas. Safari/iOS recusa canvas acima de ~16,7 milhões de
+  // pixels e devolve um bitmap VAZIO em vez de lançar erro — o PDF sai em
+  // branco, sem nada no console. Com `scale: 2` fixo, um relatório de ~10 cards
+  // (1040 × 8000 CSS px) dá 33M px e estoura. Aqui a escala cai até caber, então
+  // relatório longo perde nitidez em vez de falhar em silêncio.
+  const MAX_CANVAS_PIXELS = 16_000_000
+  const areaCss = nodeRect.width * nodeRect.height
+  const scale = areaCss > 0 ? Math.max(1, Math.min(2, Math.sqrt(MAX_CANVAS_PIXELS / areaCss))) : 2
+
   const canvas = await html2canvas(node, {
-    scale: 2,
+    scale,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
   })
+
+  // Rede de segurança pro mesmo modo de falha: canvas de dimensão zero (limite
+  // do browser, nó ainda sem layout) nunca deve virar um PDF em branco salvo
+  // como se tivesse dado certo.
+  if (canvas.width === 0 || canvas.height === 0) {
+    throw new Error(`html2canvas devolveu canvas vazio (${canvas.width}x${canvas.height})`)
+  }
+
   const imgData = canvas.toDataURL('image/jpeg', 0.98)
   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' })
   const pageWidth = pdf.internal.pageSize.getWidth()

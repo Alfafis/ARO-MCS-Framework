@@ -202,7 +202,21 @@ export default function RelatorioPdfLayout(props: RelatorioPdfLayoutProps) {
                 }}
               />
             </div>
-            <AnnualDisbursementCard years={disbursement.years} categories={disbursement.categories} />
+            <AnnualDisbursementCard
+              years={disbursement.years}
+              categories={disbursement.categories}
+              // `totaisPorAno` é opcional por retrocompat — sem ele não dá pra
+              // somar o total da curva aqui, e o rodapé de comparação some em
+              // vez de mostrar um total errado.
+              basis={
+                disbursement.totaisPorAno
+                  ? {
+                      curvaTotal: formatMoedaCompact(disbursement.totaisPorAno.reduce((a, b) => a + b, 0)),
+                      provavelTotal: formatMoedaCompact(baseTotal * modoMultiplier),
+                    }
+                  : undefined
+              }
+            />
           </div>
         )}
 
