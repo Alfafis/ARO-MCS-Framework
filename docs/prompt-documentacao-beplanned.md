@@ -234,8 +234,8 @@ espanhol) e o PDF sai sempre em tema claro.
 
 1. **A curva de desembolso e o custo provável medem coisas diferentes.** A curva parte do custo
    **máximo** de cada item (ou dos valores por ano digitados); o custo provável é o valor
-   informado por categoria. Os dois totais não batem, e isso é esperado — em um projeto real a
-   diferença foi de 6,17% (R$ 35,20 mi contra R$ 33,16 mi). Documentar como leitura, não como erro.
+   informado por categoria. Os dois totais não batem, e isso é esperado — a diferença fica na
+   ordem de alguns pontos percentuais. Documentar como leitura, não como erro.
 2. **O desembolso por ano não se ressincroniza quando o custo máximo do item muda.** O sistema
    avisa em laranja ("difere do Custo Max em R$ ..."), mas mantém o valor digitado no total da
    curva. Revisar o desembolso sempre que editar o custo do item.

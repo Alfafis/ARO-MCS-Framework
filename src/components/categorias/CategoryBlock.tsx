@@ -1097,8 +1097,8 @@ function DesembolsoToggleAndPanel({ item, t, horizon, aberto, onToggleAberto, on
   // proporcionalmente ao que já está distribuído. Só existe como ação
   // explícita: editar o Custo Max não reescreve o desembolso sozinho — o
   // consultor digitou aqueles números, e sobrescrever sem pedir é pior que
-  // manter o aviso (o desvio estava em 11 itens de um projeto real, um deles
-  // R$ 1,39 mi acima do teto, sem ninguém perceber).
+  // manter o aviso (na prática o desvio passou despercebido numa categoria
+  // inteira, um dos itens muito acima do próprio teto).
   function ajustarAoCustoMax() {
     const valores = textos.map((txt) => parseMoedaBR(txt))
     const somaAtual = valores.reduce((acc, v) => acc + v, 0)

@@ -9,9 +9,9 @@ interface Props {
   // Comparação explícita das duas bases de custo do relatório. A curva é
   // montada a partir do custo MÁXIMO de cada item (ou do desembolso por ano
   // digitado); o custo provável vem da estimativa central da categoria. Os
-  // dois totais divergem por construção — num projeto real, 6,17%. Sem esse
-  // rodapé a diferença parece erro de cálculo (foi exatamente como um cliente
-  // leu, ver ADR de 2026-09-29).
+  // dois totais divergem por construção, na ordem de alguns pontos
+  // percentuais. Sem esse rodapé a diferença parece erro de cálculo — foi
+  // assim que ela chegou como reclamação (ver ADR de 2026-09-29).
   basis?: { curvaTotal: string; provavelTotal: string }
 }
 
