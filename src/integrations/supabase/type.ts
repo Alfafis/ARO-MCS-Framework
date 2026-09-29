@@ -1045,14 +1045,17 @@ export type Database = {
       }
       tipos_projeto: {
         Row: {
+          ano_base: number | null
           id: string
           nome: string
         }
         Insert: {
+          ano_base?: number | null
           id: string
           nome: string
         }
         Update: {
+          ano_base?: number | null
           id?: string
           nome?: string
         }
@@ -1371,6 +1374,7 @@ export type Database = {
       criar_tipo_projeto: {
         Args: { p_nome: string }
         Returns: {
+          ano_base: number | null
           id: string
           nome: string
         }
@@ -1490,6 +1494,7 @@ export type Database = {
       renomear_tipo_projeto: {
         Args: { p_id: string; p_novo_nome: string }
         Returns: {
+          ano_base: number | null
           id: string
           nome: string
         }
