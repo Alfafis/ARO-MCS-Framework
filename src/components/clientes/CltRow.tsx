@@ -6,8 +6,10 @@ import { useT } from '@/i18n/useLang'
 import { clientesT } from '@/i18n/clientes'
 import type { Projeto, ProjStatus } from '@/types/clientes'
 
-export const ROW_COLS = '1fr 160px 90px 110px 140px 32px'
-export const ROW_COLS_WITH_CLIENTE = '140px 1fr 160px 90px 110px 140px 32px'
+// A coluna do projeto precisa de piso: com `1fr` puro e todas as outras fixas,
+// em tela estreita sobrava largura para ~3 caracteres e o nome virava "Proj…".
+export const ROW_COLS = 'minmax(200px, 1fr) 160px 90px 110px 140px 32px'
+export const ROW_COLS_WITH_CLIENTE = 'minmax(110px, 140px) minmax(200px, 1fr) 150px 90px 110px 130px 32px'
 
 interface Props {
   row: Projeto
@@ -67,7 +69,7 @@ export default function CltRow({
         </span>
         <div className="min-w-0">
           <div className="text-[0.875rem] font-semibold text-c-text truncate">{row.projeto}</div>
-          <div className="text-[11.5px] text-c-text-2 mt-0.5">{subtitle}</div>
+          <div className="text-[11.5px] text-c-text-2 mt-0.5 truncate">{subtitle}</div>
         </div>
       </div>
 
